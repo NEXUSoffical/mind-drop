@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: minddrop-combat
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MINDDROP_AUTH_SECRET
+        generateValue: true
+      - key: BLOXCLOUD_URL
+        value: https://bloxcloud.world
+      - key: BLOXCLOUD_API_KEY
+        sync: false

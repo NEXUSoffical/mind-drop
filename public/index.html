@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindDrop | 1v1 Rarity Trivia Combat Arena</title>
+    <meta name="description" content="1v1 Online Brain Combat. Rarer answers fire heavier energy attacks. First fighter to 0 HP loses. Powered by BloxCloud.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #02030b;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+        #spaceBgCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header, main, footer {
+            position: relative;
+            z-index: 1;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .hidden { display: none !important; }
+
+        header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 22px; background: rgba(4, 8, 24, 0.58);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.28);
+        }
+        .logo { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-badge {
+            width: 32px; height: 32px; border-radius: 9px;
+            background: linear-gradient(135deg, #38bdf8, #f43f5e);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; color: #fff;
+        }
+        .bc-pill {
+            font-size: 11px; font-weight: 700; color: #bae6fd; text-decoration: none;
+            padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(56,189,248,0.4);
+            background: rgba(14, 165, 233, 0.16);
+        }
+        .bc-pill:hover { background: rgba(14, 165, 233, 0.35); color: #fff; }
+
+        main {
+            flex: 1; width: 100%; max-width: 960px; margin: 0 auto;
+            padding: 20px 16px 32px; display: flex; flex-direction: column; justify-content: center; gap: 16px;
+        }
+
+        .card {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 12px 8px;
+            box-shadow: none;
+        }
+        #viewArena.card {
+            background: rgba(4, 8, 22, 0.55);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 20px;
+            padding: 18px;
+        }
+        .lb-section {
+            margin-top: 26px;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(4, 9, 24, 0.58);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+        }
+
+        .hero-title { font-size: 44px; font-weight: 800; text-align: center; letter-spacing: -1px; line-height: 1.08; text-shadow: 0 4px 24px rgba(0,0,0,0.85); }
+        .hero-grad { background: linear-gradient(90deg, #38bdf8, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero-sub { text-align: center; color: #cbd5e1; font-size: 14px; max-width: 560px; margin: 10px auto 0; line-height: 1.5; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+
+        .btn {
+            border: none; border-radius: 12px; padding: 12px 18px; font-family: inherit;
+            font-size: 13px; font-weight: 800; cursor: pointer; color: #fff; transition: 0.15s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-cyan { background: linear-gradient(90deg, #0284c7, #06b6d4); box-shadow: 0 6px 20px rgba(6,182,212,0.35); }
+        .btn-rose { background: linear-gradient(90deg, #e11d48, #f97316); box-shadow: 0 6px 20px rgba(244,63,94,0.35); }
+        .btn-ghost { background: rgba(30, 58, 138, 0.45); border: 1px solid rgba(56,189,248,0.3); color: #e2e8f0; }
+        input {
+            width: 100%; background: #030816; border: 1.5px solid rgba(56, 189, 248, 0.45);
+            border-radius: 12px; padding: 12px 14px; color: #fff; font-size: 15px; font-family: inherit; outline: none;
+        }
+        input:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+
+        /* Fighting Game HP HUD */
+        .hp-hud {
+            display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px;
+            margin-bottom: 12px;
+        }
+        .fighter-hud-name { font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .hp-track {
+            height: 20px; border-radius: 999px; background: #0f172a;
+            border: 2px solid rgba(255,255,255,0.2); overflow: hidden; position: relative;
+        }
+        .hp-fill-left {
+            height: 100%; width: 100%;
+            background: linear-gradient(90deg, #0284c7, #38bdf8);
+            transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .hp-fill-right {
+            height: 100%; width: 100%; margin-left: auto;
+            background: linear-gradient(90deg, #f97316, #f43f5e);
+            transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .vs-clock {
+            min-width: 78px; text-align: center; padding: 8px 12px;
+            border-radius: 14px; background: #040b1d; border: 1.5px solid rgba(251, 191, 36, 0.55);
+        }
+        .vs-round { font-size: 10px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; }
+        .vs-sec { font-size: 22px; font-weight: 800; color: #fff; }
+
+        /* Arena Stage Canvas */
+        .arena-wrap {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1.5px solid rgba(56, 189, 248, 0.35);
+            background: #030712;
+            margin-bottom: 14px;
+        }
+        #arenaCanvas {
+            width: 100%;
+            height: 310px;
+            display: block;
+        }
+        .arena-wrap.shake { animation: shakeAnim 0.42s ease; }
+        @keyframes shakeAnim {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-8px, 5px); }
+            40% { transform: translate(8px, -5px); }
+            60% { transform: translate(-5px, -3px); }
+            80% { transform: translate(5px, 3px); }
+        }
+
+        .clash-overlay {
+            position: absolute; inset: 0; pointer-events: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 16px;
+        }
+        .clash-banner {
+            background: rgba(4, 10, 26, 0.88);
+            border: 2px solid #fbbf24;
+            border-radius: 16px;
+            padding: 12px 22px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+        }
+
+        .tier-badge {
+            display: inline-block; padding: 3px 9px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; letter-spacing: 1px;
+        }
+        .tier-LEGENDARY { background: rgba(245,158,11,0.25); color: #fde047; border: 1px solid #f59e0b; }
+        .tier-RARE { background: rgba(168,85,247,0.25); color: #e9d5ff; border: 1px solid #a855f7; }
+        .tier-UNCOMMON { background: rgba(56,189,248,0.25); color: #bae6fd; border: 1px solid #38bdf8; }
+        .tier-COMMON { background: rgba(148,163,184,0.22); color: #e2e8f0; border: 1px solid #94a3b8; }
+        .tier-INVALID { background: rgba(244,63,94,0.25); color: #fecdd3; border: 1px solid #f43f5e; }
+
+        .dmg-legend {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+            font-size: 11px; color: #94a3b8; margin-top: 12px;
+        }
+
+        /* Krillion-style Auto-Spell & Retry UX */
+        .input-error-shake {
+            border-color: #f43f5e !important;
+            box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.28) !important;
+            animation: inputShake 0.32s ease;
+        }
+        @keyframes inputShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-7px); }
+            40% { transform: translateX(7px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        .suggest-row {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            margin-top: 8px; min-height: 28px;
+        }
+        .suggest-label {
+            font-size: 11px; font-weight: 700; color: #94a3b8;
+        }
+        .suggest-pill {
+            background: rgba(14, 165, 233, 0.16);
+            border: 1px solid rgba(56, 189, 248, 0.45);
+            color: #e0f2fe;
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.12s;
+        }
+        .suggest-pill:hover {
+            background: rgba(56, 189, 248, 0.35);
+            border-color: #38bdf8;
+            color: #fff;
+        }
+        .tab-hint {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 1px 5px;
+            margin-left: 6px;
+            border-radius: 4px;
+            background: rgba(56, 189, 248, 0.28);
+            color: #7dd3fc;
+        }
+        .reject-msg {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fb7185;
+            margin-top: 8px;
+        }
+        .elo-card {
+            max-width: 460px;
+            margin: 16px auto 0;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .elo-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: #e2e8f0;
+            margin-left: 6px;
+        }
+        .ko-elo-box {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .lb-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .lb-table th {
+            text-align: left;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #64748b;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .lb-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+        .lb-row-me {
+            background: rgba(56, 189, 248, 0.12);
+        }
+        .lb-pos-1 { color: #fde047; font-weight: 800; }
+        .lb-pos-2 { color: #cbd5e1; font-weight: 800; }
+        .lb-pos-3 { color: #fb923c; font-weight: 800; }
+
+        .modal-backdrop {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .modal-card {
+            width: 100%; max-width: 390px;
+            background: #09122a;
+            border: 1.5px solid rgba(56, 189, 248, 0.45);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+        }
+        .tab-bar {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            background: #030816; padding: 4px; border-radius: 12px; margin-bottom: 16px;
+        }
+        .tab-btn {
+            border: none; border-radius: 9px; padding: 9px; font-family: inherit;
+            font-size: 12px; font-weight: 800; cursor: pointer; background: transparent; color: #94a3b8;
+        }
+        .tab-btn.active { background: #0284c7; color: #fff; }
+        footer { text-align: center; padding: 14px; font-size: 12px; color: #64748b; }
+        footer a { color: #38bdf8; text-decoration: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+    <canvas id="spaceBgCanvas"></canvas>
+    <header>
+        <div class="logo" onclick="leaveDuel()">
+            <div class="logo-badge">M</div>
+            <span>MindDrop <span style="color:#38bdf8; font-weight:600; font-size:13px;">1v1 Combat</span></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
+            <div id="headerUserBox" class="hidden" style="display:flex; align-items:center; gap:8px;">
+                <span id="headerUsername" class="mono" style="font-size:12px; font-weight:800; color:#34d399;"></span>
+                <button class="btn btn-ghost" onclick="logoutAccount()" style="padding:6px 10px; font-size:11px;">Log Out</button>
+            </div>
+            <a href="https://bloxcloud.world" target="_blank" rel="noopener noreferrer" class="bc-pill">Powered by BloxCloud</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- HOME SCREEN -->
+        <section id="viewHome" class="card">
+            <div style="text-align:center; margin-bottom:10px;">
+                <span class="tier-badge tier-LEGENDARY">1V1 RARITY BRAIN COMBAT</span>
+            </div>
+            <h1 class="hero-title">RARER ANSWERS. <span class="hero-grad">HEAVIER DAMAGE.</span></h1>
+            <p class="hero-sub">
+                Both fighters start with 200 HP. Every round gives a category from 24+ topics — type the rarest valid answer you know to fire a stronger attack. Win matches to climb ELO and unlock tougher opponents.
+            </p>
+
+            <div class="elo-card">
+                <div>
+                    <div id="homeRatingModeLabel" style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#94a3b8;">GUEST SESSION RATING</div>
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+                        <span id="homeEloValue" class="mono" style="font-size:20px; font-weight:800; color:#fff;">0 ELO</span>
+                        <span id="homeRankBadge" class="elo-pill" style="margin-left:0; color:#fb923c; border-color:#fb923c;">BRONZE</span>
+                    </div>
+                </div>
+                <div style="text-align:right;">
+                    <div id="homeRecordText" class="mono" style="font-size:12px; font-weight:700; color:#cbd5e1;">0W - 0L</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">AI Tier: <strong id="homeAiTier" style="color:#38bdf8;">EASY</strong></div>
+                </div>
+                <div id="guestSaveBanner" style="width:100%; padding-top:8px; border-top:1px solid rgba(148,163,184,0.14); display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; color:#94a3b8;">
+                    <span>Play as guest anytime, or sign up to permanently save ELO &amp; rank on the leaderboard.</span>
+                    <button class="btn btn-cyan" onclick="openAuthModal('register')" style="padding:6px 10px; font-size:11px; white-space:nowrap;">Save ELO</button>
+                </div>
+            </div>
+
+            <div style="max-width:360px; margin:22px auto 0; display:flex; flex-direction:column; gap:10px;">
+                <input id="fighterNameInput" type="text" maxlength="16" placeholder="Enter your fighter name...">
+                <button class="btn btn-rose" onclick="startDuel('quick', '')">Quick 1v1 Online Match</button>
+                <button class="btn btn-cyan" onclick="startDuel('ai', '')">Instant 1v1 vs AI Fighter</button>
+                <div style="display:flex; gap:8px; margin-top:4px;">
+                    <input id="duelCodeInput" type="text" maxlength="4" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:13px; padding:10px 12px;">
+                    <button class="btn btn-ghost" onclick="startDuel('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
+                </div>
+            </div>
+
+            <div class="dmg-legend">
+                <span><strong style="color:#cbd5e1;">COMMON</strong> 10 DMG</span>
+                <span><strong style="color:#38bdf8;">UNCOMMON</strong> 20 DMG</span>
+                <span><strong style="color:#c084fc;">RARE</strong> 32 DMG</span>
+                <span><strong style="color:#fbbf24;">LEGENDARY</strong> 46 DMG</span>
+                <span><strong style="color:#34d399;">RARER WIN</strong> +6 BONUS</span>
+                <span><strong style="color:#fb7185;">SAME WORD</strong> CLASH BLOCKED</span>
+            </div>
+
+            <!-- Live Global ELO Leaderboard (Signed-in Accounts) -->
+            <div class="lb-section">
+                <div class="lb-header">
+                    <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#e2e8f0;">GLOBAL ELO LEADERBOARD</div>
+                    <div style="font-size:11px; color:#94a3b8;">Sign in to save your ELO permanently &amp; compete on the leaderboard</div>
+                </div>
+                <div id="lbEmpty" style="text-align:center; padding:16px; font-size:13px; color:#94a3b8; background:rgba(15,23,42,0.5); border-radius:12px;">
+                    No signed-in players ranked yet — create a free account and win a match to claim #1.
+                </div>
+                <table id="lbTable" class="lb-table hidden">
+                    <thead>
+                        <tr>
+                            <th style="width:48px;">#</th>
+                            <th>Fighter</th>
+                            <th>Rank</th>
+                            <th style="text-align:right;">Record</th>
+                            <th style="text-align:right;">ELO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lbBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 1V1 COMBAT ARENA -->
+        <section id="viewArena" class="card hidden">
+            <!-- Top Health Bars -->
+            <div class="hp-hud">
+                <div>
+                    <div class="fighter-hud-name">
+                        <span><span id="leftName" style="color:#38bdf8;">YOU</span><span id="leftEloBadge" class="elo-pill mono">0 ELO</span></span>
+                        <span id="leftHpText" class="mono" style="color:#fff;">200 HP</span>
+                    </div>
+                    <div class="hp-track"><div id="leftHpBar" class="hp-fill-left"></div></div>
+                </div>
+
+                <div class="vs-clock">
+                    <div class="vs-round">RD <span id="roundNum">1</span></div>
+                    <div id="roundTimer" class="vs-sec mono">16</div>
+                </div>
+
+                <div>
+                    <div class="fighter-hud-name">
+                        <span id="rightHpText" class="mono" style="color:#fff;">200 HP</span>
+                        <span><span id="rightEloBadge" class="elo-pill mono" style="margin-left:0; margin-right:6px;">0 ELO</span><span id="rightName" style="color:#fb7185;">OPPONENT</span></span>
+                    </div>
+                    <div class="hp-track"><div id="rightHpBar" class="hp-fill-right"></div></div>
+                </div>
+            </div>
+
+            <!-- Live 60fps Battle Canvas -->
+            <div id="arenaWrap" class="arena-wrap">
+                <canvas id="arenaCanvas"></canvas>
+                <div id="clashOverlay" class="clash-overlay hidden">
+                    <div class="clash-banner">
+                        <div id="clashHeadline" style="font-size:18px; font-weight:800; color:#fde047;">CLASH!</div>
+                        <div id="clashDetails" style="font-size:13px; color:#e2e8f0; margin-top:6px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Waiting for 2nd Player Notice -->
+            <div id="waitingNotice" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35);">
+                <div style="font-size:14px; font-weight:800; color:#7dd3fc;">Waiting for Opponent to Join...</div>
+                <div style="font-size:12px; color:#cbd5e1; margin-top:4px;">Share Room Code: <strong id="shareRoomCode" class="mono" style="color:#fff; font-size:15px;">----</strong></div>
+                <button class="btn btn-cyan" onclick="switchToAiNow()" style="margin-top:10px; padding:8px 14px; font-size:12px;">Fight AI Instead</button>
+            </div>
+
+            <!-- Active Prompt & Attack Input -->
+            <div id="attackBar" class="hidden">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                    <span id="promptCat" style="font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#38bdf8;">CATEGORY</span>
+                    <span id="oppReadyStatus" style="font-size:11px; font-weight:700; color:#94a3b8;">Opponent thinking...</span>
+                </div>
+                <div id="promptText" style="font-size:24px; font-weight:800; margin-bottom:12px;">Name a fruit</div>
+                <div id="attackInputRow" style="display:flex; gap:10px;">
+                    <input id="attackInput" type="text" maxlength="40" placeholder="Type your rarest valid answer (Tab auto-spells)..." autocomplete="off">
+                    <button class="btn btn-rose" onclick="submitAttack()" style="white-space:nowrap;">FIRE ATTACK</button>
+                </div>
+                <div id="attackRejectMsg" class="reject-msg hidden"></div>
+                <div id="suggestRow" class="suggest-row hidden"></div>
+                <div id="attackLockedMsg" class="hidden" style="font-size:13px; font-weight:800; color:#34d399; margin-top:8px;">Attack charged! Waiting for opponent...</div>
+            </div>
+
+            <!-- KO Victory / Defeat Box -->
+            <div id="koBox" class="hidden" style="text-align:center; padding:16px; border-radius:16px; background:rgba(4,11,29,0.9); border:1.5px solid #fbbf24;">
+                <div id="koHeadline" style="font-size:32px; font-weight:800;">K.O. VICTORY!</div>
+                <div id="koSub" style="font-size:13px; color:#cbd5e1; margin-top:4px;"></div>
+                <div id="koEloDelta" class="ko-elo-box mono hidden"></div>
+                <div id="koGuestPrompt" class="hidden" style="margin-top:8px; font-size:12px; color:#94a3b8;">
+                    Playing as Guest — <button type="button" onclick="openAuthModal('register')" style="background:none; border:none; color:#38bdf8; font-weight:800; cursor:pointer; text-decoration:underline; font-family:inherit;">Sign up to save this ELO &amp; join the leaderboard</button>
+                </div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+                    <button class="btn btn-rose" onclick="sendRematch()">Rematch</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Optional Sign In / Create Account Modal -->
+    <div id="authModal" class="modal-backdrop hidden" onclick="if (event.target === this) closeAuthModal()">
+        <div class="modal-card">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <div style="font-size:17px; font-weight:800;">MindDrop Account</div>
+                <button type="button" onclick="closeAuthModal()" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">X</button>
+            </div>
+            <div class="tab-bar">
+                <button id="tabRegister" type="button" class="tab-btn active" onclick="setAuthMode('register')">Create Account</button>
+                <button id="tabLogin" type="button" class="tab-btn" onclick="setAuthMode('login')">Log In</button>
+            </div>
+            <div id="authHint" style="font-size:12px; color:#94a3b8; margin-bottom:12px; line-height:1.4;">
+                Optional: Save your ELO permanently across devices and rank on the Global Leaderboard. Your current guest ELO transfers automatically.
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <input id="authUsername" type="text" maxlength="16" placeholder="Username (3-16 chars)">
+                <input id="authPassword" type="password" maxlength="72" placeholder="Password (6+ chars)" onkeydown="if(event.key==='Enter') submitAuth()">
+                <div id="authError" class="hidden" style="font-size:12px; font-weight:700; color:#fb7185;"></div>
+                <button id="authSubmitBtn" type="button" class="btn btn-cyan" onclick="submitAuth()">Create Account &amp; Save ELO</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        MindDrop 1v1 Rarity Combat • Powered by <a href="https://bloxcloud.world" target="_blank" rel="noopener noreferrer">BloxCloud</a>
+    </footer>
+
+    <script>
+        // -----------------------------------------------------------
+        // 0. FULL-PAGE DEEP SPACE BACKGROUND (STARS + NEBULA + METEORS)
+        // -----------------------------------------------------------
+        const bgCanvas = document.getElementById('spaceBgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let bw = window.innerWidth, bh = window.innerHeight;
+        const bgStars = [];
+        const shootingStars = [];
+
+        function initSpaceBg() {
+            bw = bgCanvas.width = window.innerWidth;
+            bh = bgCanvas.height = window.innerHeight;
+            bgStars.length = 0;
+            const count = Math.min(220, Math.floor((bw * bh) / 6500));
+            const starColors = ['#ffffff', '#bae6fd', '#e9d5ff', '#fef08a', '#fda4af'];
+            for (let i = 0; i < count; i++) {
+                bgStars.push({
+                    x: Math.random() * bw,
+                    y: Math.random() * bh,
+                    r: 0.5 + Math.random() * 1.7,
+                    speed: 0.04 + Math.random() * 0.16,
+                    phase: Math.random() * Math.PI * 2,
+                    twinkle: 0.0015 + Math.random() * 0.003,
+                    color: starColors[Math.floor(Math.random() * starColors.length)],
+                });
+            }
+        }
+        initSpaceBg();
+        window.addEventListener('resize', initSpaceBg);
+
+        function renderSpaceBg(now) {
+            requestAnimationFrame(renderSpaceBg);
+            bgCtx.clearRect(0, 0, bw, bh);
+
+            // Deep Space Base Gradient
+            const base = bgCtx.createLinearGradient(0, 0, 0, bh);
+            base.addColorStop(0, '#020412');
+            base.addColorStop(0.5, '#070822');
+            base.addColorStop(1, '#02030c');
+            bgCtx.fillStyle = base;
+            bgCtx.fillRect(0, 0, bw, bh);
+
+            // Drifting Cosmic Nebulas (Vivid Milky Way Glow)
+            const n1x = bw * 0.20 + Math.sin(now * 0.00018) * 60;
+            const n1y = bh * 0.25 + Math.cos(now * 0.00014) * 40;
+            const neb1 = bgCtx.createRadialGradient(n1x, n1y, 10, n1x, n1y, Math.max(bw, bh) * 0.48);
+            neb1.addColorStop(0, 'rgba(139, 92, 246, 0.38)');
+            neb1.addColorStop(0.45, 'rgba(79, 70, 229, 0.18)');
+            neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            bgCtx.fillStyle = neb1;
+            bgCtx.fillRect(0, 0, bw, bh);
+
+            const n2x = bw * 0.80 + Math.cos(now * 0.00015) * 70;
+            const n2y = bh * 0.68 + Math.sin(now * 0.00016) * 45;
+            const neb2 = bgCtx.createRadialGradient(n2x, n2y, 10, n2x, n2y, Math.max(bw, bh) * 0.46);
+            neb2.addColorStop(0, 'rgba(14, 165, 233, 0.34)');
+            neb2.addColorStop(0.45, 'rgba(236, 72, 153, 0.15)');
+            neb2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            bgCtx.fillStyle = neb2;
+            bgCtx.fillRect(0, 0, bw, bh);
+
+            // Big Ringed Gas Planet in Upper-Right Space
+            const px = bw * 0.84, py = bh * 0.22;
+            bgCtx.save();
+            bgCtx.strokeStyle = 'rgba(186, 230, 253, 0.28)';
+            bgCtx.lineWidth = 10;
+            bgCtx.beginPath();
+            bgCtx.ellipse(px, py, 130, 30, -0.25, Math.PI, Math.PI * 2);
+            bgCtx.stroke();
+
+            const pGrad = bgCtx.createRadialGradient(px - 22, py - 22, 8, px, py, 68);
+            pGrad.addColorStop(0, '#67e8f9');
+            pGrad.addColorStop(0.42, '#6366f1');
+            pGrad.addColorStop(0.85, '#1e1b4b');
+            pGrad.addColorStop(1, '#090920');
+            bgCtx.fillStyle = pGrad;
+            bgCtx.beginPath();
+            bgCtx.arc(px, py, 64, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            bgCtx.strokeStyle = 'rgba(224, 242, 254, 0.52)';
+            bgCtx.lineWidth = 10;
+            bgCtx.beginPath();
+            bgCtx.ellipse(px, py, 130, 30, -0.25, 0, Math.PI);
+            bgCtx.stroke();
+
+            // Distant Glowing Moon on Left
+            const mx = bw * 0.12, my = bh * 0.72;
+            const mGrad = bgCtx.createRadialGradient(mx - 10, my - 10, 4, mx, my, 36);
+            mGrad.addColorStop(0, '#f8fafc');
+            mGrad.addColorStop(0.55, '#94a3b8');
+            mGrad.addColorStop(1, '#1e293b');
+            bgCtx.fillStyle = mGrad;
+            bgCtx.beginPath();
+            bgCtx.arc(mx, my, 34, 0, Math.PI * 2);
+            bgCtx.fill();
+            bgCtx.restore();
+
+            // Twinkling Parallax Stars
+            for (const s of bgStars) {
+                s.x -= s.speed;
+                if (s.x < -2) { s.x = bw + 2; s.y = Math.random() * bh; }
+                const alpha = 0.45 + 0.55 * Math.abs(Math.sin(now * s.twinkle + s.phase));
+                bgCtx.globalAlpha = alpha;
+                bgCtx.fillStyle = s.color;
+                bgCtx.beginPath();
+                bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                bgCtx.fill();
+            }
+            bgCtx.globalAlpha = 1;
+
+            // Frequent Shooting Stars
+            if (Math.random() < 0.018 && shootingStars.length < 3) {
+                shootingStars.push({
+                    x: Math.random() * bw * 0.8 + bw * 0.2,
+                    y: Math.random() * bh * 0.45,
+                    vx: -(7 + Math.random() * 6),
+                    vy: 2.5 + Math.random() * 2.5,
+                    len: 55 + Math.random() * 55,
+                    life: 1,
+                });
+            }
+            for (let i = shootingStars.length - 1; i >= 0; i--) {
+                const st = shootingStars[i];
+                st.x += st.vx;
+                st.y += st.vy;
+                st.life -= 0.022;
+                if (st.life <= 0) { shootingStars.splice(i, 1); continue; }
+                const grad = bgCtx.createLinearGradient(st.x, st.y, st.x - st.vx * 6, st.y - st.vy * 6);
+                grad.addColorStop(0, `rgba(255,255,255,${st.life})`);
+                grad.addColorStop(1, 'rgba(56,189,248,0)');
+                bgCtx.strokeStyle = grad;
+                bgCtx.lineWidth = 2;
+                bgCtx.beginPath();
+                bgCtx.moveTo(st.x, st.y);
+                bgCtx.lineTo(st.x - st.vx * 6, st.y - st.vy * 6);
+                bgCtx.stroke();
+            }
+        }
+        requestAnimationFrame(renderSpaceBg);
+
+        // -----------------------------------------------------------
+        // 1. SOUND EFFECTS (SYNTH)
+        // -----------------------------------------------------------
+        let audioCtx = null;
+        function playSfx(freq, dur = 0.16, type = 'triangle', vol = 0.14, delay = 0) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime + delay);
+                g.gain.setValueAtTime(vol, audioCtx.currentTime + delay);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + dur);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + dur);
+            } catch {}
+        }
+        function playHitSfx(heavy) {
+            if (heavy) {
+                playSfx(140, 0.25, 'sawtooth', 0.18, 0);
+                playSfx(520, 0.16, 'triangle', 0.15, 0.06);
+                playSfx(880, 0.28, 'triangle', 0.16, 0.14);
+            } else {
+                playSfx(220, 0.16, 'square', 0.12, 0);
+                playSfx(330, 0.14, 'triangle', 0.1, 0.05);
+            }
+        }
+
+        // -----------------------------------------------------------
+        // 2. 60FPS 1V1 FIGHTING ARENA CANVAS
+        // -----------------------------------------------------------
+        const canvas = document.getElementById('arenaCanvas');
+        const ctx = canvas.getContext('2d');
+        let cw = 900, ch = 310;
+        function resizeArena() {
+            const rect = canvas.getBoundingClientRect();
+            cw = canvas.width = Math.max(320, Math.floor(rect.width));
+            ch = canvas.height = 310;
+        }
+        window.addEventListener('resize', resizeArena);
+
+        const anim = {
+            leftHp: 200, rightHp: 200,
+            leftHitFlash: 0, rightHitFlash: 0,
+            leftRecoil: 0, rightRecoil: 0,
+            beams: [], // { fromSide, color, width, life }
+            sparks: [],
+            popups: [], // { x, y, text, color, life }
+        };
+
+        function fireAttackVisual(fromSide, tier, dmg) {
+            const colorMap = { LEGENDARY: '#facc15', RARE: '#c084fc', UNCOMMON: '#38bdf8', COMMON: '#94a3b8' };
+            const widthMap = { LEGENDARY: 24, RARE: 15, UNCOMMON: 9, COMMON: 5 };
+            const color = colorMap[tier] || '#38bdf8';
+            const width = widthMap[tier] || 6;
+
+            if (dmg > 0) {
+                anim.beams.push({ fromSide, color, width, life: 0.7 });
+                const targetX = fromSide === 'LEFT' ? cw * 0.78 : cw * 0.22;
+                const targetY = ch * 0.56;
+                if (fromSide === 'LEFT') { anim.rightHitFlash = 1; anim.rightRecoil = 26; }
+                else { anim.leftHitFlash = 1; anim.leftRecoil = -26; }
+
+                const sparkCount = tier === 'LEGENDARY' ? 42 : tier === 'RARE' ? 26 : 14;
+                for (let i = 0; i < sparkCount; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const s = 2 + Math.random() * 9;
+                    anim.sparks.push({ x: targetX, y: targetY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, r: 2 + Math.random() * 4, color, life: 0.8 });
+                }
+                anim.popups.push({
+                    x: targetX,
+                    y: targetY - 54,
+                    text: tier === 'LEGENDARY' ? `-${dmg} CRIT!` : `-${dmg}`,
+                    color: tier === 'LEGENDARY' ? '#fde047' : '#ffffff',
+                    life: 1.4,
+                });
+            }
+        }
+
+        function drawCyberFighter(x, y, side, hp, hitFlash, now) {
+            const isLeft = side === 'LEFT';
+            const primary = isLeft ? '#38bdf8' : '#f43f5e';
+            const glow = isLeft ? '#0284c7' : '#e11d48';
+            const bob = hp > 0 ? Math.sin(now * 0.005 + (isLeft ? 0 : 2)) * 5 : 22;
+
+            ctx.save();
+            ctx.translate(x, y + bob);
+            if (hp <= 0) {
+                ctx.rotate(isLeft ? -1.2 : 1.2);
+                ctx.globalAlpha = 0.45;
+            }
+
+            // Ground aura shadow
+            ctx.fillStyle = isLeft ? 'rgba(56,189,248,0.22)' : 'rgba(244,63,94,0.22)';
+            ctx.beginPath();
+            ctx.ellipse(0, 62 - bob, 44, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Legs
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-18, 22, 13, 36);
+            ctx.fillRect(5, 22, 13, 36);
+
+            // Armored Torso
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : primary;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(-26, -24, 52, 50, 12) : ctx.fillRect(-26, -24, 52, 50);
+            ctx.fill();
+
+            // Chest Core Glow
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(0, -2, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Helmet Head
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : '#0f172a';
+            ctx.strokeStyle = primary;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(0, -48, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Glowing Visor facing opponent
+            ctx.fillStyle = glow;
+            ctx.fillRect(isLeft ? 2 : -18, -54, 16, 9);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(isLeft ? 5 : -15, -52, 10, 4);
+
+            // Energy Arm Cannon aimed at opponent
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(isLeft ? 18 : -44, -10, 26, 12);
+            ctx.fillStyle = primary;
+            ctx.fillRect(isLeft ? 38 : -46, -12, 8, 16);
+
+            ctx.restore();
+        }
+
+        let lastT = performance.now();
+        const arenaStars = Array.from({ length: 85 }, () => ({
+            x: Math.random(),
+            y: Math.random() * 0.78,
+            r: 0.6 + Math.random() * 1.5,
+            p: Math.random() * Math.PI * 2,
+            sp: 0.002 + Math.random() * 0.003,
+        }));
+
+        function renderArena(now) {
+            requestAnimationFrame(renderArena);
+            if (canvas.clientWidth > 0 && canvas.clientWidth !== cw) {
+                cw = canvas.width = Math.floor(canvas.clientWidth);
+                ch = canvas.height = 310;
+            }
+            const dt = Math.min(0.05, (now - lastT) / 1000);
+            lastT = now;
+
+            // Deep Space Arena Backdrop
+            const bg = ctx.createLinearGradient(0, 0, 0, ch);
+            bg.addColorStop(0, '#020412');
+            bg.addColorStop(0.58, '#0b0e2d');
+            bg.addColorStop(1, '#040614');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, cw, ch);
+
+            // Arena Nebula Clouds
+            const nebL = ctx.createRadialGradient(cw * 0.25, ch * 0.3, 8, cw * 0.25, ch * 0.3, cw * 0.35);
+            nebL.addColorStop(0, 'rgba(56, 189, 248, 0.22)');
+            nebL.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = nebL;
+            ctx.fillRect(0, 0, cw, ch);
+
+            const nebR = ctx.createRadialGradient(cw * 0.75, ch * 0.28, 8, cw * 0.75, ch * 0.28, cw * 0.35);
+            nebR.addColorStop(0, 'rgba(168, 85, 247, 0.24)');
+            nebR.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = nebR;
+            ctx.fillRect(0, 0, cw, ch);
+
+            // Twinkling Arena Stars
+            for (const s of arenaStars) {
+                ctx.fillStyle = '#e0f2fe';
+                ctx.globalAlpha = 0.3 + 0.7 * Math.abs(Math.sin(now * s.sp + s.p));
+                ctx.beginPath();
+                ctx.arc(s.x * cw, s.y * ch, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Distant Ringed Planet in Center-Right Sky
+            const px = cw * 0.56, py = ch * 0.28;
+            ctx.save();
+            // Back ring half
+            ctx.strokeStyle = 'rgba(186, 230, 253, 0.32)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.ellipse(px, py, 68, 16, -0.22, Math.PI, Math.PI * 2);
+            ctx.stroke();
+
+            // Planet sphere
+            const pGrad = ctx.createRadialGradient(px - 14, py - 14, 6, px, py, 36);
+            pGrad.addColorStop(0, '#67e8f9');
+            pGrad.addColorStop(0.45, '#4f46e5');
+            pGrad.addColorStop(1, '#1e1b4b');
+            ctx.fillStyle = pGrad;
+            ctx.beginPath();
+            ctx.arc(px, py, 34, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Front ring half
+            ctx.strokeStyle = 'rgba(224, 242, 254, 0.55)';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.ellipse(px, py, 68, 16, -0.22, 0, Math.PI);
+            ctx.stroke();
+
+            // Small Distant Moon
+            ctx.fillStyle = '#cbd5e1';
+            ctx.beginPath();
+            ctx.arc(cw * 0.16, ch * 0.2, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
+            ctx.beginPath();
+            ctx.arc(cw * 0.16 + 3, ch * 0.2 - 2, 3, 0, Math.PI * 2);
+            ctx.arc(cw * 0.16 - 4, ch * 0.2 + 3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Floating Orbital Battle Deck (Suspended in Space)
+            const deckY = ch * 0.74;
+            const deckGrad = ctx.createLinearGradient(0, deckY, 0, ch);
+            deckGrad.addColorStop(0, '#131d42');
+            deckGrad.addColorStop(1, '#060a1c');
+            ctx.fillStyle = deckGrad;
+            ctx.beginPath();
+            ctx.moveTo(cw * 0.08, deckY);
+            ctx.lineTo(cw * 0.92, deckY);
+            ctx.lineTo(cw * 0.98, deckY + 46);
+            ctx.lineTo(cw * 0.02, deckY + 46);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glowing Neon Rim + Perspective Grid on Orbital Deck
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cw * 0.08, deckY); ctx.lineTo(cw * 0.92, deckY);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(129, 140, 248, 0.25)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            for (let i = -5; i <= 5; i++) {
+                ctx.moveTo(cw * 0.5 + i * 65, deckY);
+                ctx.lineTo(cw * 0.5 + i * 86, deckY + 46);
+            }
+            ctx.stroke();
+
+            // Under-Deck Space Thruster Glow
+            const thrustL = ctx.createRadialGradient(cw * 0.22, deckY + 52, 2, cw * 0.22, deckY + 52, 65);
+            thrustL.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
+            thrustL.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = thrustL;
+            ctx.fillRect(0, deckY + 30, cw, 55);
+
+            const thrustR = ctx.createRadialGradient(cw * 0.78, deckY + 52, 2, cw * 0.78, deckY + 52, 65);
+            thrustR.addColorStop(0, 'rgba(244, 63, 94, 0.45)');
+            thrustR.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = thrustR;
+            ctx.fillRect(0, deckY + 30, cw, 55);
+
+            // Decay hit flashes & recoil
+            anim.leftHitFlash = Math.max(0, anim.leftHitFlash - dt * 3);
+            anim.rightHitFlash = Math.max(0, anim.rightHitFlash - dt * 3);
+            anim.leftRecoil *= 0.85;
+            anim.rightRecoil *= 0.85;
+
+            // Draw Both Fighters
+            drawCyberFighter(cw * 0.22 + anim.leftRecoil, ch * 0.56, 'LEFT', anim.leftHp, anim.leftHitFlash, now);
+            drawCyberFighter(cw * 0.78 + anim.rightRecoil, ch * 0.56, 'RIGHT', anim.rightHp, anim.rightHitFlash, now);
+
+            // Draw Energy Attack Beams
+            for (let i = anim.beams.length - 1; i >= 0; i--) {
+                const b = anim.beams[i];
+                b.life -= dt * 1.4;
+                if (b.life <= 0) { anim.beams.splice(i, 1); continue; }
+                const sx = b.fromSide === 'LEFT' ? cw * 0.26 : cw * 0.74;
+                const ex = b.fromSide === 'LEFT' ? cw * 0.76 : cw * 0.24;
+                const sy = ch * 0.54;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, b.life / 0.7);
+                ctx.strokeStyle = b.color;
+                ctx.lineWidth = b.width;
+                ctx.lineCap = 'round';
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 22;
+                ctx.beginPath();
+                ctx.moveTo(sx, sy); ctx.lineTo(ex, sy);
+                ctx.stroke();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = b.width * 0.35;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Sparks
+            for (let i = anim.sparks.length - 1; i >= 0; i--) {
+                const s = anim.sparks[i];
+                s.life -= dt * 1.3;
+                if (s.life <= 0) { anim.sparks.splice(i, 1); continue; }
+                s.x += s.vx; s.y += s.vy; s.vy += 0.22;
+                ctx.fillStyle = s.color;
+                ctx.globalAlpha = Math.max(0, s.life);
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+
+            // Floating Damage Popups
+            for (let i = anim.popups.length - 1; i >= 0; i--) {
+                const p = anim.popups[i];
+                p.life -= dt;
+                if (p.life <= 0) { anim.popups.splice(i, 1); continue; }
+                p.y -= 28 * dt;
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, p.life);
+                ctx.font = '800 28px JetBrains Mono, monospace';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#020617';
+                ctx.fillText(p.text, p.x + 2, p.y + 2);
+                ctx.fillStyle = p.color;
+                ctx.fillText(p.text, p.x, p.y);
+                ctx.restore();
+            }
+        }
+        requestAnimationFrame(renderArena);
+
+        // -----------------------------------------------------------
+        // 3. WEBSOCKET 1V1 DUEL CLIENT
+        // -----------------------------------------------------------
+        let ws = null, selfId = null, timerInt = null;
+        let suggestDebounce = null, currentSuggestions = [];
+        let authUser = null, authMode = 'register';
+        document.getElementById('fighterNameInput').value = localStorage.getItem('minddrop_name') || '';
+
+        function getAuthToken() {
+            return localStorage.getItem('minddrop_token') || '';
+        }
+
+        function getProfileId() {
+            let pid = localStorage.getItem('minddrop_pid');
+            if (!pid) {
+                pid = 'p_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+                localStorage.setItem('minddrop_pid', pid);
+            }
+            return pid;
+        }
+
+        function updateAuthUi(user) {
+            authUser = user || null;
+            const authBtn = document.getElementById('headerAuthBtn');
+            const userBox = document.getElementById('headerUserBox');
+            const nameInput = document.getElementById('fighterNameInput');
+            const banner = document.getElementById('guestSaveBanner');
+            const modeLbl = document.getElementById('homeRatingModeLabel');
+
+            if (authUser) {
+                authBtn.classList.add('hidden');
+                userBox.classList.remove('hidden');
+                document.getElementById('headerUsername').textContent = authUser.username;
+                nameInput.value = authUser.username;
+                nameInput.disabled = true;
+                nameInput.style.opacity = '0.7';
+                banner.classList.add('hidden');
+                modeLbl.textContent = `SAVED ACCOUNT • ${authUser.username.toUpperCase()}`;
+                modeLbl.style.color = '#34d399';
+            } else {
+                authBtn.classList.remove('hidden');
+                userBox.classList.add('hidden');
+                nameInput.disabled = false;
+                nameInput.style.opacity = '1';
+                banner.classList.remove('hidden');
+                modeLbl.textContent = 'GUEST SESSION RATING';
+                modeLbl.style.color = '#94a3b8';
+            }
+        }
+
+        function openAuthModal(mode = 'register') {
+            setAuthMode(mode);
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authPassword').value = '';
+            if (mode === 'register' && !document.getElementById('authUsername').value) {
+                const cur = document.getElementById('fighterNameInput').value.trim().replace(/[^a-zA-Z0-9_-]/g, '');
+                if (cur.length >= 3) document.getElementById('authUsername').value = cur;
+            }
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('authUsername').focus();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function setAuthMode(mode) {
+            authMode = mode;
+            document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+            document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+            document.getElementById('authSubmitBtn').textContent = mode === 'register' ? 'Create Account & Save ELO' : 'Log In';
+            document.getElementById('authHint').textContent = mode === 'register'
+                ? 'Optional: Save your ELO permanently across devices and rank on the Global Leaderboard. Your current guest ELO transfers automatically.'
+                : 'Log in to load your saved ELO, rank, and W-L record.';
+            document.getElementById('authError').classList.add('hidden');
+        }
+
+        async function submitAuth() {
+            const username = document.getElementById('authUsername').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+
+            try {
+                const url = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+                const body = authMode === 'register'
+                    ? { username, password, guestPid: getProfileId() }
+                    : { username, password };
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    errEl.textContent = data.error || 'Authentication failed.';
+                    errEl.classList.remove('hidden');
+                    return;
+                }
+                localStorage.setItem('minddrop_token', data.token);
+                updateAuthUi(data.user);
+                applyProfileToHome(data.profile);
+                closeAuthModal();
+                document.getElementById('koGuestPrompt').classList.add('hidden');
+                loadLeaderboard();
+            } catch {
+                errEl.textContent = 'Network error. Please try again.';
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function logoutAccount() {
+            localStorage.removeItem('minddrop_token');
+            updateAuthUi(null);
+            loadHomeProfile();
+            loadLeaderboard();
+        }
+
+        function applyProfileToHome(p) {
+            if (!p) return;
+            document.getElementById('homeEloValue').textContent = `${p.elo} ELO`;
+            const badge = document.getElementById('homeRankBadge');
+            badge.textContent = p.rank ? p.rank.name : 'BRONZE';
+            if (p.rank && p.rank.color) {
+                badge.style.color = p.rank.color;
+                badge.style.borderColor = p.rank.color;
+            }
+            document.getElementById('homeRecordText').textContent = `${p.wins || 0}W - ${p.losses || 0}L`;
+            document.getElementById('homeAiTier').textContent = p.nextAiTier || 'EASY';
+        }
+
+        async function loadHomeProfile() {
+            try {
+                const token = getAuthToken();
+                if (token) {
+                    const meRes = await fetch('/api/auth/me', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (meRes.ok) {
+                        const data = await meRes.json();
+                        updateAuthUi(data.user);
+                        applyProfileToHome(data.profile);
+                        return;
+                    } else {
+                        localStorage.removeItem('minddrop_token');
+                    }
+                }
+                updateAuthUi(null);
+                const pid = getProfileId();
+                const res = await fetch(`/api/profile/${encodeURIComponent(pid)}`);
+                if (!res.ok) return;
+                applyProfileToHome(await res.json());
+            } catch {}
+        }
+        async function loadLeaderboard() {
+            try {
+                const res = await fetch('/api/leaderboard');
+                if (!res.ok) return;
+                const data = await res.json();
+                const list = Array.isArray(data.players) ? data.players : [];
+                const emptyEl = document.getElementById('lbEmpty');
+                const tableEl = document.getElementById('lbTable');
+                const bodyEl = document.getElementById('lbBody');
+
+                if (!list.length) {
+                    emptyEl.classList.remove('hidden');
+                    tableEl.classList.add('hidden');
+                    return;
+                }
+
+                const myKey = authUser ? authUser.id : getProfileId();
+                bodyEl.innerHTML = '';
+                list.forEach(p => {
+                    const tr = document.createElement('tr');
+                    if (p.key === myKey) tr.className = 'lb-row-me';
+
+                    const tdPos = document.createElement('td');
+                    tdPos.className = 'mono ' + (p.position <= 3 ? `lb-pos-${p.position}` : '');
+                    tdPos.textContent = `#${p.position}`;
+
+                    const tdName = document.createElement('td');
+                    tdName.style.fontWeight = '700';
+                    tdName.textContent = p.key === myKey ? `${p.name} (YOU)` : p.name;
+
+                    const tdRank = document.createElement('td');
+                    const pill = document.createElement('span');
+                    pill.className = 'elo-pill';
+                    pill.style.marginLeft = '0';
+                    pill.textContent = p.rank ? p.rank.name : 'BRONZE';
+                    if (p.rank && p.rank.color) {
+                        pill.style.color = p.rank.color;
+                        pill.style.borderColor = p.rank.color;
+                    }
+                    tdRank.appendChild(pill);
+
+                    const tdRec = document.createElement('td');
+                    tdRec.className = 'mono';
+                    tdRec.style.textAlign = 'right';
+                    tdRec.style.color = '#94a3b8';
+                    tdRec.textContent = `${p.wins}W - ${p.losses}L`;
+
+                    const tdElo = document.createElement('td');
+                    tdElo.className = 'mono';
+                    tdElo.style.textAlign = 'right';
+                    tdElo.style.fontWeight = '800';
+                    tdElo.style.color = '#fff';
+                    tdElo.textContent = `${p.elo}`;
+
+                    tr.append(tdPos, tdName, tdRank, tdRec, tdElo);
+                    bodyEl.appendChild(tr);
+                });
+
+                emptyEl.classList.add('hidden');
+                tableEl.classList.remove('hidden');
+            } catch {}
+        }
+
+        loadHomeProfile();
+        loadLeaderboard();
+
+        function getFighterName() {
+            const v = document.getElementById('fighterNameInput').value.trim();
+            if (v) localStorage.setItem('minddrop_name', v);
+            return v || localStorage.getItem('minddrop_name') || 'Fighter';
+        }
+
+        function clearSuggestions() {
+            currentSuggestions = [];
+            const row = document.getElementById('suggestRow');
+            row.innerHTML = '';
+            row.classList.add('hidden');
+        }
+
+        function renderSuggestions(items, labelText) {
+            const row = document.getElementById('suggestRow');
+            row.innerHTML = '';
+            currentSuggestions = Array.isArray(items) ? items : [];
+            if (!currentSuggestions.length) {
+                row.classList.add('hidden');
+                return;
+            }
+            const lbl = document.createElement('span');
+            lbl.className = 'suggest-label';
+            lbl.textContent = labelText || 'Auto-spell:';
+            row.appendChild(lbl);
+
+            currentSuggestions.forEach((word, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'suggest-pill';
+                btn.textContent = word;
+                if (idx === 0) {
+                    const hint = document.createElement('span');
+                    hint.className = 'tab-hint';
+                    hint.textContent = 'TAB';
+                    btn.appendChild(hint);
+                }
+                btn.onclick = () => {
+                    const inp = document.getElementById('attackInput');
+                    inp.value = word;
+                    document.getElementById('attackRejectMsg').classList.add('hidden');
+                    clearSuggestions();
+                    inp.focus();
+                    playSfx(540, 0.06, 'sine', 0.08);
+                };
+                row.appendChild(btn);
+            });
+            row.classList.remove('hidden');
+        }
+
+        function startDuel(mode, code) {
+            if (ws) { ws.close(); ws = null; }
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const cleanCode = (code || '').trim().toUpperCase();
+            ws = new WebSocket(`${proto}//${location.host}/ws/duel?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}`);
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewArena').classList.remove('hidden');
+            setTimeout(resizeArena, 20);
+
+            ws.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'ERROR') {
+                    alert(msg.message);
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'DUEL_JOINED') selfId = msg.selfId;
+
+                if (msg.type === 'SUGGESTIONS') {
+                    renderSuggestions(msg.items, 'Auto-spell:');
+                    return;
+                }
+
+                if (msg.type === 'ATTACK_REJECTED') {
+                    const inp = document.getElementById('attackInput');
+                    inp.classList.remove('input-error-shake');
+                    void inp.offsetWidth;
+                    inp.classList.add('input-error-shake');
+                    setTimeout(() => inp.classList.remove('input-error-shake'), 360);
+
+                    const rej = document.getElementById('attackRejectMsg');
+                    rej.textContent = msg.message || 'Not recognized — keep guessing!';
+                    rej.classList.remove('hidden');
+
+                    if (msg.suggestions && msg.suggestions.length) {
+                        renderSuggestions(msg.suggestions, 'Did you mean:');
+                    }
+                    playSfx(160, 0.14, 'sawtooth', 0.1);
+                    inp.focus();
+                    inp.select();
+                    return;
+                }
+
+                if (msg.type === 'ATTACK_ACCEPTED') {
+                    document.getElementById('attackInputRow').classList.add('hidden');
+                    document.getElementById('attackRejectMsg').classList.add('hidden');
+                    clearSuggestions();
+                    const locked = document.getElementById('attackLockedMsg');
+                    locked.textContent = msg.autoCorrected
+                        ? `Auto-corrected to "${msg.matched}"! Attack charged — waiting for opponent...`
+                        : `Attack charged ("${msg.matched}")! Waiting for opponent...`;
+                    locked.classList.remove('hidden');
+                    playSfx(620, 0.12, 'triangle', 0.12);
+                    return;
+                }
+
+                if (msg.snapshot) renderDuel(msg.snapshot, msg.type, msg.winner || null, msg.eloChanges || null);
+            };
+        }
+
+        function switchToAiNow() {
+            startDuel('ai', '');
+        }
+
+        function leaveDuel() {
+            clearInterval(timerInt);
+            clearTimeout(suggestDebounce);
+            clearSuggestions();
+            if (ws) { ws.close(); ws = null; }
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewHome').classList.remove('hidden');
+            loadHomeProfile();
+            loadLeaderboard();
+        }
+
+        function submitAttack() {
+            const inp = document.getElementById('attackInput');
+            const ans = inp.value.trim();
+            if (!ans || !ws || ws.readyState !== 1) return;
+            ws.send(JSON.stringify({ type: 'SUBMIT_ATTACK', answer: ans }));
+        }
+
+        const attackInputEl = document.getElementById('attackInput');
+        attackInputEl.addEventListener('input', () => {
+            document.getElementById('attackRejectMsg').classList.add('hidden');
+            clearTimeout(suggestDebounce);
+            const val = attackInputEl.value.trim();
+            if (val.length < 3 || !ws || ws.readyState !== 1) {
+                clearSuggestions();
+                return;
+            }
+            suggestDebounce = setTimeout(() => {
+                if (ws && ws.readyState === 1) {
+                    ws.send(JSON.stringify({ type: 'SUGGEST', query: val }));
+                }
+            }, 110);
+        });
+        attackInputEl.addEventListener('keydown', e => {
+            if (e.key === 'Tab' && currentSuggestions.length > 0) {
+                e.preventDefault();
+                attackInputEl.value = currentSuggestions[0];
+                document.getElementById('attackRejectMsg').classList.add('hidden');
+                clearSuggestions();
+                playSfx(540, 0.06, 'sine', 0.08);
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitAttack();
+            }
+        });
+
+        function sendRematch() {
+            if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function renderDuel(snap, eventType, winner, eloChanges) {
+            document.getElementById('roundNum').textContent = Math.max(1, snap.round);
+            document.getElementById('shareRoomCode').textContent = snap.code;
+
+            // Always put self on LEFT and opponent on RIGHT visually!
+            const me = (snap.players || []).find(p => p.id === selfId) || snap.players[0];
+            const opp = (snap.players || []).find(p => p.id !== (me && me.id));
+
+            if (me) {
+                anim.leftHp = me.hp;
+                document.getElementById('leftName').textContent = me.name;
+                const lb = document.getElementById('leftEloBadge');
+                lb.textContent = `${me.elo ?? 0} ELO`;
+                if (me.rank && me.rank.color) { lb.style.color = me.rank.color; lb.style.borderColor = me.rank.color; }
+                document.getElementById('leftHpText').textContent = `${me.hp} HP`;
+                document.getElementById('leftHpBar').style.width = `${Math.max(0, (me.hp / (me.maxHp || 200)) * 100)}%`;
+            }
+            if (opp) {
+                anim.rightHp = opp.hp;
+                document.getElementById('rightName').textContent = opp.name;
+                const rb = document.getElementById('rightEloBadge');
+                rb.textContent = opp.aiTier ? `${opp.aiTier} • ${opp.elo ?? 0} ELO` : `${opp.elo ?? 0} ELO`;
+                if (opp.rank && opp.rank.color) { rb.style.color = opp.rank.color; rb.style.borderColor = opp.rank.color; }
+                document.getElementById('rightHpText').textContent = `${opp.hp} HP`;
+                document.getElementById('rightHpBar').style.width = `${Math.max(0, (opp.hp / (opp.maxHp || 200)) * 100)}%`;
+            } else {
+                anim.rightHp = 200;
+                document.getElementById('rightName').textContent = 'Waiting...';
+                document.getElementById('rightEloBadge').textContent = 'MATCHING';
+                document.getElementById('rightHpText').textContent = '200 HP';
+                document.getElementById('rightHpBar').style.width = '100%';
+            }
+
+            document.getElementById('waitingNotice').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('attackBar').classList.toggle('hidden', snap.state !== 'FIGHT');
+            document.getElementById('koBox').classList.toggle('hidden', snap.state !== 'KO');
+
+            if (snap.state === 'FIGHT' && snap.currentPrompt) {
+                document.getElementById('clashOverlay').classList.add('hidden');
+                document.getElementById('promptCat').textContent = snap.currentPrompt.category;
+                document.getElementById('promptText').textContent = snap.currentPrompt.prompt;
+                document.getElementById('oppReadyStatus').textContent = (opp && opp.ready) ? `${opp.name} locked in an attack!` : `${opp ? opp.name : 'Opponent'} thinking...`;
+
+                const canType = me && !me.ready;
+                document.getElementById('attackInputRow').classList.toggle('hidden', !canType);
+                document.getElementById('attackLockedMsg').classList.toggle('hidden', canType);
+                if (eventType === 'ROUND_START') {
+                    const inp = document.getElementById('attackInput');
+                    inp.value = '';
+                    document.getElementById('attackRejectMsg').classList.add('hidden');
+                    clearSuggestions();
+                    inp.focus();
+                }
+
+                clearInterval(timerInt);
+                const endsAt = Date.now() + snap.timeRemainingMs;
+                timerInt = setInterval(() => {
+                    const sec = Math.ceil(Math.max(0, endsAt - Date.now()) / 1000);
+                    document.getElementById('roundTimer').textContent = sec;
+                    if (sec <= 0) clearInterval(timerInt);
+                }, 150);
+            } else {
+                clearInterval(timerInt);
+            }
+
+            if (eventType === 'CLASH_RESULT' && me && opp && me.lastClash && opp.lastClash) {
+                const mc = me.lastClash, oc = opp.lastClash;
+                const overlay = document.getElementById('clashOverlay');
+                overlay.classList.remove('hidden');
+
+                if (mc.clashBlocked) {
+                    document.getElementById('clashHeadline').textContent = 'SAME WORD — CLASH BLOCKED!';
+                    document.getElementById('clashDetails').textContent = `Both fighters answered "${mc.raw}" (0 DMG)`;
+                    playSfx(260, 0.2, 'square', 0.14);
+                } else {
+                    if (mc.dealt > 0) fireAttackVisual('LEFT', mc.tier, mc.dealt);
+                    if (oc.dealt > 0) fireAttackVisual('RIGHT', oc.tier, oc.dealt);
+                    const heavy = mc.tier === 'LEGENDARY' || oc.tier === 'LEGENDARY' || mc.tier === 'RARE' || oc.tier === 'RARE';
+                    playHitSfx(heavy);
+                    if (heavy) {
+                        const w = document.getElementById('arenaWrap');
+                        w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
+                    }
+                    document.getElementById('clashHeadline').textContent =
+                        mc.dealt > oc.dealt ? 'YOU WON THE CLASH!' :
+                        oc.dealt > mc.dealt ? `${opp.name} OVERPOWERED YOU!` : 'EVEN TRADE!';
+                    document.getElementById('clashDetails').textContent =
+                        `You: "${mc.raw}" (${mc.tier}, ${mc.dealt} DMG)   vs   ${opp.name}: "${oc.raw}" (${oc.tier}, ${oc.dealt} DMG)`;
+                }
+            }
+
+            if (snap.state === 'KO') {
+                document.getElementById('clashOverlay').classList.add('hidden');
+                const iWon = winner && me && winner.id === me.id;
+                const isDraw = !winner;
+                document.getElementById('koHeadline').textContent = isDraw ? 'DOUBLE K.O. DRAW!' : (iWon ? 'K.O. VICTORY!' : 'DEFEATED!');
+                document.getElementById('koHeadline').style.color = iWon ? '#34d399' : (isDraw ? '#fbbf24' : '#fb7185');
+                document.getElementById('koSub').textContent = winner ? `${winner.name} wins with ${winner.hp} HP remaining!` : 'Both fighters hit 0 HP at the exact same time!';
+
+                const eloEl = document.getElementById('koEloDelta');
+                const myChange = eloChanges && me && eloChanges[me.id];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta}) • ${myChange.rank.name} • Next AI: ${myChange.nextAiTier}`;
+                    eloEl.style.color = myChange.delta > 0 ? '#34d399' : (myChange.delta < 0 ? '#fb7185' : '#fbbf24');
+                    eloEl.style.borderColor = myChange.delta > 0 ? 'rgba(52,211,153,0.5)' : (myChange.delta < 0 ? 'rgba(251,113,133,0.5)' : 'rgba(251,191,36,0.5)');
+                    eloEl.classList.remove('hidden');
+                    document.getElementById('koGuestPrompt').classList.toggle('hidden', Boolean(authUser));
+                } else {
+                    eloEl.classList.add('hidden');
+                    document.getElementById('koGuestPrompt').classList.add('hidden');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
