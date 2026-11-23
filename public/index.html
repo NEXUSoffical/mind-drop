@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MindDrop | Wild West 1v1 Rarity Showdown</title>
     <meta name="description" content="1v1 Wild West Brain Showdown. Rarer answers fire heavier revolver shots. First gunslinger to 0 HP loses. Powered by BloxCloud.">
+
+    <!-- X (Twitter) Interactive Player Card -->
+    <meta name="twitter:card" content="player">
+    <meta name="twitter:site" content="@Bloxcloud1999">
+    <meta name="twitter:title" content="MindDrop — Play 1v1 Wild West Showdown in this Tweet">
+    <meta name="twitter:description" content="Rarer answers fire heavier revolver shots. Duel 1v1 online or vs AI right inside X. Powered by BloxCloud.">
+    <meta name="twitter:image" content="https://minddrop-combat.onrender.com/minddrop-poster.jpg?v=1">
+    <meta name="twitter:player" content="https://minddrop-combat.onrender.com/embed">
+    <meta name="twitter:player:width" content="720">
+    <meta name="twitter:player:height" content="480">
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="MindDrop | Wild West 1v1 Rarity Showdown">
+    <meta property="og:description" content="Rarer answers fire heavier revolver shots. Play 1v1 online or vs AI right in your browser. Powered by BloxCloud.">
+    <meta property="og:url" content="https://minddrop-combat.onrender.com">
+    <meta property="og:image" content="https://minddrop-combat.onrender.com/minddrop-poster.jpg?v=1">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Rye&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -363,6 +380,27 @@
             #clashDetails { font-size: 11px !important; }
             #koHeadline { font-size: 24px !important; }
         }
+
+        /* Compact X (Twitter) Player Card Embed Mode */
+        body.embed-mode header { padding: 7px 12px; }
+        body.embed-mode .logo { font-size: 15px; }
+        body.embed-mode .logo-badge { width: 26px; height: 26px; font-size: 13px; }
+        body.embed-mode .logo-sub { display: none; }
+        body.embed-mode main { padding: 8px 10px 10px; gap: 8px; }
+        body.embed-mode .hero-title { font-size: 26px; }
+        body.embed-mode .hero-sub { font-size: 12px; margin-top: 6px; }
+        body.embed-mode .elo-card,
+        body.embed-mode .dmg-legend,
+        body.embed-mode .lb-section,
+        body.embed-mode footer { display: none !important; }
+        body.embed-mode #viewArena.card { padding: 10px; }
+        body.embed-mode .hp-hud { margin-bottom: 6px; gap: 8px; }
+        body.embed-mode .hp-track { height: 14px; }
+        body.embed-mode .vs-clock { padding: 4px 8px; min-width: 54px; }
+        body.embed-mode .vs-sec { font-size: 17px; }
+        body.embed-mode #arenaCanvas { height: 175px; }
+        body.embed-mode .arena-wrap { margin-bottom: 8px; }
+        body.embed-mode #promptText { font-size: 18px !important; margin-bottom: 6px !important; }
     </style>
 </head>
 <body>
@@ -378,6 +416,7 @@
                 <span id="headerUsername" class="mono" style="font-size:12px; font-weight:800; color:#34d399;"></span>
                 <button class="btn btn-ghost" onclick="logoutAccount()" style="padding:6px 10px; font-size:11px;">Log Out</button>
             </div>
+            <a id="embedFullBtn" href="https://minddrop-combat.onrender.com" target="_blank" rel="noopener noreferrer" class="bc-pill hidden">Full Screen</a>
             <a href="https://bloxcloud.world" target="_blank" rel="noopener noreferrer" class="bc-pill">Powered by BloxCloud</a>
         </div>
     </header>
@@ -562,6 +601,16 @@
     </footer>
 
     <script>
+        // Detect X Player Card / iframe embed mode for ultra-compact zero-scroll layout
+        (function initEmbedMode() {
+            const isEmbed = location.pathname === '/embed' || window.self !== window.top;
+            if (isEmbed) {
+                document.body.classList.add('embed-mode');
+                const fullBtn = document.getElementById('embedFullBtn');
+                if (fullBtn) fullBtn.classList.remove('hidden');
+            }
+        })();
+
         // -----------------------------------------------------------
         // 0. FULL-PAGE WILD WEST SUNSET BACKGROUND (MESAS + CACTI + TUMBLEWEEDS + STANDOFF SILHOUETTES)
         // -----------------------------------------------------------

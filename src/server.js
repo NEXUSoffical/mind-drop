@@ -17,6 +17,17 @@ const port = process.env.PORT || 3005;
 
 app.use(cors());
 app.use(express.json());
+
+// Allow X (Twitter) Player Card iframe embedding on /embed
+app.get('/embed', (req, res) => {
+    res.removeHeader('X-Frame-Options');
+    res.setHeader(
+        'Content-Security-Policy',
+        "frame-ancestors 'self' https://x.com https://twitter.com https://mobile.twitter.com https://*.twitter.com https://*.x.com https://tweetdeck.twitter.com"
+    );
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/api/health', (req, res) => {
