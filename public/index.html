@@ -13,9 +13,11 @@
             background: #1c0c06;
             color: #fef3c7;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         #westBgCanvas {
             position: fixed;
@@ -101,7 +103,7 @@
         .btn-ghost { background: rgba(45, 22, 10, 0.72); border: 1px solid rgba(245,158,11,0.42); color: #fef3c7; }
         input {
             width: 100%; background: rgba(20, 9, 4, 0.85); border: 1.5px solid rgba(245, 158, 11, 0.5);
-            border-radius: 12px; padding: 12px 14px; color: #fffbeb; font-size: 15px; font-family: inherit; outline: none;
+            border-radius: 12px; padding: 12px 14px; color: #fffbeb; font-size: 16px; font-family: inherit; outline: none;
         }
         input:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,0.22); }
 
@@ -329,7 +331,38 @@
         }
         .tab-btn.active { background: #0284c7; color: #fff; }
         footer { text-align: center; padding: 14px; font-size: 12px; color: #64748b; }
-        footer a { color: #38bdf8; text-decoration: none; font-weight: 700; }
+        footer a { color: #fbbf24; text-decoration: none; font-weight: 700; }
+
+        /* Mobile / Phone Responsive Layout */
+        @media (max-width: 640px) {
+            header { padding: 10px 14px; }
+            .logo { font-size: 17px; gap: 8px; }
+            .logo-sub, .bc-pill { display: none; }
+            main { padding: 12px 10px 24px; gap: 12px; }
+            .hero-title { font-size: 27px; line-height: 1.15; }
+            .hero-sub { font-size: 13px; }
+            .elo-card { padding: 10px 12px; }
+            #viewArena.card { padding: 12px; border-radius: 16px; }
+            .hp-hud { gap: 8px; margin-bottom: 10px; }
+            .fighter-hud-name { font-size: 11px; flex-wrap: wrap; gap: 3px; }
+            .elo-pill { font-size: 9px; padding: 1px 6px; }
+            .hp-track { height: 15px; }
+            .vs-clock { min-width: 56px; padding: 6px 8px; border-radius: 11px; }
+            .vs-round { font-size: 9px; }
+            .vs-sec { font-size: 18px; }
+            #arenaCanvas { height: 210px; }
+            #promptText { font-size: 19px !important; margin-bottom: 10px !important; }
+            .suggest-pill { padding: 7px 14px; font-size: 13px; }
+            .tab-hint { display: none; }
+            .dmg-legend { gap: 6px 10px; font-size: 10px; }
+            .lb-section { padding: 12px; }
+            .lb-table { font-size: 12px; }
+            .lb-table th, .lb-table td { padding: 7px 6px; }
+            .clash-banner { padding: 10px 14px; }
+            #clashHeadline { font-size: 15px !important; }
+            #clashDetails { font-size: 11px !important; }
+            #koHeadline { font-size: 24px !important; }
+        }
     </style>
 </head>
 <body>
@@ -337,7 +370,7 @@
     <header>
         <div class="logo" onclick="leaveDuel()">
             <div class="logo-badge">M</div>
-            <span>MindDrop <span style="color:#fbbf24; font-weight:700; font-size:13px;">Wild West Showdown</span></span>
+            <span>MindDrop <span class="logo-sub" style="color:#fbbf24; font-weight:700; font-size:13px;">Wild West Showdown</span></span>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
             <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
@@ -473,9 +506,9 @@
                     <span id="oppReadyStatus" style="font-size:11px; font-weight:700; color:#94a3b8;">Opponent thinking...</span>
                 </div>
                 <div id="promptText" style="font-size:24px; font-weight:800; margin-bottom:12px;">Name a fruit</div>
-                <div id="attackInputRow" style="display:flex; gap:10px;">
-                    <input id="attackInput" type="text" maxlength="40" placeholder="Type your rarest valid answer to draw & fire (Tab auto-spells)..." autocomplete="off">
-                    <button class="btn btn-rose" onclick="submitAttack()" style="white-space:nowrap;">FIRE SHOT</button>
+                <div id="attackInputRow" style="display:flex; gap:8px;">
+                    <input id="attackInput" type="text" maxlength="40" enterkeyhint="send" placeholder="Type your rarest answer..." autocomplete="off">
+                    <button class="btn btn-rose" onclick="submitAttack()" style="white-space:nowrap; padding:12px 15px;">FIRE</button>
                 </div>
                 <div id="attackRejectMsg" class="reject-msg hidden"></div>
                 <div id="suggestRow" class="suggest-row hidden"></div>
@@ -766,8 +799,8 @@
         let cw = 900, ch = 310;
         function resizeArena() {
             const rect = canvas.getBoundingClientRect();
-            cw = canvas.width = Math.max(320, Math.floor(rect.width));
-            ch = canvas.height = 310;
+            cw = canvas.width = Math.max(300, Math.floor(rect.width));
+            ch = canvas.height = Math.max(180, Math.floor(rect.height || 310));
         }
         window.addEventListener('resize', resizeArena);
 
@@ -813,7 +846,7 @@
             }
         }
 
-        function drawCowboyFighter(x, y, side, hp, hitFlash, muzzle, now) {
+        function drawCowboyFighter(x, y, side, hp, hitFlash, muzzle, now, scale = 1) {
             const isLeft = side === 'LEFT';
             const dir = isLeft ? 1 : -1;
             const coatColor = isLeft ? '#1e3a8a' : '#7f1d1d'; // Sheriff Navy vs Outlaw Crimson
@@ -825,11 +858,11 @@
             ctx.save();
             ctx.translate(x, y);
             if (hp <= 0) {
-                ctx.translate(0, 34);
+                ctx.translate(0, 34 * scale);
                 ctx.rotate(isLeft ? -1.35 : 1.35);
                 ctx.globalAlpha = 0.55;
             }
-            ctx.scale(dir, 1);
+            ctx.scale(dir * scale, scale);
 
             // Dusty ground shadow
             ctx.fillStyle = 'rgba(20, 8, 2, 0.45)';
@@ -966,13 +999,17 @@
 
         function renderArena(now) {
             requestAnimationFrame(renderArena);
-            if (canvas.clientWidth > 0 && canvas.clientWidth !== cw) {
-                cw = canvas.width = Math.floor(canvas.clientWidth);
-                ch = canvas.height = 310;
+            const targetW = Math.floor(canvas.clientWidth);
+            const targetH = Math.floor(canvas.clientHeight);
+            if (targetW > 0 && targetH > 0 && (targetW !== cw || targetH !== ch)) {
+                cw = canvas.width = targetW;
+                ch = canvas.height = targetH;
             }
             const dt = Math.min(0.05, (now - lastT) / 1000);
             lastT = now;
 
+            const isCompact = cw < 520;
+            const cowScale = isCompact ? 0.68 : 1;
             const groundY = ch * 0.72;
 
             // High-Noon Sunset Sky
@@ -1008,28 +1045,29 @@
             ctx.closePath();
             ctx.fill();
 
-            // Left Wooden Saloon Silhouette
+            // Left Wooden Saloon Silhouette (scaled for phones too)
+            const bW = isCompact ? 68 : 112;
+            const bH = isCompact ? 74 : 108;
             ctx.fillStyle = '#3b1709';
-            ctx.fillRect(8, groundY - 108, 112, 108);
-            ctx.fillRect(2, groundY - 122, 124, 18);
-            // Warm saloon windows
+            ctx.fillRect(6, groundY - bH, bW, bH);
+            ctx.fillRect(2, groundY - bH - 12, bW + 8, 14);
             ctx.fillStyle = 'rgba(251, 191, 36, 0.45)';
-            ctx.fillRect(24, groundY - 86, 22, 26);
-            ctx.fillRect(78, groundY - 86, 22, 26);
+            ctx.fillRect(14, groundY - bH * 0.78, bW * 0.2, bH * 0.24);
+            ctx.fillRect(6 + bW * 0.62, groundY - bH * 0.78, bW * 0.2, bH * 0.24);
             ctx.fillStyle = '#fde68a';
-            ctx.font = '800 10px JetBrains Mono, monospace';
+            ctx.font = `800 ${isCompact ? 8 : 10}px JetBrains Mono, monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText('SALOON', 64, groundY - 109);
+            ctx.fillText('SALOON', 6 + bW / 2, groundY - bH - 2);
 
             // Right Wooden Sheriff Office Silhouette
             ctx.fillStyle = '#3b1709';
-            ctx.fillRect(cw - 120, groundY - 102, 112, 102);
-            ctx.fillRect(cw - 126, groundY - 116, 124, 16);
+            ctx.fillRect(cw - bW - 6, groundY - bH + 6, bW, bH - 6);
+            ctx.fillRect(cw - bW - 10, groundY - bH - 6, bW + 8, 14);
             ctx.fillStyle = 'rgba(251, 191, 36, 0.4)';
-            ctx.fillRect(cw - 102, groundY - 80, 22, 24);
-            ctx.fillRect(cw - 48, groundY - 80, 22, 24);
+            ctx.fillRect(cw - bW + 6, groundY - bH * 0.74, bW * 0.2, bH * 0.22);
+            ctx.fillRect(cw - bW * 0.38 - 6, groundY - bH * 0.74, bW * 0.2, bH * 0.22);
             ctx.fillStyle = '#fde68a';
-            ctx.fillText('SHERIFF', cw - 64, groundY - 104);
+            ctx.fillText('SHERIFF', cw - bW / 2 - 6, groundY - bH + 4);
 
             // Saguaro Cacti flanking the desert road
             drawCactus(ctx, cw * 0.36, groundY + 4, 0.58, '#3f1709');
@@ -1066,17 +1104,18 @@
             anim.rightRecoil *= 0.85;
 
             // Draw Both Cowboys Aiming Revolvers at Each Other!
-            drawCowboyFighter(cw * 0.22 + anim.leftRecoil, ch * 0.66, 'LEFT', anim.leftHp, anim.leftHitFlash, anim.leftMuzzle, now);
-            drawCowboyFighter(cw * 0.78 + anim.rightRecoil, ch * 0.66, 'RIGHT', anim.rightHp, anim.rightHitFlash, anim.rightMuzzle, now);
+            const cowY = ch * 0.66;
+            drawCowboyFighter(cw * 0.22 + anim.leftRecoil, cowY, 'LEFT', anim.leftHp, anim.leftHitFlash, anim.leftMuzzle, now, cowScale);
+            drawCowboyFighter(cw * 0.78 + anim.rightRecoil, cowY, 'RIGHT', anim.rightHp, anim.rightHitFlash, anim.rightMuzzle, now, cowScale);
 
             // Draw Revolver Bullet Tracer Streaks
             for (let i = anim.beams.length - 1; i >= 0; i--) {
                 const b = anim.beams[i];
                 b.life -= dt * 1.5;
                 if (b.life <= 0) { anim.beams.splice(i, 1); continue; }
-                const sx = b.fromSide === 'LEFT' ? cw * 0.22 + 64 : cw * 0.78 - 64;
-                const ex = b.fromSide === 'LEFT' ? cw * 0.78 - 14 : cw * 0.22 + 14;
-                const sy = ch * 0.66 - 19;
+                const sx = b.fromSide === 'LEFT' ? cw * 0.22 + 64 * cowScale : cw * 0.78 - 64 * cowScale;
+                const ex = b.fromSide === 'LEFT' ? cw * 0.78 - 14 * cowScale : cw * 0.22 + 14 * cowScale;
+                const sy = cowY - 19 * cowScale;
                 ctx.save();
                 ctx.globalAlpha = Math.max(0, b.life / 0.55);
                 ctx.strokeStyle = b.color;
