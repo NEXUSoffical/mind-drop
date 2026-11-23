@@ -178,7 +178,8 @@ class DuelCombatEngine {
 
         // Start automatically once 2 fighters are in the arena!
         if (duel.players.length === 2 && duel.state === 'WAITING') {
-            duel.timer = setTimeout(() => this._nextRound(duel), 1200);
+            if (duel.timer) clearTimeout(duel.timer);
+            duel.timer = setTimeout(() => this._nextRound(duel), 1000);
         }
 
         ws.on('message', (raw) => {

@@ -416,7 +416,7 @@
                 <button class="btn btn-rose" onclick="startDuel('quick', '')">Quick 1v1 Online Match</button>
                 <button class="btn btn-cyan" onclick="startDuel('ai', '')">Instant 1v1 vs AI Fighter</button>
                 <div style="display:flex; gap:8px; margin-top:4px;">
-                    <input id="duelCodeInput" type="text" maxlength="4" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:13px; padding:10px 12px;">
+                    <input id="duelCodeInput" type="text" maxlength="12" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:16px; padding:10px 12px;">
                     <button class="btn btn-ghost" onclick="startDuel('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
                 </div>
             </div>
@@ -493,10 +493,13 @@
             </div>
 
             <!-- Waiting for 2nd Player Notice -->
-            <div id="waitingNotice" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.35);">
-                <div style="font-size:14px; font-weight:800; color:#7dd3fc;">Waiting for Opponent to Join...</div>
-                <div style="font-size:12px; color:#cbd5e1; margin-top:4px;">Share Room Code: <strong id="shareRoomCode" class="mono" style="color:#fff; font-size:15px;">----</strong></div>
-                <button class="btn btn-cyan" onclick="switchToAiNow()" style="margin-top:10px; padding:8px 14px; font-size:12px;">Fight AI Instead</button>
+            <div id="waitingNotice" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.72); border:1px solid rgba(245,158,11,0.45);">
+                <div id="waitingStatusTitle" style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Opponent to Join...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Share Room Code: <strong id="shareRoomCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="copyInviteBtn" class="btn btn-rose" onclick="copyInviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="switchToAiNow()" style="padding:8px 14px; font-size:12px;">Fight AI Instead</button>
+                </div>
             </div>
 
             <!-- Active Prompt & Attack Input -->
@@ -1169,6 +1172,7 @@
         let ws = null, selfId = null, timerInt = null;
         let suggestDebounce = null, currentSuggestions = [];
         let authUser = null, authMode = 'register';
+        let activeDuelMode = null, activeRoomCode = '', manualLeave = false, reconnectTimer = null;
         document.getElementById('fighterNameInput').value = localStorage.getItem('minddrop_name') || '';
 
         function getAuthToken() {
@@ -1449,28 +1453,66 @@
             } catch {}
         }
 
+        function copyInviteLink() {
+            const code = activeRoomCode || document.getElementById('shareRoomCode').textContent.trim();
+            if (!code || code === '----') return;
+            const url = `${location.origin}/?room=${encodeURIComponent(code)}`;
+            const btn = document.getElementById('copyInviteBtn');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    btn.textContent = 'Link Copied!';
+                    setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+                }).catch(() => prompt('Copy this invite link:', url));
+            } else {
+                prompt('Copy this invite link:', url);
+            }
+        }
+
         function startDuel(mode, code) {
-            if (ws) { ws.close(); ws = null; }
+            manualLeave = false;
+            clearTimeout(reconnectTimer);
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            activeDuelMode = mode;
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const name = encodeURIComponent(getFighterName());
             const pid = encodeURIComponent(getProfileId());
             const token = encodeURIComponent(getAuthToken());
             const seen = encodeURIComponent(getSeenPromptIds().join(','));
-            const cleanCode = (code || '').trim().toUpperCase();
+            const cleanCode = (code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+            activeRoomCode = cleanCode;
+            const statusTitle = document.getElementById('waitingStatusTitle');
+            if (statusTitle) statusTitle.textContent = cleanCode ? `Joining Room ${cleanCode}...` : 'Waiting for Opponent to Join...';
             ws = new WebSocket(`${proto}//${location.host}/ws/duel?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
 
             document.getElementById('viewHome').classList.add('hidden');
             document.getElementById('viewArena').classList.remove('hidden');
             setTimeout(resizeArena, 20);
 
+            ws.onclose = () => {
+                // Auto-reconnect if mobile browser suspended the socket while switching apps to share code
+                if (!manualLeave && activeRoomCode && activeDuelMode !== 'ai') {
+                    const st = document.getElementById('waitingStatusTitle');
+                    if (st) st.textContent = `Reconnecting to Room ${activeRoomCode}...`;
+                    reconnectTimer = setTimeout(() => {
+                        if (!manualLeave && activeRoomCode) startDuel('private', activeRoomCode);
+                    }, 1500);
+                }
+            };
+
             ws.onmessage = (ev) => {
                 const msg = JSON.parse(ev.data);
                 if (msg.type === 'ERROR') {
+                    manualLeave = true;
                     alert(msg.message);
                     leaveDuel();
                     return;
                 }
-                if (msg.type === 'DUEL_JOINED') selfId = msg.selfId;
+                if (msg.type === 'DUEL_JOINED') {
+                    selfId = msg.selfId;
+                    if (msg.snapshot && msg.snapshot.code) activeRoomCode = msg.snapshot.code;
+                    const st = document.getElementById('waitingStatusTitle');
+                    if (st) st.textContent = 'Waiting for Opponent to Join...';
+                }
 
                 if (msg.type === 'SUGGESTIONS') {
                     renderSuggestions(msg.items, 'Auto-spell:');
@@ -1519,15 +1561,40 @@
         }
 
         function leaveDuel() {
+            manualLeave = true;
+            activeRoomCode = '';
+            activeDuelMode = null;
+            clearTimeout(reconnectTimer);
             clearInterval(timerInt);
             clearTimeout(suggestDebounce);
             clearSuggestions();
-            if (ws) { ws.close(); ws = null; }
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
             loadLeaderboard();
         }
+
+        // Auto-reconnect immediately when returning from another app on mobile
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !manualLeave && activeRoomCode && activeDuelMode !== 'ai') {
+                if (!ws || ws.readyState === 2 || ws.readyState === 3) {
+                    startDuel('private', activeRoomCode);
+                }
+            }
+        });
+
+        // Auto-join if opened via ?room=XXXX invite link
+        (function checkInviteRoomParam() {
+            try {
+                const params = new URLSearchParams(location.search);
+                const room = (params.get('room') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+                if (room.length === 4) {
+                    document.getElementById('duelCodeInput').value = room;
+                    setTimeout(() => startDuel('private', room), 250);
+                }
+            } catch {}
+        })();
 
         function submitAttack() {
             const inp = document.getElementById('attackInput');
