@@ -89,10 +89,21 @@ class DuelCombatEngine {
         };
     }
 
-    joinOrCreateDuel({ code, mode, ws, name, profileId, isAccount = false }) {
+    joinOrCreateDuel({ code, mode, ws, name, profileId, isAccount = false, seenIds = [] }) {
         const cleanName = String(name || '').replace(/[^a-zA-Z0-9 _-]/g, '').trim().slice(0, 16) || 'Fighter';
         const profileKey = String(profileId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40) || cleanName.toLowerCase().replace(/\s+/g, '_');
         const profile = eloStore.getProfile(profileKey, cleanName, Boolean(isAccount));
+
+        // If client sent recently-seen prompt IDs (e.g. across server restarts), build their deck with unseen prompts first!
+        if (Array.isArray(seenIds) && seenIds.length > 0 && !this.playerRecentPrompts.has(profileKey)) {
+            const seenSet = new Set(seenIds);
+            const unseen = PROMPTS.map(p => p.id).filter(id => !seenSet.has(id));
+            for (let i = unseen.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [unseen[i], unseen[j]] = [unseen[j], unseen[i]];
+            }
+            if (unseen.length > 0) this.playerRecentPrompts.set(profileKey, unseen);
+        }
         let duelCode = (code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
 
         // Quick Match: find open public 1v1 room with closest ELO (<= 250 ELO diff, or any waiting >= 8s)

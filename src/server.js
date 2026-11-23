@@ -84,12 +84,16 @@ wss.on('connection', (ws, req) => {
         const token = url.searchParams.get('token') || '';
         const authedUser = authStore.verifyToken(token);
 
+        const seenRaw = url.searchParams.get('seen') || '';
+        const seenIds = seenRaw ? seenRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 60) : [];
+
         engine.joinOrCreateDuel({
             mode: url.searchParams.get('mode') || 'quick',
             code: url.searchParams.get('code') || '',
             name: authedUser ? authedUser.username : (url.searchParams.get('name') || ''),
             profileId: authedUser ? authedUser.id : (url.searchParams.get('pid') || ''),
             isAccount: Boolean(authedUser),
+            seenIds,
             ws,
         });
     } catch {

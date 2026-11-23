@@ -390,7 +390,7 @@
             </div>
             <h1 class="hero-title">HIGH NOON. <span class="hero-grad">RARER SHOTS.</span></h1>
             <p class="hero-sub">
-                Two gunslingers face off at 200 HP each. Every round draws a topic from 46+ categories — type the rarest valid answer you know to fire a heavier shot. First cowboy to 0 HP drops.
+                Two gunslingers face off at 200 HP each. Every round draws a topic from 65+ categories — type the rarest valid answer you know to fire a heavier shot. First cowboy to 0 HP drops.
             </p>
 
             <div class="elo-card">
@@ -1433,14 +1433,31 @@
             row.classList.remove('hidden');
         }
 
+        function getSeenPromptIds() {
+            try {
+                const arr = JSON.parse(localStorage.getItem('minddrop_seen') || '[]');
+                return Array.isArray(arr) ? arr.slice(-55) : [];
+            } catch { return []; }
+        }
+
+        function recordSeenPromptId(id) {
+            if (!id) return;
+            try {
+                const arr = getSeenPromptIds().filter(x => x !== id);
+                arr.push(id);
+                localStorage.setItem('minddrop_seen', JSON.stringify(arr.slice(-55)));
+            } catch {}
+        }
+
         function startDuel(mode, code) {
             if (ws) { ws.close(); ws = null; }
             const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const name = encodeURIComponent(getFighterName());
             const pid = encodeURIComponent(getProfileId());
             const token = encodeURIComponent(getAuthToken());
+            const seen = encodeURIComponent(getSeenPromptIds().join(','));
             const cleanCode = (code || '').trim().toUpperCase();
-            ws = new WebSocket(`${proto}//${location.host}/ws/duel?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}`);
+            ws = new WebSocket(`${proto}//${location.host}/ws/duel?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
 
             document.getElementById('viewHome').classList.add('hidden');
             document.getElementById('viewArena').classList.remove('hidden');
@@ -1600,6 +1617,7 @@
                 document.getElementById('attackInputRow').classList.toggle('hidden', !canType);
                 document.getElementById('attackLockedMsg').classList.toggle('hidden', canType);
                 if (eventType === 'ROUND_START') {
+                    recordSeenPromptId(snap.currentPrompt.id);
                     const inp = document.getElementById('attackInput');
                     inp.value = '';
                     document.getElementById('attackRejectMsg').classList.add('hidden');
