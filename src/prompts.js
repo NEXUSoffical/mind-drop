@@ -697,31 +697,48 @@ function scoreAnswer(promptId, rawAnswer) {
         { key: 'common', label: 'COMMON', score: 200 },
     ];
 
-    // 0. Alias / Symbol resolution (e.g. "au" -> "gold", "ny" -> "new york", "js" -> "javascript")
-    const resolved = (p.aliases && p.aliases[clean]) ? p.aliases[clean] : clean;
-    const wasAlias = resolved !== clean;
     const top1Word = p.top1 || (Array.isArray(p.legendary) && p.legendary[0]) || null;
 
-    // 1. Exact match check
+    // Build normalized candidate forms: original, alias-resolved, article-stripped ("the/a/an"), singularized
+    const base = clean.replace(/^(the|a|an)\s+/, '').trim() || clean;
+    const resolved = (p.aliases && (p.aliases[clean] || p.aliases[base])) || base;
+    const forms = new Set([clean, base, resolved]);
+    for (const f of Array.from(forms)) {
+        if (f.endsWith('ies') && f.length > 4) forms.add(f.slice(0, -3) + 'y');
+        if (f.endsWith('es') && f.length > 4) forms.add(f.slice(0, -2));
+        if (f.endsWith('s') && f.length > 3) forms.add(f.slice(0, -1));
+    }
+    const compactForms = new Set(Array.from(forms).map(f => f.replace(/\s+/g, '')));
+
+    // 1. Exact / Article / Plural / Space-insensitive match check
     for (const t of tiers) {
-        if (p[t.key].includes(resolved)) {
-            if (t.key === 'legendary' && top1Word && resolved === top1Word) {
-                return { valid: true, tier: 'MYTHIC', score: 1500, matched: resolved, autoCorrected: wasAlias, isTop1: true };
+        for (const candidate of p[t.key]) {
+            if (forms.has(candidate) || compactForms.has(candidate.replace(/\s+/g, ''))) {
+                const isTop1 = t.key === 'legendary' && top1Word && candidate === top1Word;
+                return {
+                    valid: true,
+                    tier: isTop1 ? 'MYTHIC' : t.label,
+                    score: isTop1 ? 1500 : t.score,
+                    matched: candidate,
+                    autoCorrected: candidate !== clean,
+                    isTop1: Boolean(isTop1),
+                };
             }
-            return { valid: true, tier: t.label, score: t.score, matched: resolved, autoCorrected: wasAlias };
         }
     }
 
-    // 2. Smart Auto-Correct (Levenshtein <= 1 for 4-6 chars, <= 2 for 7+ chars)
-    if (clean.length >= 4) {
+    // 2. Smart Auto-Correct (Levenshtein <= 1 for 4-5 chars, <= 2 for 6-8 chars, <= 3 for 9+ chars with same 2-letter start)
+    const probe = resolved;
+    if (probe.length >= 4) {
         let bestMatch = null;
         let bestDist = Infinity;
-        const maxDist = clean.length >= 7 ? 2 : 1;
+        const maxDist = probe.length >= 9 ? 3 : (probe.length >= 6 ? 2 : 1);
         for (const t of tiers) {
             for (const candidate of p[t.key]) {
-                if (Math.abs(candidate.length - clean.length) <= maxDist) {
-                    const dist = levenshtein(clean, candidate);
-                    if (dist <= maxDist && dist < bestDist) {
+                if (Math.abs(candidate.length - probe.length) <= maxDist) {
+                    const dist = levenshtein(probe, candidate);
+                    const allowed = dist <= 2 || (dist === 3 && probe.length >= 9 && candidate.slice(0, 2) === probe.slice(0, 2));
+                    if (dist <= maxDist && allowed && dist < bestDist) {
                         bestDist = dist;
                         const isTop1 = t.key === 'legendary' && top1Word && candidate === top1Word;
                         bestMatch = {
