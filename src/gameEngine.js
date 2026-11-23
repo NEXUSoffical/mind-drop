@@ -5,7 +5,7 @@
  */
 
 const crypto = require('crypto');
-const { scoreAnswer, getSpellingSuggestions, getRandomPrompt, pickBotAnswer } = require('./prompts');
+const { PROMPTS, scoreAnswer, getSpellingSuggestions, getRandomPrompt, pickBotAnswer } = require('./prompts');
 const eloStore = require('./eloStore');
 
 const MAX_HP = 200;
@@ -221,28 +221,35 @@ class DuelCombatEngine {
         });
     }
 
+    _drawFromPlayerDeck(duel) {
+        const humans = duel.players.filter(p => !p.isBot && p.profileKey);
+        const primaryKey = humans.length ? humans[0].profileKey : '__global__';
+        let deck = this.playerRecentPrompts.get(primaryKey);
+        if (!Array.isArray(deck) || deck.length === 0) {
+            // Fresh Fisher-Yates shuffled deck of ALL unique prompts
+            deck = PROMPTS.map(p => p.id);
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            // Avoid starting the new deck with the very last prompt from this duel
+            const lastId = duel.usedPromptIds[duel.usedPromptIds.length - 1];
+            if (lastId && deck.length > 1 && deck[deck.length - 1] === lastId) {
+                [deck[0], deck[deck.length - 1]] = [deck[deck.length - 1], deck[0]];
+            }
+        }
+        const nextId = deck.pop();
+        this.playerRecentPrompts.set(primaryKey, deck);
+        const found = PROMPTS.find(p => p.id === nextId);
+        return found ? { id: found.id, category: found.category, prompt: found.prompt } : getRandomPrompt(duel.usedPromptIds);
+    }
+
     _nextRound(duel) {
         if (duel.players.length < 2) return;
         duel.round++;
 
-        // Avoid repeating questions seen recently by any human player across matches & rematches
-        const excludeSet = new Set(duel.usedPromptIds);
-        for (const p of duel.players) {
-            if (!p.isBot && p.profileKey) {
-                const recent = this.playerRecentPrompts.get(p.profileKey) || [];
-                for (const id of recent) excludeSet.add(id);
-            }
-        }
-        const prompt = getRandomPrompt(Array.from(excludeSet));
+        const prompt = this._drawFromPlayerDeck(duel);
         duel.usedPromptIds.push(prompt.id);
-        for (const p of duel.players) {
-            if (!p.isBot && p.profileKey) {
-                const recent = this.playerRecentPrompts.get(p.profileKey) || [];
-                recent.push(prompt.id);
-                if (recent.length > 32) recent.shift();
-                this.playerRecentPrompts.set(p.profileKey, recent);
-            }
-        }
         duel.currentPrompt = prompt;
         duel.state = 'FIGHT';
         duel.roundEndsAt = Date.now() + 16000;
