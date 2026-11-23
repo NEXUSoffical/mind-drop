@@ -23,6 +23,7 @@ const BOT_CALLSIGNS = ['Kairo [AI]', 'Valkyrie [AI]', 'Cipher [AI]', 'Nyx [AI]',
 class DuelCombatEngine {
     constructor() {
         this.duels = new Map(); // code -> duel room
+        this.playerRecentPrompts = new Map(); // profileKey -> recent prompt IDs across matches
         this.serverStartTime = Date.now();
         this.jobId = 'mindduel_' + crypto.randomBytes(3).toString('hex');
         this._startBloxCloudTelemetry();
@@ -223,8 +224,25 @@ class DuelCombatEngine {
     _nextRound(duel) {
         if (duel.players.length < 2) return;
         duel.round++;
-        const prompt = getRandomPrompt(duel.usedPromptIds);
+
+        // Avoid repeating questions seen recently by any human player across matches & rematches
+        const excludeSet = new Set(duel.usedPromptIds);
+        for (const p of duel.players) {
+            if (!p.isBot && p.profileKey) {
+                const recent = this.playerRecentPrompts.get(p.profileKey) || [];
+                for (const id of recent) excludeSet.add(id);
+            }
+        }
+        const prompt = getRandomPrompt(Array.from(excludeSet));
         duel.usedPromptIds.push(prompt.id);
+        for (const p of duel.players) {
+            if (!p.isBot && p.profileKey) {
+                const recent = this.playerRecentPrompts.get(p.profileKey) || [];
+                recent.push(prompt.id);
+                if (recent.length > 32) recent.shift();
+                this.playerRecentPrompts.set(p.profileKey, recent);
+            }
+        }
         duel.currentPrompt = prompt;
         duel.state = 'FIGHT';
         duel.roundEndsAt = Date.now() + 16000;
