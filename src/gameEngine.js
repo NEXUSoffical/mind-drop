@@ -12,10 +12,10 @@ const MAX_HP = 200;
 
 const TIER_DAMAGE = {
     INVALID: 0,
-    COMMON: 10,
-    UNCOMMON: 20,
-    RARE: 32,
-    LEGENDARY: 46,
+    COMMON: 8,
+    UNCOMMON: 22,
+    RARE: 42,
+    LEGENDARY: 68,
 };
 
 const BOT_CALLSIGNS = ['Kairo [AI]', 'Valkyrie [AI]', 'Cipher [AI]', 'Nyx [AI]', 'Titan [AI]'];
@@ -306,9 +306,9 @@ class DuelCombatEngine {
             dmgToP2 = 0;
             clashBlocked = true;
         } else {
-            // Winner of the rarity clash deals a +6 Overpower Bonus!
-            if (dmgToP2 > dmgToP1) dmgToP2 += 6;
-            else if (dmgToP1 > dmgToP2) dmgToP1 += 6;
+            // Winner of the rarity clash deals a +10 Overpower Bonus!
+            if (dmgToP2 > dmgToP1) dmgToP2 += 10;
+            else if (dmgToP1 > dmgToP2) dmgToP1 += 10;
         }
 
         p2.hp = Math.max(0, p2.hp - dmgToP2);
