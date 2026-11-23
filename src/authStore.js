@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const bloxCloud = require('./bloxCloudClient');
 
 const DATA_DIR = path.join(__dirname, '../data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
@@ -47,11 +48,23 @@ class AuthStore {
         }
     }
 
+    async initCloud() {
+        if (!bloxCloud.isEnabled()) return;
+        const remote = await bloxCloud.getJson('minddrop', 'users');
+        if (remote && typeof remote === 'object') {
+            this.users = { ...this.users, ...remote };
+            console.log(`[MindDrop Auth] Hydrated ${Object.keys(remote).length} player accounts from BloxCloud Cloud DataStore.`);
+        }
+    }
+
     _save() {
         try {
             if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
             fs.writeFileSync(USERS_FILE, JSON.stringify(this.users, null, 2), 'utf8');
         } catch {}
+        if (bloxCloud.isEnabled()) {
+            bloxCloud.setJson('minddrop', 'users', this.users);
+        }
     }
 
     _signToken(user) {

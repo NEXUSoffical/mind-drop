@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const bloxCloud = require('./bloxCloudClient');
 
 const DATA_DIR = path.join(__dirname, '../data');
 const DATA_FILE = path.join(DATA_DIR, 'ratings.json');
@@ -31,11 +32,27 @@ class EloStore {
         }
     }
 
+    async initCloud() {
+        if (!bloxCloud.isEnabled()) return;
+        const remote = await bloxCloud.getJson('minddrop', 'ratings');
+        if (remote && typeof remote === 'object') {
+            this.ratings = { ...this.ratings, ...remote };
+            console.log(`[MindDrop ELO] Hydrated ${Object.keys(remote).length} ranked accounts from BloxCloud Cloud DataStore.`);
+        }
+    }
+
     _save() {
+        const persisted = {};
+        for (const [k, v] of Object.entries(this.ratings)) {
+            if (v && v.isAccount) persisted[k] = v;
+        }
         try {
             if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-            fs.writeFileSync(DATA_FILE, JSON.stringify(this.ratings, null, 2), 'utf8');
+            fs.writeFileSync(DATA_FILE, JSON.stringify(persisted, null, 2), 'utf8');
         } catch {}
+        if (bloxCloud.isEnabled()) {
+            bloxCloud.setJson('minddrop', 'ratings', persisted);
+        }
     }
 
     _cleanKey(key) {

@@ -10,6 +10,7 @@ const { WebSocketServer } = require('ws');
 const engine = require('./gameEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
+const bloxCloud = require('./bloxCloudClient');
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -19,7 +20,13 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', game: 'MindDrop 1v1 Combat', poweredBy: 'BloxCloud', uptime: Math.floor(process.uptime()) });
+    res.json({
+        status: 'OK',
+        game: 'MindDrop 1v1 Combat',
+        poweredBy: 'BloxCloud',
+        bloxCloudConnected: bloxCloud.isEnabled(),
+        uptime: Math.floor(process.uptime()),
+    });
 });
 
 app.post('/api/auth/register', (req, res) => {
@@ -90,6 +97,11 @@ wss.on('connection', (ws, req) => {
     }
 });
 
-server.listen(port, '0.0.0.0', () => {
-    console.log(`[MindDrop] 1v1 Rarity Combat Arena running on http://0.0.0.0:${port} (Powered by BloxCloud)`);
-});
+Promise.all([authStore.initCloud(), eloStore.initCloud()])
+    .catch(() => {})
+    .finally(() => {
+        server.listen(port, '0.0.0.0', () => {
+            const mode = bloxCloud.isEnabled() ? 'BloxCloud Cloud DataStore + Telemetry' : 'Local Mode (set BLOXCLOUD_API_KEY to connect)';
+            console.log(`[MindDrop] 1v1 Rarity Combat Arena running on http://0.0.0.0:${port} (${mode})`);
+        });
+    });
