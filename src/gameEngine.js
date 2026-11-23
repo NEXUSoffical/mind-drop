@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const { PROMPTS, scoreAnswer, getSpellingSuggestions, getRandomPrompt, pickBotAnswer } = require('./prompts');
 const eloStore = require('./eloStore');
 const bloxCloud = require('./bloxCloudClient');
+const wikiValidator = require('./wikiValidator');
 
 const MAX_HP = 200;
 
@@ -186,17 +187,34 @@ class DuelCombatEngine {
             duel.timer = setTimeout(() => this._nextRound(duel), 1000);
         }
 
-        ws.on('message', (raw) => {
+        ws.on('message', async (raw) => {
             let msg;
             try { msg = JSON.parse(raw.toString()); } catch { return; }
             if (!msg || typeof msg.type !== 'string') return;
 
-            if (msg.type === 'SUBMIT_ATTACK' && duel.state === 'FIGHT' && fighter.answer === null && duel.currentPrompt) {
+            if (msg.type === 'SUBMIT_ATTACK' && duel.state === 'FIGHT' && fighter.answer === null && !fighter.checking && duel.currentPrompt) {
                 const rawAnswer = String(msg.answer || '').trim().slice(0, 40);
                 if (!rawAnswer) return;
-                const result = scoreAnswer(duel.currentPrompt.id, rawAnswer);
+                const promptAtSubmit = duel.currentPrompt;
+                let result = scoreAnswer(promptAtSubmit.id, rawAnswer);
+
+                // If not in our 5,000+ curated bank, verify live against Wikipedia's free knowledge API!
                 if (!result.valid) {
-                    const suggestions = getSpellingSuggestions(duel.currentPrompt.id, rawAnswer);
+                    fighter.checking = true;
+                    try {
+                        const wikiRes = await wikiValidator.verifyAnswer(promptAtSubmit, rawAnswer);
+                        if (wikiRes && wikiRes.valid) result = wikiRes;
+                    } finally {
+                        fighter.checking = false;
+                    }
+                    // Ensure round didn't end while checking
+                    if (duel.state !== 'FIGHT' || fighter.answer !== null || !duel.currentPrompt || duel.currentPrompt.id !== promptAtSubmit.id) {
+                        return;
+                    }
+                }
+
+                if (!result.valid) {
+                    const suggestions = getSpellingSuggestions(promptAtSubmit.id, rawAnswer);
                     this._send(ws, {
                         type: 'ATTACK_REJECTED',
                         raw: rawAnswer,
@@ -206,6 +224,7 @@ class DuelCombatEngine {
                     return;
                 }
                 fighter.answer = result.matched;
+                fighter.scoredResult = result;
                 this._send(ws, {
                     type: 'ATTACK_ACCEPTED',
                     raw: rawAnswer,
@@ -273,6 +292,8 @@ class DuelCombatEngine {
 
         for (const p of duel.players) {
             p.answer = null;
+            p.scoredResult = null;
+            p.checking = false;
             p.lastClash = null;
         }
 
@@ -310,8 +331,8 @@ class DuelCombatEngine {
         duel.state = 'CLASH';
 
         const [p1, p2] = duel.players;
-        const r1 = scoreAnswer(duel.currentPrompt.id, p1.answer || '');
-        const r2 = scoreAnswer(duel.currentPrompt.id, p2.answer || '');
+        const r1 = p1.scoredResult || scoreAnswer(duel.currentPrompt.id, p1.answer || '');
+        const r2 = p2.scoredResult || scoreAnswer(duel.currentPrompt.id, p2.answer || '');
 
         let dmgToP2 = TIER_DAMAGE[r1.tier] || 0;
         let dmgToP1 = TIER_DAMAGE[r2.tier] || 0;
