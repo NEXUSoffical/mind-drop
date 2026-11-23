@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindDrop | 1v1 Rarity Trivia Combat Arena</title>
-    <meta name="description" content="1v1 Online Brain Combat. Rarer answers fire heavier energy attacks. First fighter to 0 HP loses. Powered by BloxCloud.">
+    <title>MindDrop | Wild West 1v1 Rarity Showdown</title>
+    <meta name="description" content="1v1 Wild West Brain Showdown. Rarer answers fire heavier revolver shots. First gunslinger to 0 HP loses. Powered by BloxCloud.">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Rye&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #02030b;
-            color: #f8fafc;
+            background: #1c0c06;
+            color: #fef3c7;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
         }
-        #spaceBgCanvas {
+        #westBgCanvas {
             position: fixed;
             inset: 0;
             width: 100%;
@@ -30,27 +30,29 @@
             z-index: 1;
         }
         .mono { font-family: 'JetBrains Mono', monospace; }
+        .western-font { font-family: 'Rye', serif; }
         .hidden { display: none !important; }
 
         header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 22px; background: rgba(4, 8, 24, 0.58);
+            padding: 12px 22px; background: rgba(28, 12, 6, 0.72);
             backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(56, 189, 248, 0.28);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.35);
         }
-        .logo { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #fef3c7; }
         .logo-badge {
             width: 32px; height: 32px; border-radius: 9px;
-            background: linear-gradient(135deg, #38bdf8, #f43f5e);
+            background: linear-gradient(135deg, #d97706, #991b1b);
+            border: 1px solid #fbbf24;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 800; color: #fff;
+            font-family: 'Rye', serif; font-weight: 400; color: #fef3c7;
         }
         .bc-pill {
-            font-size: 11px; font-weight: 700; color: #bae6fd; text-decoration: none;
-            padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(56,189,248,0.4);
-            background: rgba(14, 165, 233, 0.16);
+            font-size: 11px; font-weight: 700; color: #fde68a; text-decoration: none;
+            padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(245,158,11,0.45);
+            background: rgba(180, 83, 9, 0.25);
         }
-        .bc-pill:hover { background: rgba(14, 165, 233, 0.35); color: #fff; }
+        .bc-pill:hover { background: rgba(217, 119, 6, 0.45); color: #fff; }
 
         main {
             flex: 1; width: 100%; max-width: 960px; margin: 0 auto;
@@ -65,36 +67,43 @@
             box-shadow: none;
         }
         #viewArena.card {
-            background: rgba(4, 8, 22, 0.55);
-            border: 1px solid rgba(56, 189, 248, 0.25);
+            background: rgba(28, 13, 6, 0.76);
+            border: 1.5px solid rgba(245, 158, 11, 0.42);
             border-radius: 20px;
             padding: 18px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
         }
         .lb-section {
             margin-top: 26px;
             padding: 18px;
             border-radius: 16px;
-            background: rgba(4, 9, 24, 0.58);
-            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(28, 13, 6, 0.74);
+            border: 1px solid rgba(245, 158, 11, 0.32);
         }
 
-        .hero-title { font-size: 44px; font-weight: 800; text-align: center; letter-spacing: -1px; line-height: 1.08; text-shadow: 0 4px 24px rgba(0,0,0,0.85); }
-        .hero-grad { background: linear-gradient(90deg, #38bdf8, #f43f5e, #fbbf24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero-sub { text-align: center; color: #cbd5e1; font-size: 14px; max-width: 560px; margin: 10px auto 0; line-height: 1.5; text-shadow: 0 2px 12px rgba(0,0,0,0.9); }
+        .hero-title {
+            font-family: 'Rye', serif;
+            font-size: 40px; font-weight: 400; text-align: center;
+            letter-spacing: 0.5px; line-height: 1.15;
+            color: #fffbeb;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.92), 0 2px 0 #78350f;
+        }
+        .hero-grad { background: linear-gradient(90deg, #fde047, #f59e0b, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: none; }
+        .hero-sub { text-align: center; color: #fde68a; font-size: 14px; max-width: 560px; margin: 10px auto 0; line-height: 1.5; text-shadow: 0 2px 12px rgba(0,0,0,0.95); }
 
         .btn {
             border: none; border-radius: 12px; padding: 12px 18px; font-family: inherit;
             font-size: 13px; font-weight: 800; cursor: pointer; color: #fff; transition: 0.15s;
         }
         .btn:active { transform: scale(0.97); }
-        .btn-cyan { background: linear-gradient(90deg, #0284c7, #06b6d4); box-shadow: 0 6px 20px rgba(6,182,212,0.35); }
-        .btn-rose { background: linear-gradient(90deg, #e11d48, #f97316); box-shadow: 0 6px 20px rgba(244,63,94,0.35); }
-        .btn-ghost { background: rgba(30, 58, 138, 0.45); border: 1px solid rgba(56,189,248,0.3); color: #e2e8f0; }
+        .btn-cyan { background: linear-gradient(90deg, #b45309, #d97706); border: 1px solid rgba(251,191,36,0.5); box-shadow: 0 6px 20px rgba(217,119,6,0.38); }
+        .btn-rose { background: linear-gradient(90deg, #991b1b, #ea580c); border: 1px solid rgba(251,146,60,0.5); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+        .btn-ghost { background: rgba(45, 22, 10, 0.72); border: 1px solid rgba(245,158,11,0.42); color: #fef3c7; }
         input {
-            width: 100%; background: #030816; border: 1.5px solid rgba(56, 189, 248, 0.45);
-            border-radius: 12px; padding: 12px 14px; color: #fff; font-size: 15px; font-family: inherit; outline: none;
+            width: 100%; background: rgba(20, 9, 4, 0.85); border: 1.5px solid rgba(245, 158, 11, 0.5);
+            border-radius: 12px; padding: 12px 14px; color: #fffbeb; font-size: 15px; font-family: inherit; outline: none;
         }
-        input:focus { border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56,189,248,0.2); }
+        input:focus { border-color: #fbbf24; box-shadow: 0 0 0 3px rgba(251,191,36,0.22); }
 
         /* Fighting Game HP HUD */
         .hp-hud {
@@ -103,34 +112,35 @@
         }
         .fighter-hud-name { font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 5px; }
         .hp-track {
-            height: 20px; border-radius: 999px; background: #0f172a;
-            border: 2px solid rgba(255,255,255,0.2); overflow: hidden; position: relative;
+            height: 20px; border-radius: 999px; background: #1c0c06;
+            border: 2px solid rgba(245,158,11,0.45); overflow: hidden; position: relative;
         }
         .hp-fill-left {
             height: 100%; width: 100%;
-            background: linear-gradient(90deg, #0284c7, #38bdf8);
+            background: linear-gradient(90deg, #0369a1, #38bdf8);
             transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .hp-fill-right {
             height: 100%; width: 100%; margin-left: auto;
-            background: linear-gradient(90deg, #f97316, #f43f5e);
+            background: linear-gradient(90deg, #ea580c, #dc2626);
             transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .vs-clock {
             min-width: 78px; text-align: center; padding: 8px 12px;
-            border-radius: 14px; background: #040b1d; border: 1.5px solid rgba(251, 191, 36, 0.55);
+            border-radius: 14px; background: #1c0c06; border: 1.5px solid rgba(251, 191, 36, 0.7);
         }
         .vs-round { font-size: 10px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; }
-        .vs-sec { font-size: 22px; font-weight: 800; color: #fff; }
+        .vs-sec { font-size: 22px; font-weight: 800; color: #fffbeb; }
 
         /* Arena Stage Canvas */
         .arena-wrap {
             position: relative;
             border-radius: 18px;
             overflow: hidden;
-            border: 1.5px solid rgba(56, 189, 248, 0.35);
-            background: #030712;
+            border: 2px solid rgba(245, 158, 11, 0.55);
+            background: #230f07;
             margin-bottom: 14px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
         }
         #arenaCanvas {
             width: 100%;
@@ -323,11 +333,11 @@
     </style>
 </head>
 <body>
-    <canvas id="spaceBgCanvas"></canvas>
+    <canvas id="westBgCanvas"></canvas>
     <header>
         <div class="logo" onclick="leaveDuel()">
             <div class="logo-badge">M</div>
-            <span>MindDrop <span style="color:#38bdf8; font-weight:600; font-size:13px;">1v1 Combat</span></span>
+            <span>MindDrop <span style="color:#fbbf24; font-weight:700; font-size:13px;">Wild West Showdown</span></span>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
             <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
@@ -343,11 +353,11 @@
         <!-- HOME SCREEN -->
         <section id="viewHome" class="card">
             <div style="text-align:center; margin-bottom:10px;">
-                <span class="tier-badge tier-LEGENDARY">1V1 RARITY BRAIN COMBAT</span>
+                <span class="tier-badge tier-LEGENDARY">1V1 WILD WEST RARITY SHOWDOWN</span>
             </div>
-            <h1 class="hero-title">RARER ANSWERS. <span class="hero-grad">HEAVIER DAMAGE.</span></h1>
+            <h1 class="hero-title">HIGH NOON. <span class="hero-grad">RARER SHOTS.</span></h1>
             <p class="hero-sub">
-                Both fighters start with 200 HP. Every round gives a category from 44+ topics — type the rarest valid answer you know to fire a stronger attack. Win matches to climb ELO and unlock tougher opponents.
+                Two gunslingers face off at 200 HP each. Every round draws a topic from 46+ categories — type the rarest valid answer you know to fire a heavier shot. First cowboy to 0 HP drops.
             </p>
 
             <div class="elo-card">
@@ -463,8 +473,8 @@
                 </div>
                 <div id="promptText" style="font-size:24px; font-weight:800; margin-bottom:12px;">Name a fruit</div>
                 <div id="attackInputRow" style="display:flex; gap:10px;">
-                    <input id="attackInput" type="text" maxlength="40" placeholder="Type your rarest valid answer (Tab auto-spells)..." autocomplete="off">
-                    <button class="btn btn-rose" onclick="submitAttack()" style="white-space:nowrap;">FIRE ATTACK</button>
+                    <input id="attackInput" type="text" maxlength="40" placeholder="Type your rarest valid answer to draw & fire (Tab auto-spells)..." autocomplete="off">
+                    <button class="btn btn-rose" onclick="submitAttack()" style="white-space:nowrap;">FIRE SHOT</button>
                 </div>
                 <div id="attackRejectMsg" class="reject-msg hidden"></div>
                 <div id="suggestRow" class="suggest-row hidden"></div>
@@ -516,148 +526,209 @@
 
     <script>
         // -----------------------------------------------------------
-        // 0. FULL-PAGE DEEP SPACE BACKGROUND (STARS + NEBULA + METEORS)
+        // 0. FULL-PAGE WILD WEST SUNSET BACKGROUND (MESAS + CACTI + TUMBLEWEEDS + STANDOFF SILHOUETTES)
         // -----------------------------------------------------------
-        const bgCanvas = document.getElementById('spaceBgCanvas');
+        const bgCanvas = document.getElementById('westBgCanvas');
         const bgCtx = bgCanvas.getContext('2d');
         let bw = window.innerWidth, bh = window.innerHeight;
-        const bgStars = [];
-        const shootingStars = [];
+        const dustMotes = [];
+        const tumbleweeds = [];
 
-        function initSpaceBg() {
+        function initWestBg() {
             bw = bgCanvas.width = window.innerWidth;
             bh = bgCanvas.height = window.innerHeight;
-            bgStars.length = 0;
-            const count = Math.min(220, Math.floor((bw * bh) / 6500));
-            const starColors = ['#ffffff', '#bae6fd', '#e9d5ff', '#fef08a', '#fda4af'];
-            for (let i = 0; i < count; i++) {
-                bgStars.push({
+            dustMotes.length = 0;
+            for (let i = 0; i < 75; i++) {
+                dustMotes.push({
                     x: Math.random() * bw,
-                    y: Math.random() * bh,
-                    r: 0.5 + Math.random() * 1.7,
-                    speed: 0.04 + Math.random() * 0.16,
-                    phase: Math.random() * Math.PI * 2,
-                    twinkle: 0.0015 + Math.random() * 0.003,
-                    color: starColors[Math.floor(Math.random() * starColors.length)],
+                    y: bh * 0.45 + Math.random() * bh * 0.55,
+                    r: 1 + Math.random() * 2.2,
+                    vx: 0.35 + Math.random() * 0.9,
+                    vy: (Math.random() - 0.5) * 0.2,
+                    a: 0.15 + Math.random() * 0.35,
                 });
             }
+            if (!tumbleweeds.length) {
+                tumbleweeds.push({ x: bw * 0.2, r: 16, speed: 0.75, rot: 0, bouncePhase: 0 });
+                tumbleweeds.push({ x: bw * 0.75, r: 11, speed: 0.5, rot: 2, bouncePhase: 1.5 });
+            }
         }
-        initSpaceBg();
-        window.addEventListener('resize', initSpaceBg);
+        initWestBg();
+        window.addEventListener('resize', initWestBg);
 
-        function renderSpaceBg(now) {
-            requestAnimationFrame(renderSpaceBg);
+        function drawCactus(c, x, baseY, scale, color) {
+            c.save();
+            c.translate(x, baseY);
+            c.scale(scale, scale);
+            c.fillStyle = color;
+            // Main trunk
+            c.beginPath();
+            c.roundRect ? c.roundRect(-6, -54, 12, 54, 6) : c.fillRect(-6, -54, 12, 54);
+            c.fill();
+            // Left arm
+            c.beginPath();
+            c.roundRect ? c.roundRect(-22, -34, 18, 9, 4) : c.fillRect(-22, -34, 18, 9);
+            c.roundRect ? c.roundRect(-22, -48, 9, 22, 4) : c.fillRect(-22, -48, 9, 22);
+            c.fill();
+            // Right arm
+            c.beginPath();
+            c.roundRect ? c.roundRect(4, -26, 18, 9, 4) : c.fillRect(4, -26, 18, 9);
+            c.roundRect ? c.roundRect(13, -44, 9, 26, 4) : c.fillRect(13, -44, 9, 26);
+            c.fill();
+            c.restore();
+        }
+
+        function drawTumbleweed(c, x, y, r, rot) {
+            c.save();
+            c.translate(x, y);
+            c.rotate(rot);
+            c.strokeStyle = 'rgba(120, 63, 24, 0.72)';
+            c.lineWidth = 1.6;
+            for (let i = 0; i < 7; i++) {
+                const a = (i / 7) * Math.PI * 2;
+                c.beginPath();
+                c.ellipse(Math.cos(a) * r * 0.25, Math.sin(a) * r * 0.25, r * 0.72, r * 0.42, a, 0, Math.PI * 2);
+                c.stroke();
+            }
+            c.restore();
+        }
+
+        function drawBgCowboySilhouette(c, x, groundY, dir, scale) {
+            c.save();
+            c.translate(x, groundY);
+            c.scale(dir * scale, scale);
+            c.fillStyle = '#180904';
+            // Legs in standoff stance
+            c.beginPath();
+            c.moveTo(-16, 0); c.lineTo(-8, -46); c.lineTo(0, -46); c.lineTo(-4, 0); c.closePath();
+            c.moveTo(4, 0); c.lineTo(2, -46); c.lineTo(10, -46); c.lineTo(18, 0); c.closePath();
+            c.fill();
+            // Duster coat / poncho torso
+            c.beginPath();
+            c.moveTo(-22, -32); c.lineTo(-14, -84); c.lineTo(14, -84); c.lineTo(18, -36); c.closePath();
+            c.fill();
+            // Head
+            c.beginPath(); c.arc(0, -96, 11, 0, Math.PI * 2); c.fill();
+            // Wide cowboy hat brim + crown
+            c.fillRect(-26, -105, 52, 5);
+            c.beginPath();
+            c.moveTo(-13, -105); c.lineTo(-10, -120); c.lineTo(10, -120); c.lineTo(13, -105); c.closePath();
+            c.fill();
+            // Outstretched aiming arm + six-shooter revolver
+            c.fillRect(8, -80, 34, 9);
+            // Revolver grip + cylinder + barrel
+            c.fillRect(38, -78, 7, 13);
+            c.fillRect(40, -83, 22, 6);
+            c.restore();
+        }
+
+        function renderWestBg(now) {
+            requestAnimationFrame(renderWestBg);
             bgCtx.clearRect(0, 0, bw, bh);
 
-            // Deep Space Base Gradient
-            const base = bgCtx.createLinearGradient(0, 0, 0, bh);
-            base.addColorStop(0, '#020412');
-            base.addColorStop(0.5, '#070822');
-            base.addColorStop(1, '#02030c');
-            bgCtx.fillStyle = base;
+            const horizonY = bh * 0.68;
+
+            // Desert Sunset Sky Gradient
+            const sky = bgCtx.createLinearGradient(0, 0, 0, horizonY);
+            sky.addColorStop(0, '#1e0a16');
+            sky.addColorStop(0.32, '#5c1a1b');
+            sky.addColorStop(0.68, '#b44517');
+            sky.addColorStop(1, '#f59e0b');
+            bgCtx.fillStyle = sky;
             bgCtx.fillRect(0, 0, bw, bh);
 
-            // Drifting Cosmic Nebulas (Vivid Milky Way Glow)
-            const n1x = bw * 0.20 + Math.sin(now * 0.00018) * 60;
-            const n1y = bh * 0.25 + Math.cos(now * 0.00014) * 40;
-            const neb1 = bgCtx.createRadialGradient(n1x, n1y, 10, n1x, n1y, Math.max(bw, bh) * 0.48);
-            neb1.addColorStop(0, 'rgba(139, 92, 246, 0.38)');
-            neb1.addColorStop(0.45, 'rgba(79, 70, 229, 0.18)');
-            neb1.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            bgCtx.fillStyle = neb1;
+            // Blazing Low Desert Sun + Halo
+            const sunX = bw * 0.5;
+            const sunY = horizonY - 26;
+            const sunHalo = bgCtx.createRadialGradient(sunX, sunY, 18, sunX, sunY, Math.max(bw, bh) * 0.42);
+            sunHalo.addColorStop(0, 'rgba(254, 240, 138, 0.92)');
+            sunHalo.addColorStop(0.18, 'rgba(251, 191, 36, 0.55)');
+            sunHalo.addColorStop(0.5, 'rgba(234, 88, 12, 0.22)');
+            sunHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            bgCtx.fillStyle = sunHalo;
             bgCtx.fillRect(0, 0, bw, bh);
 
-            const n2x = bw * 0.80 + Math.cos(now * 0.00015) * 70;
-            const n2y = bh * 0.68 + Math.sin(now * 0.00016) * 45;
-            const neb2 = bgCtx.createRadialGradient(n2x, n2y, 10, n2x, n2y, Math.max(bw, bh) * 0.46);
-            neb2.addColorStop(0, 'rgba(14, 165, 233, 0.34)');
-            neb2.addColorStop(0.45, 'rgba(236, 72, 153, 0.15)');
-            neb2.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            bgCtx.fillStyle = neb2;
-            bgCtx.fillRect(0, 0, bw, bh);
-
-            // Big Ringed Gas Planet in Upper-Right Space
-            const px = bw * 0.84, py = bh * 0.22;
-            bgCtx.save();
-            bgCtx.strokeStyle = 'rgba(186, 230, 253, 0.28)';
-            bgCtx.lineWidth = 10;
+            bgCtx.fillStyle = '#fef08a';
             bgCtx.beginPath();
-            bgCtx.ellipse(px, py, 130, 30, -0.25, Math.PI, Math.PI * 2);
-            bgCtx.stroke();
-
-            const pGrad = bgCtx.createRadialGradient(px - 22, py - 22, 8, px, py, 68);
-            pGrad.addColorStop(0, '#67e8f9');
-            pGrad.addColorStop(0.42, '#6366f1');
-            pGrad.addColorStop(0.85, '#1e1b4b');
-            pGrad.addColorStop(1, '#090920');
-            bgCtx.fillStyle = pGrad;
-            bgCtx.beginPath();
-            bgCtx.arc(px, py, 64, 0, Math.PI * 2);
+            bgCtx.arc(sunX, sunY, Math.min(bw, bh) * 0.085, 0, Math.PI * 2);
             bgCtx.fill();
 
-            bgCtx.strokeStyle = 'rgba(224, 242, 254, 0.52)';
-            bgCtx.lineWidth = 10;
+            // Distant Monument Valley Mesas
+            bgCtx.fillStyle = '#5c2116';
             bgCtx.beginPath();
-            bgCtx.ellipse(px, py, 130, 30, -0.25, 0, Math.PI);
-            bgCtx.stroke();
-
-            // Distant Glowing Moon on Left
-            const mx = bw * 0.12, my = bh * 0.72;
-            const mGrad = bgCtx.createRadialGradient(mx - 10, my - 10, 4, mx, my, 36);
-            mGrad.addColorStop(0, '#f8fafc');
-            mGrad.addColorStop(0.55, '#94a3b8');
-            mGrad.addColorStop(1, '#1e293b');
-            bgCtx.fillStyle = mGrad;
-            bgCtx.beginPath();
-            bgCtx.arc(mx, my, 34, 0, Math.PI * 2);
+            bgCtx.moveTo(0, horizonY);
+            bgCtx.lineTo(bw * 0.06, horizonY - 68); bgCtx.lineTo(bw * 0.16, horizonY - 68);
+            bgCtx.lineTo(bw * 0.21, horizonY - 12); bgCtx.lineTo(bw * 0.29, horizonY - 48);
+            bgCtx.lineTo(bw * 0.36, horizonY - 48); bgCtx.lineTo(bw * 0.40, horizonY - 6);
+            bgCtx.lineTo(bw * 0.64, horizonY - 8); bgCtx.lineTo(bw * 0.69, horizonY - 78);
+            bgCtx.lineTo(bw * 0.79, horizonY - 78); bgCtx.lineTo(bw * 0.84, horizonY - 18);
+            bgCtx.lineTo(bw * 0.91, horizonY - 52); bgCtx.lineTo(bw, horizonY - 45);
+            bgCtx.lineTo(bw, horizonY);
+            bgCtx.closePath();
             bgCtx.fill();
-            bgCtx.restore();
 
-            // Twinkling Parallax Stars
-            for (const s of bgStars) {
-                s.x -= s.speed;
-                if (s.x < -2) { s.x = bw + 2; s.y = Math.random() * bh; }
-                const alpha = 0.45 + 0.55 * Math.abs(Math.sin(now * s.twinkle + s.phase));
-                bgCtx.globalAlpha = alpha;
-                bgCtx.fillStyle = s.color;
+            // Closer Canyon Ridge + Western Town Silhouettes
+            bgCtx.fillStyle = '#38130a';
+            bgCtx.beginPath();
+            bgCtx.moveTo(0, horizonY + 12);
+            bgCtx.lineTo(0, horizonY - 22);
+            bgCtx.lineTo(bw * 0.14, horizonY - 12);
+            bgCtx.lineTo(bw * 0.30, horizonY - 4);
+            bgCtx.lineTo(bw * 0.70, horizonY - 4);
+            bgCtx.lineTo(bw * 0.88, horizonY - 18);
+            bgCtx.lineTo(bw, horizonY - 24);
+            bgCtx.lineTo(bw, horizonY + 12);
+            bgCtx.closePath();
+            bgCtx.fill();
+
+            // Saguaro Cacti on Desert Horizon
+            drawCactus(bgCtx, bw * 0.08, horizonY + 18, 1.15, '#260d06');
+            drawCactus(bgCtx, bw * 0.20, horizonY + 6, 0.75, '#301108');
+            drawCactus(bgCtx, bw * 0.82, horizonY + 8, 0.85, '#301108');
+            drawCactus(bgCtx, bw * 0.93, horizonY + 20, 1.2, '#260d06');
+
+            // Dusty Desert Floor
+            const ground = bgCtx.createLinearGradient(0, horizonY, 0, bh);
+            ground.addColorStop(0, '#4a1d0d');
+            ground.addColorStop(0.45, '#2b1007');
+            ground.addColorStop(1, '#120603');
+            bgCtx.fillStyle = ground;
+            bgCtx.fillRect(0, horizonY, bw, bh - horizonY);
+
+            // Two Cowboy Duelist Silhouettes Facing Each Other on the Left & Right Edges
+            if (bw >= 720) {
+                const cowScale = Math.min(1.15, bw / 1150);
+                drawBgCowboySilhouette(bgCtx, bw * 0.09, bh * 0.90, 1, cowScale);
+                drawBgCowboySilhouette(bgCtx, bw * 0.91, bh * 0.90, -1, cowScale);
+            }
+
+            // Rolling Tumbleweeds
+            for (const tw of tumbleweeds) {
+                tw.x += tw.speed;
+                tw.rot += tw.speed * 0.045;
+                tw.bouncePhase += 0.06;
+                if (tw.x > bw + 40) tw.x = -40;
+                const bounce = Math.abs(Math.sin(tw.bouncePhase)) * 8;
+                drawTumbleweed(bgCtx, tw.x, horizonY + 42 - bounce, tw.r, tw.rot);
+            }
+
+            // Drifting Warm Desert Dust Motes
+            for (const d of dustMotes) {
+                d.x += d.vx;
+                d.y += d.vy;
+                if (d.x > bw + 4) { d.x = -4; d.y = bh * 0.45 + Math.random() * bh * 0.55; }
+                bgCtx.globalAlpha = d.a;
+                bgCtx.fillStyle = '#fde68a';
                 bgCtx.beginPath();
-                bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                bgCtx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
                 bgCtx.fill();
             }
             bgCtx.globalAlpha = 1;
-
-            // Frequent Shooting Stars
-            if (Math.random() < 0.018 && shootingStars.length < 3) {
-                shootingStars.push({
-                    x: Math.random() * bw * 0.8 + bw * 0.2,
-                    y: Math.random() * bh * 0.45,
-                    vx: -(7 + Math.random() * 6),
-                    vy: 2.5 + Math.random() * 2.5,
-                    len: 55 + Math.random() * 55,
-                    life: 1,
-                });
-            }
-            for (let i = shootingStars.length - 1; i >= 0; i--) {
-                const st = shootingStars[i];
-                st.x += st.vx;
-                st.y += st.vy;
-                st.life -= 0.022;
-                if (st.life <= 0) { shootingStars.splice(i, 1); continue; }
-                const grad = bgCtx.createLinearGradient(st.x, st.y, st.x - st.vx * 6, st.y - st.vy * 6);
-                grad.addColorStop(0, `rgba(255,255,255,${st.life})`);
-                grad.addColorStop(1, 'rgba(56,189,248,0)');
-                bgCtx.strokeStyle = grad;
-                bgCtx.lineWidth = 2;
-                bgCtx.beginPath();
-                bgCtx.moveTo(st.x, st.y);
-                bgCtx.lineTo(st.x - st.vx * 6, st.y - st.vy * 6);
-                bgCtx.stroke();
-            }
         }
-        requestAnimationFrame(renderSpaceBg);
+        requestAnimationFrame(renderWestBg);
 
         // -----------------------------------------------------------
-        // 1. SOUND EFFECTS (SYNTH)
+        // 1. SOUND EFFECTS (WESTERN GUNSHOT & RICOCHET SYNTH)
         // -----------------------------------------------------------
         let audioCtx = null;
         function playSfx(freq, dur = 0.16, type = 'triangle', vol = 0.14, delay = 0) {
@@ -675,18 +746,19 @@
             } catch {}
         }
         function playHitSfx(heavy) {
+            // Revolver crack + western ricochet twang
             if (heavy) {
-                playSfx(140, 0.25, 'sawtooth', 0.18, 0);
-                playSfx(520, 0.16, 'triangle', 0.15, 0.06);
-                playSfx(880, 0.28, 'triangle', 0.16, 0.14);
+                playSfx(110, 0.22, 'sawtooth', 0.22, 0);
+                playSfx(980, 0.14, 'triangle', 0.14, 0.05);
+                playSfx(620, 0.26, 'sine', 0.14, 0.12);
             } else {
-                playSfx(220, 0.16, 'square', 0.12, 0);
-                playSfx(330, 0.14, 'triangle', 0.1, 0.05);
+                playSfx(160, 0.16, 'sawtooth', 0.16, 0);
+                playSfx(480, 0.12, 'triangle', 0.1, 0.05);
             }
         }
 
         // -----------------------------------------------------------
-        // 2. 60FPS 1V1 FIGHTING ARENA CANVAS
+        // 2. 60FPS 1V1 WILD WEST COWBOY SHOWDOWN ARENA
         // -----------------------------------------------------------
         const canvas = document.getElementById('arenaCanvas');
         const ctx = canvas.getContext('2d');
@@ -702,108 +774,194 @@
             leftHp: 200, rightHp: 200,
             leftHitFlash: 0, rightHitFlash: 0,
             leftRecoil: 0, rightRecoil: 0,
+            leftMuzzle: 0, rightMuzzle: 0,
             beams: [], // { fromSide, color, width, life }
             sparks: [],
             popups: [], // { x, y, text, color, life }
         };
 
         function fireAttackVisual(fromSide, tier, dmg) {
-            const colorMap = { LEGENDARY: '#facc15', RARE: '#c084fc', UNCOMMON: '#38bdf8', COMMON: '#94a3b8' };
-            const widthMap = { LEGENDARY: 24, RARE: 15, UNCOMMON: 9, COMMON: 5 };
-            const color = colorMap[tier] || '#38bdf8';
-            const width = widthMap[tier] || 6;
+            const colorMap = { LEGENDARY: '#fde047', RARE: '#f97316', UNCOMMON: '#38bdf8', COMMON: '#e2e8f0' };
+            const widthMap = { LEGENDARY: 14, RARE: 9, UNCOMMON: 6, COMMON: 4 };
+            const color = colorMap[tier] || '#fde047';
+            const width = widthMap[tier] || 5;
 
             if (dmg > 0) {
-                anim.beams.push({ fromSide, color, width, life: 0.7 });
-                const targetX = fromSide === 'LEFT' ? cw * 0.78 : cw * 0.22;
-                const targetY = ch * 0.56;
-                if (fromSide === 'LEFT') { anim.rightHitFlash = 1; anim.rightRecoil = 26; }
-                else { anim.leftHitFlash = 1; anim.leftRecoil = -26; }
+                if (fromSide === 'LEFT') anim.leftMuzzle = 1;
+                else anim.rightMuzzle = 1;
 
-                const sparkCount = tier === 'LEGENDARY' ? 42 : tier === 'RARE' ? 26 : 14;
+                anim.beams.push({ fromSide, color, width, life: 0.55 });
+                const targetX = fromSide === 'LEFT' ? cw * 0.78 : cw * 0.22;
+                const targetY = ch * 0.62;
+                if (fromSide === 'LEFT') { anim.rightHitFlash = 1; anim.rightRecoil = 24; }
+                else { anim.leftHitFlash = 1; anim.leftRecoil = -24; }
+
+                const sparkCount = tier === 'LEGENDARY' ? 40 : tier === 'RARE' ? 24 : 14;
                 for (let i = 0; i < sparkCount; i++) {
                     const a = Math.random() * Math.PI * 2;
-                    const s = 2 + Math.random() * 9;
-                    anim.sparks.push({ x: targetX, y: targetY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, r: 2 + Math.random() * 4, color, life: 0.8 });
+                    const s = 2 + Math.random() * 8;
+                    anim.sparks.push({ x: targetX, y: targetY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, r: 2 + Math.random() * 3.5, color, life: 0.75 });
                 }
                 anim.popups.push({
                     x: targetX,
-                    y: targetY - 54,
-                    text: tier === 'LEGENDARY' ? `-${dmg} CRIT!` : `-${dmg}`,
-                    color: tier === 'LEGENDARY' ? '#fde047' : '#ffffff',
+                    y: targetY - 64,
+                    text: tier === 'LEGENDARY' ? `-${dmg} DEADEYE!` : `-${dmg}`,
+                    color: tier === 'LEGENDARY' ? '#fde047' : '#fffbeb',
                     life: 1.4,
                 });
             }
         }
 
-        function drawCyberFighter(x, y, side, hp, hitFlash, now) {
+        function drawCowboyFighter(x, y, side, hp, hitFlash, muzzle, now) {
             const isLeft = side === 'LEFT';
-            const primary = isLeft ? '#38bdf8' : '#f43f5e';
-            const glow = isLeft ? '#0284c7' : '#e11d48';
-            const bob = hp > 0 ? Math.sin(now * 0.005 + (isLeft ? 0 : 2)) * 5 : 22;
+            const dir = isLeft ? 1 : -1;
+            const coatColor = isLeft ? '#1e3a8a' : '#7f1d1d'; // Sheriff Navy vs Outlaw Crimson
+            const bandanaColor = isLeft ? '#38bdf8' : '#ef4444';
+            const hatColor = isLeft ? '#78350f' : '#29150e';
+            const vestColor = isLeft ? '#92400e' : '#1c1917';
+            const breathe = hp > 0 ? Math.sin(now * 0.004 + (isLeft ? 0 : 1.7)) * 2.2 : 0;
 
             ctx.save();
-            ctx.translate(x, y + bob);
+            ctx.translate(x, y);
             if (hp <= 0) {
-                ctx.rotate(isLeft ? -1.2 : 1.2);
-                ctx.globalAlpha = 0.45;
+                ctx.translate(0, 34);
+                ctx.rotate(isLeft ? -1.35 : 1.35);
+                ctx.globalAlpha = 0.55;
+            }
+            ctx.scale(dir, 1);
+
+            // Dusty ground shadow
+            ctx.fillStyle = 'rgba(20, 8, 2, 0.45)';
+            ctx.beginPath();
+            ctx.ellipse(0, 56, 36, 9, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Boots + Spurs
+            ctx.fillStyle = '#2b1408';
+            ctx.fillRect(-19, 44, 14, 12);
+            ctx.fillRect(5, 44, 15, 12);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(-21, 49, 4, 4);
+
+            // Denim / Chaps Legs in wide gunfighter stance
+            ctx.fillStyle = isLeft ? '#1e293b' : '#292524';
+            ctx.beginPath();
+            ctx.moveTo(-14, 14); ctx.lineTo(-4, 14); ctx.lineTo(-8, 46); ctx.lineTo(-18, 46); ctx.closePath();
+            ctx.moveTo(2, 14); ctx.lineTo(12, 14); ctx.lineTo(16, 46); ctx.lineTo(6, 46); ctx.closePath();
+            ctx.fill();
+
+            // Flowing Duster Coat / Poncho Tail (fluttering in desert wind)
+            const sway = Math.sin(now * 0.006 + (isLeft ? 0 : 2)) * 4;
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : coatColor;
+            ctx.beginPath();
+            ctx.moveTo(-16, -24 + breathe);
+            ctx.lineTo(14, -24 + breathe);
+            ctx.lineTo(18, 20 + breathe);
+            ctx.lineTo(-24 - sway, 28 + breathe);
+            ctx.closePath();
+            ctx.fill();
+
+            // Leather Vest & Belt + Gold Buckle
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : vestColor;
+            ctx.fillRect(-12, -24 + breathe, 24, 34);
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(-14, 8 + breathe, 28, 7);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(-4, 8 + breathe, 8, 7);
+
+            // Sheriff Star Badge on Left Cowboy
+            if (isLeft && hitFlash <= 0.2) {
+                ctx.fillStyle = '#fde047';
+                ctx.beginPath();
+                ctx.arc(5, -13 + breathe, 3.8, 0, Math.PI * 2);
+                ctx.fill();
             }
 
-            // Ground aura shadow
-            ctx.fillStyle = isLeft ? 'rgba(56,189,248,0.22)' : 'rgba(244,63,94,0.22)';
+            // Back hand resting near holster
+            ctx.fillStyle = '#d97706';
+            ctx.fillRect(-17, -14 + breathe, 7, 22);
+
+            // Head & Face
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : '#f1c29b';
             ctx.beginPath();
-            ctx.ellipse(0, 62 - bob, 44, 12, 0, 0, Math.PI * 2);
+            ctx.arc(0, -39 + breathe, 12.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Legs
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(-18, 22, 13, 36);
-            ctx.fillRect(5, 22, 13, 36);
+            // Intense squinted eyes looking straight at opponent
+            ctx.fillStyle = '#1c0c06';
+            ctx.fillRect(3, -43 + breathe, 6, 2.5);
 
-            // Armored Torso
-            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : primary;
+            // Bandana tied around neck / lower face
+            ctx.fillStyle = bandanaColor;
             ctx.beginPath();
-            ctx.roundRect ? ctx.roundRect(-26, -24, 52, 50, 12) : ctx.fillRect(-26, -24, 52, 50);
+            ctx.moveTo(-11, -33 + breathe);
+            ctx.lineTo(12, -33 + breathe);
+            ctx.lineTo(3, -21 + breathe);
+            ctx.lineTo(-10, -25 + breathe);
+            ctx.closePath();
             ctx.fill();
 
-            // Chest Core Glow
-            ctx.fillStyle = '#ffffff';
+            // Classic Wide-Brimmed Stetson Cowboy Hat
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : hatColor;
+            // Brim (slightly tilted forward for standoff look)
             ctx.beginPath();
-            ctx.arc(0, -2, 7, 0, Math.PI * 2);
+            ctx.ellipse(1, -48 + breathe, 29, 5.5, 0.05, 0, Math.PI * 2);
             ctx.fill();
-
-            // Helmet Head
-            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : '#0f172a';
-            ctx.strokeStyle = primary;
-            ctx.lineWidth = 3;
+            // Crown
             ctx.beginPath();
-            ctx.arc(0, -48, 22, 0, Math.PI * 2);
+            ctx.moveTo(-14, -48 + breathe);
+            ctx.lineTo(-11, -64 + breathe);
+            ctx.quadraticCurveTo(0, -60 + breathe, 11, -64 + breathe);
+            ctx.lineTo(14, -48 + breathe);
+            ctx.closePath();
             ctx.fill();
-            ctx.stroke();
+            // Gold Hatband
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(-13, -52 + breathe, 26, 3.5);
 
-            // Glowing Visor facing opponent
-            ctx.fillStyle = glow;
-            ctx.fillRect(isLeft ? 2 : -18, -54, 16, 9);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(isLeft ? 5 : -15, -52, 10, 4);
+            // Outstretched Aiming Arm + Six-Shooter Revolver pointed straight at opponent!
+            const kickY = muzzle * -5;
+            ctx.fillStyle = hitFlash > 0.2 ? '#ffffff' : coatColor;
+            ctx.fillRect(8, -20 + breathe + kickY, 26, 9);
+            // Hand gripping revolver
+            ctx.fillStyle = '#f1c29b';
+            ctx.beginPath();
+            ctx.arc(35, -15.5 + breathe + kickY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            // Revolver Grip (wood)
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(33, -15 + breathe + kickY, 6, 11);
+            // Revolver Cylinder & Long Steel Barrel
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillRect(36, -21 + breathe + kickY, 10, 7);
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(42, -21 + breathe + kickY, 22, 4.5);
+            // Front sight tip
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(61, -23.5 + breathe + kickY, 2.5, 3);
 
-            // Energy Arm Cannon aimed at opponent
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(isLeft ? 18 : -44, -10, 26, 12);
-            ctx.fillStyle = primary;
-            ctx.fillRect(isLeft ? 38 : -46, -12, 8, 16);
+            // Muzzle Flash Burst when firing!
+            if (muzzle > 0.05) {
+                ctx.save();
+                ctx.globalAlpha = muzzle;
+                const fx = 66, fy = -19 + breathe + kickY;
+                const mg = ctx.createRadialGradient(fx, fy, 2, fx, fy, 26 * muzzle);
+                mg.addColorStop(0, '#ffffff');
+                mg.addColorStop(0.4, '#fde047');
+                mg.addColorStop(1, 'rgba(234, 88, 12, 0)');
+                ctx.fillStyle = mg;
+                ctx.beginPath();
+                ctx.arc(fx, fy, 26 * muzzle, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
 
             ctx.restore();
         }
 
         let lastT = performance.now();
-        const arenaStars = Array.from({ length: 85 }, () => ({
-            x: Math.random(),
-            y: Math.random() * 0.78,
-            r: 0.6 + Math.random() * 1.5,
-            p: Math.random() * Math.PI * 2,
-            sp: 0.002 + Math.random() * 0.003,
-        }));
+        let arenaTumbleX = -30;
+        let arenaTumbleRot = 0;
 
         function renderArena(now) {
             requestAnimationFrame(renderArena);
@@ -814,149 +972,122 @@
             const dt = Math.min(0.05, (now - lastT) / 1000);
             lastT = now;
 
-            // Deep Space Arena Backdrop
-            const bg = ctx.createLinearGradient(0, 0, 0, ch);
-            bg.addColorStop(0, '#020412');
-            bg.addColorStop(0.58, '#0b0e2d');
-            bg.addColorStop(1, '#040614');
-            ctx.fillStyle = bg;
+            const groundY = ch * 0.72;
+
+            // High-Noon Sunset Sky
+            const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+            sky.addColorStop(0, '#2a0c18');
+            sky.addColorStop(0.35, '#8c2817');
+            sky.addColorStop(0.72, '#ea580c');
+            sky.addColorStop(1, '#fcd34d');
+            ctx.fillStyle = sky;
             ctx.fillRect(0, 0, cw, ch);
 
-            // Arena Nebula Clouds
-            const nebL = ctx.createRadialGradient(cw * 0.25, ch * 0.3, 8, cw * 0.25, ch * 0.3, cw * 0.35);
-            nebL.addColorStop(0, 'rgba(56, 189, 248, 0.22)');
-            nebL.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = nebL;
-            ctx.fillRect(0, 0, cw, ch);
-
-            const nebR = ctx.createRadialGradient(cw * 0.75, ch * 0.28, 8, cw * 0.75, ch * 0.28, cw * 0.35);
-            nebR.addColorStop(0, 'rgba(168, 85, 247, 0.24)');
-            nebR.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = nebR;
-            ctx.fillRect(0, 0, cw, ch);
-
-            // Twinkling Arena Stars
-            for (const s of arenaStars) {
-                ctx.fillStyle = '#e0f2fe';
-                ctx.globalAlpha = 0.3 + 0.7 * Math.abs(Math.sin(now * s.sp + s.p));
-                ctx.beginPath();
-                ctx.arc(s.x * cw, s.y * ch, s.r, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-
-            // Distant Ringed Planet in Center-Right Sky
-            const px = cw * 0.56, py = ch * 0.28;
-            ctx.save();
-            // Back ring half
-            ctx.strokeStyle = 'rgba(186, 230, 253, 0.32)';
-            ctx.lineWidth = 6;
+            // Blazing High-Noon Sun dead center between the two cowboys
+            const sunX = cw * 0.5, sunY = groundY - 46;
+            const halo = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 150);
+            halo.addColorStop(0, 'rgba(254, 249, 195, 0.95)');
+            halo.addColorStop(0.35, 'rgba(251, 191, 36, 0.45)');
+            halo.addColorStop(1, 'rgba(234, 88, 12, 0)');
+            ctx.fillStyle = halo;
+            ctx.fillRect(0, 0, cw, groundY + 20);
+            ctx.fillStyle = '#fef9c3';
             ctx.beginPath();
-            ctx.ellipse(px, py, 68, 16, -0.22, Math.PI, Math.PI * 2);
-            ctx.stroke();
-
-            // Planet sphere
-            const pGrad = ctx.createRadialGradient(px - 14, py - 14, 6, px, py, 36);
-            pGrad.addColorStop(0, '#67e8f9');
-            pGrad.addColorStop(0.45, '#4f46e5');
-            pGrad.addColorStop(1, '#1e1b4b');
-            ctx.fillStyle = pGrad;
-            ctx.beginPath();
-            ctx.arc(px, py, 34, 0, Math.PI * 2);
+            ctx.arc(sunX, sunY, 34, 0, Math.PI * 2);
             ctx.fill();
 
-            // Front ring half
-            ctx.strokeStyle = 'rgba(224, 242, 254, 0.55)';
-            ctx.lineWidth = 6;
+            // Distant Canyon Mesas
+            ctx.fillStyle = '#6c2414';
             ctx.beginPath();
-            ctx.ellipse(px, py, 68, 16, -0.22, 0, Math.PI);
-            ctx.stroke();
-
-            // Small Distant Moon
-            ctx.fillStyle = '#cbd5e1';
-            ctx.beginPath();
-            ctx.arc(cw * 0.16, ch * 0.2, 11, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
-            ctx.beginPath();
-            ctx.arc(cw * 0.16 + 3, ch * 0.2 - 2, 3, 0, Math.PI * 2);
-            ctx.arc(cw * 0.16 - 4, ch * 0.2 + 3, 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            // Floating Orbital Battle Deck (Suspended in Space)
-            const deckY = ch * 0.74;
-            const deckGrad = ctx.createLinearGradient(0, deckY, 0, ch);
-            deckGrad.addColorStop(0, '#131d42');
-            deckGrad.addColorStop(1, '#060a1c');
-            ctx.fillStyle = deckGrad;
-            ctx.beginPath();
-            ctx.moveTo(cw * 0.08, deckY);
-            ctx.lineTo(cw * 0.92, deckY);
-            ctx.lineTo(cw * 0.98, deckY + 46);
-            ctx.lineTo(cw * 0.02, deckY + 46);
+            ctx.moveTo(0, groundY);
+            ctx.lineTo(cw * 0.18, groundY - 42); ctx.lineTo(cw * 0.30, groundY - 42);
+            ctx.lineTo(cw * 0.36, groundY - 8); ctx.lineTo(cw * 0.64, groundY - 8);
+            ctx.lineTo(cw * 0.71, groundY - 50); ctx.lineTo(cw * 0.84, groundY - 50);
+            ctx.lineTo(cw, groundY - 14); ctx.lineTo(cw, groundY);
             ctx.closePath();
             ctx.fill();
 
-            // Glowing Neon Rim + Perspective Grid on Orbital Deck
-            ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
-            ctx.lineWidth = 2;
+            // Left Wooden Saloon Silhouette
+            ctx.fillStyle = '#3b1709';
+            ctx.fillRect(8, groundY - 108, 112, 108);
+            ctx.fillRect(2, groundY - 122, 124, 18);
+            // Warm saloon windows
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.45)';
+            ctx.fillRect(24, groundY - 86, 22, 26);
+            ctx.fillRect(78, groundY - 86, 22, 26);
+            ctx.fillStyle = '#fde68a';
+            ctx.font = '800 10px JetBrains Mono, monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('SALOON', 64, groundY - 109);
+
+            // Right Wooden Sheriff Office Silhouette
+            ctx.fillStyle = '#3b1709';
+            ctx.fillRect(cw - 120, groundY - 102, 112, 102);
+            ctx.fillRect(cw - 126, groundY - 116, 124, 16);
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.4)';
+            ctx.fillRect(cw - 102, groundY - 80, 22, 24);
+            ctx.fillRect(cw - 48, groundY - 80, 22, 24);
+            ctx.fillStyle = '#fde68a';
+            ctx.fillText('SHERIFF', cw - 64, groundY - 104);
+
+            // Saguaro Cacti flanking the desert road
+            drawCactus(ctx, cw * 0.36, groundY + 4, 0.58, '#3f1709');
+            drawCactus(ctx, cw * 0.64, groundY + 4, 0.62, '#3f1709');
+
+            // Dusty Main Street Ground
+            const dirt = ctx.createLinearGradient(0, groundY, 0, ch);
+            dirt.addColorStop(0, '#9a4a1c');
+            dirt.addColorStop(0.35, '#6b2e11');
+            dirt.addColorStop(1, '#361508');
+            ctx.fillStyle = dirt;
+            ctx.fillRect(0, groundY, cw, ch - groundY);
+
+            // Subtle dirt road ruts
+            ctx.strokeStyle = 'rgba(253, 224, 71, 0.14)';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(cw * 0.08, deckY); ctx.lineTo(cw * 0.92, deckY);
+            ctx.moveTo(0, groundY + 1); ctx.lineTo(cw, groundY + 1);
             ctx.stroke();
 
-            ctx.strokeStyle = 'rgba(129, 140, 248, 0.25)';
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            for (let i = -5; i <= 5; i++) {
-                ctx.moveTo(cw * 0.5 + i * 65, deckY);
-                ctx.lineTo(cw * 0.5 + i * 86, deckY + 46);
-            }
-            ctx.stroke();
+            // Rolling Tumbleweed drifting between the two cowboys!
+            arenaTumbleX += 42 * dt;
+            arenaTumbleRot += 2.6 * dt;
+            if (arenaTumbleX > cw + 35) arenaTumbleX = -35;
+            const tbBounce = Math.abs(Math.sin(now * 0.005)) * 7;
+            drawTumbleweed(ctx, arenaTumbleX, groundY + 28 - tbBounce, 12, arenaTumbleRot);
 
-            // Under-Deck Space Thruster Glow
-            const thrustL = ctx.createRadialGradient(cw * 0.22, deckY + 52, 2, cw * 0.22, deckY + 52, 65);
-            thrustL.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
-            thrustL.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = thrustL;
-            ctx.fillRect(0, deckY + 30, cw, 55);
-
-            const thrustR = ctx.createRadialGradient(cw * 0.78, deckY + 52, 2, cw * 0.78, deckY + 52, 65);
-            thrustR.addColorStop(0, 'rgba(244, 63, 94, 0.45)');
-            thrustR.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = thrustR;
-            ctx.fillRect(0, deckY + 30, cw, 55);
-
-            // Decay hit flashes & recoil
+            // Decay hit flashes, recoil & muzzle flashes
             anim.leftHitFlash = Math.max(0, anim.leftHitFlash - dt * 3);
             anim.rightHitFlash = Math.max(0, anim.rightHitFlash - dt * 3);
+            anim.leftMuzzle = Math.max(0, anim.leftMuzzle - dt * 4.5);
+            anim.rightMuzzle = Math.max(0, anim.rightMuzzle - dt * 4.5);
             anim.leftRecoil *= 0.85;
             anim.rightRecoil *= 0.85;
 
-            // Draw Both Fighters
-            drawCyberFighter(cw * 0.22 + anim.leftRecoil, ch * 0.56, 'LEFT', anim.leftHp, anim.leftHitFlash, now);
-            drawCyberFighter(cw * 0.78 + anim.rightRecoil, ch * 0.56, 'RIGHT', anim.rightHp, anim.rightHitFlash, now);
+            // Draw Both Cowboys Aiming Revolvers at Each Other!
+            drawCowboyFighter(cw * 0.22 + anim.leftRecoil, ch * 0.66, 'LEFT', anim.leftHp, anim.leftHitFlash, anim.leftMuzzle, now);
+            drawCowboyFighter(cw * 0.78 + anim.rightRecoil, ch * 0.66, 'RIGHT', anim.rightHp, anim.rightHitFlash, anim.rightMuzzle, now);
 
-            // Draw Energy Attack Beams
+            // Draw Revolver Bullet Tracer Streaks
             for (let i = anim.beams.length - 1; i >= 0; i--) {
                 const b = anim.beams[i];
-                b.life -= dt * 1.4;
+                b.life -= dt * 1.5;
                 if (b.life <= 0) { anim.beams.splice(i, 1); continue; }
-                const sx = b.fromSide === 'LEFT' ? cw * 0.26 : cw * 0.74;
-                const ex = b.fromSide === 'LEFT' ? cw * 0.76 : cw * 0.24;
-                const sy = ch * 0.54;
+                const sx = b.fromSide === 'LEFT' ? cw * 0.22 + 64 : cw * 0.78 - 64;
+                const ex = b.fromSide === 'LEFT' ? cw * 0.78 - 14 : cw * 0.22 + 14;
+                const sy = ch * 0.66 - 19;
                 ctx.save();
-                ctx.globalAlpha = Math.max(0, b.life / 0.7);
+                ctx.globalAlpha = Math.max(0, b.life / 0.55);
                 ctx.strokeStyle = b.color;
                 ctx.lineWidth = b.width;
                 ctx.lineCap = 'round';
                 ctx.shadowColor = b.color;
-                ctx.shadowBlur = 22;
+                ctx.shadowBlur = 18;
                 ctx.beginPath();
                 ctx.moveTo(sx, sy); ctx.lineTo(ex, sy);
                 ctx.stroke();
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = b.width * 0.35;
+                ctx.lineWidth = Math.max(1.5, b.width * 0.35);
                 ctx.stroke();
                 ctx.restore();
             }
