@@ -16,6 +16,7 @@ const TIER_DAMAGE = {
     UNCOMMON: 22,
     RARE: 42,
     LEGENDARY: 68,
+    MYTHIC: 100,
 };
 
 const BOT_CALLSIGNS = ['Kairo [AI]', 'Valkyrie [AI]', 'Cipher [AI]', 'Nyx [AI]', 'Titan [AI]'];

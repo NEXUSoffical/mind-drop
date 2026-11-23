@@ -393,6 +393,7 @@
                 <span><strong style="color:#38bdf8;">UNCOMMON</strong> 22 DMG</span>
                 <span><strong style="color:#c084fc;">RARE</strong> 42 DMG</span>
                 <span><strong style="color:#fbbf24;">LEGENDARY</strong> 68 DMG</span>
+                <span><strong style="color:#f43f5e;">#1 MYTHIC</strong> 100 DMG</span>
                 <span><strong style="color:#34d399;">RARER WIN</strong> +10 BONUS</span>
                 <span><strong style="color:#fb7185;">SAME WORD</strong> CLASH BLOCKED</span>
             </div>
@@ -781,8 +782,8 @@
         };
 
         function fireAttackVisual(fromSide, tier, dmg) {
-            const colorMap = { LEGENDARY: '#fde047', RARE: '#f97316', UNCOMMON: '#38bdf8', COMMON: '#e2e8f0' };
-            const widthMap = { LEGENDARY: 14, RARE: 9, UNCOMMON: 6, COMMON: 4 };
+            const colorMap = { MYTHIC: '#f43f5e', LEGENDARY: '#fde047', RARE: '#f97316', UNCOMMON: '#38bdf8', COMMON: '#e2e8f0' };
+            const widthMap = { MYTHIC: 22, LEGENDARY: 14, RARE: 9, UNCOMMON: 6, COMMON: 4 };
             const color = colorMap[tier] || '#fde047';
             const width = widthMap[tier] || 5;
 
@@ -790,24 +791,24 @@
                 if (fromSide === 'LEFT') anim.leftMuzzle = 1;
                 else anim.rightMuzzle = 1;
 
-                anim.beams.push({ fromSide, color, width, life: 0.55 });
+                anim.beams.push({ fromSide, color, width, life: tier === 'MYTHIC' ? 0.85 : 0.55 });
                 const targetX = fromSide === 'LEFT' ? cw * 0.78 : cw * 0.22;
                 const targetY = ch * 0.62;
-                if (fromSide === 'LEFT') { anim.rightHitFlash = 1; anim.rightRecoil = 24; }
-                else { anim.leftHitFlash = 1; anim.leftRecoil = -24; }
+                if (fromSide === 'LEFT') { anim.rightHitFlash = 1; anim.rightRecoil = tier === 'MYTHIC' ? 38 : 24; }
+                else { anim.leftHitFlash = 1; anim.leftRecoil = tier === 'MYTHIC' ? -38 : -24; }
 
-                const sparkCount = tier === 'LEGENDARY' ? 40 : tier === 'RARE' ? 24 : 14;
+                const sparkCount = tier === 'MYTHIC' ? 68 : tier === 'LEGENDARY' ? 40 : tier === 'RARE' ? 24 : 14;
                 for (let i = 0; i < sparkCount; i++) {
                     const a = Math.random() * Math.PI * 2;
-                    const s = 2 + Math.random() * 8;
-                    anim.sparks.push({ x: targetX, y: targetY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, r: 2 + Math.random() * 3.5, color, life: 0.75 });
+                    const s = 2 + Math.random() * (tier === 'MYTHIC' ? 11 : 8);
+                    anim.sparks.push({ x: targetX, y: targetY, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 2, r: 2 + Math.random() * 3.5, color, life: 0.85 });
                 }
                 anim.popups.push({
                     x: targetX,
                     y: targetY - 64,
-                    text: tier === 'LEGENDARY' ? `-${dmg} DEADEYE!` : `-${dmg}`,
-                    color: tier === 'LEGENDARY' ? '#fde047' : '#fffbeb',
-                    life: 1.4,
+                    text: tier === 'MYTHIC' ? `-${dmg} #1 RAREST!!` : tier === 'LEGENDARY' ? `-${dmg} DEADEYE!` : `-${dmg}`,
+                    color: tier === 'MYTHIC' ? '#fda4af' : tier === 'LEGENDARY' ? '#fde047' : '#fffbeb',
+                    life: tier === 'MYTHIC' ? 1.8 : 1.4,
                 });
             }
         }
@@ -1590,13 +1591,18 @@
                 } else {
                     if (mc.dealt > 0) fireAttackVisual('LEFT', mc.tier, mc.dealt);
                     if (oc.dealt > 0) fireAttackVisual('RIGHT', oc.tier, oc.dealt);
-                    const heavy = mc.tier === 'LEGENDARY' || oc.tier === 'LEGENDARY' || mc.tier === 'RARE' || oc.tier === 'RARE';
+                    const heavy = mc.tier === 'MYTHIC' || oc.tier === 'MYTHIC' || mc.tier === 'LEGENDARY' || oc.tier === 'LEGENDARY' || mc.tier === 'RARE' || oc.tier === 'RARE';
                     playHitSfx(heavy);
+                    if (mc.tier === 'MYTHIC' || oc.tier === 'MYTHIC') {
+                        playSfx(1046, 0.25, 'triangle', 0.16, 0.16);
+                    }
                     if (heavy) {
                         const w = document.getElementById('arenaWrap');
                         w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
                     }
                     document.getElementById('clashHeadline').textContent =
+                        mc.tier === 'MYTHIC' ? '#1 RAREST ANSWER — CRITICAL HIT!' :
+                        oc.tier === 'MYTHIC' ? `${opp.name} HIT THE #1 RAREST ANSWER!` :
                         mc.dealt > oc.dealt ? 'YOU WON THE CLASH!' :
                         oc.dealt > mc.dealt ? `${opp.name} OVERPOWERED YOU!` : 'EVEN TRADE!';
                     document.getElementById('clashDetails').textContent =

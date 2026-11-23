@@ -421,10 +421,14 @@ function scoreAnswer(promptId, rawAnswer) {
     // 0. Alias / Symbol resolution (e.g. "au" -> "gold", "ny" -> "new york", "js" -> "javascript")
     const resolved = (p.aliases && p.aliases[clean]) ? p.aliases[clean] : clean;
     const wasAlias = resolved !== clean;
+    const top1Word = p.top1 || (Array.isArray(p.legendary) && p.legendary[0]) || null;
 
     // 1. Exact match check
     for (const t of tiers) {
         if (p[t.key].includes(resolved)) {
+            if (t.key === 'legendary' && top1Word && resolved === top1Word) {
+                return { valid: true, tier: 'MYTHIC', score: 1500, matched: resolved, autoCorrected: wasAlias, isTop1: true };
+            }
             return { valid: true, tier: t.label, score: t.score, matched: resolved, autoCorrected: wasAlias };
         }
     }
@@ -440,7 +444,15 @@ function scoreAnswer(promptId, rawAnswer) {
                     const dist = levenshtein(clean, candidate);
                     if (dist <= maxDist && dist < bestDist) {
                         bestDist = dist;
-                        bestMatch = { valid: true, tier: t.label, score: t.score, matched: candidate, autoCorrected: true };
+                        const isTop1 = t.key === 'legendary' && top1Word && candidate === top1Word;
+                        bestMatch = {
+                            valid: true,
+                            tier: isTop1 ? 'MYTHIC' : t.label,
+                            score: isTop1 ? 1500 : t.score,
+                            matched: candidate,
+                            autoCorrected: true,
+                            isTop1: Boolean(isTop1),
+                        };
                     }
                 }
             }
