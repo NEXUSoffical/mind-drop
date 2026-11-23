@@ -60,6 +60,31 @@ class BloxCloudClient {
         this._writeChains.set(chainKey, next);
         return next;
     }
+
+    async recordMatchFormed(queueType, players) {
+        if (!this.isEnabled() || !Array.isArray(players) || players.length < 2) return false;
+        try {
+            const res = await fetch(`${this.baseUrl}/api/v1/matchmaking/record`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': this.apiKey,
+                },
+                body: JSON.stringify({
+                    queueType,
+                    players: players.map(p => ({
+                        userId: p.profileKey || p.id,
+                        username: p.name,
+                        rating: p.elo ?? 0,
+                    })),
+                }),
+            });
+            return res.ok;
+        } catch (err) {
+            console.warn('[BloxCloud] Failed to record formed match:', err.message);
+            return false;
+        }
+    }
 }
 
 module.exports = new BloxCloudClient();

@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const { PROMPTS, scoreAnswer, getSpellingSuggestions, getRandomPrompt, pickBotAnswer } = require('./prompts');
 const eloStore = require('./eloStore');
+const bloxCloud = require('./bloxCloudClient');
 
 const MAX_HP = 200;
 
@@ -179,6 +180,9 @@ class DuelCombatEngine {
         // Start automatically once 2 fighters are in the arena!
         if (duel.players.length === 2 && duel.state === 'WAITING') {
             if (duel.timer) clearTimeout(duel.timer);
+            const hasBot = duel.players.some(p => p.isBot);
+            const qType = hasBot ? '1v1_ai_duel' : (duel.isPublic ? '1v1_ranked_quick' : '1v1_private_duel');
+            bloxCloud.recordMatchFormed(qType, duel.players);
             duel.timer = setTimeout(() => this._nextRound(duel), 1000);
         }
 
@@ -392,6 +396,9 @@ class DuelCombatEngine {
                 p.aiMaxDelay = updatedAi.aiMaxDelay;
             }
         }
+        const hasBot = duel.players.some(p => p.isBot);
+        const qType = hasBot ? '1v1_ai_duel' : (duel.isPublic ? '1v1_ranked_quick' : '1v1_private_duel');
+        bloxCloud.recordMatchFormed(qType, duel.players);
         this._nextRound(duel);
     }
 
