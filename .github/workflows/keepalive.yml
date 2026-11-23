@@ -1,0 +1,16 @@
+name: 24/7 Render Keep-Alive Ping
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping MindDrop Production Health Endpoint
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://minddrop-combat.onrender.com/api/health)
+          echo "Health check status: $STATUS"
+          test "$STATUS" = "200"
