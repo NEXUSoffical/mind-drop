@@ -133,12 +133,14 @@ class WikiValidator {
             }
         }
 
+        const cleanedTitle = matchedTitle ? matchedTitle.replace(/\s*\([^)]*\)$/, '').toLowerCase() : '';
+        const displayMatch = cleanedTitle && !cleanedTitle.startsWith('list of ') ? cleanedTitle : clean;
         const result = matchedTitle
             ? {
                 valid: true,
                 tier: 'RARE',
                 score: 800,
-                matched: matchedTitle.replace(/\s*\([^)]*\)$/, '').toLowerCase(),
+                matched: displayMatch,
                 autoCorrected: false,
                 viaWiki: true,
             }
