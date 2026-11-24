@@ -71,7 +71,11 @@ app.get('/api/profile/:pid', (req, res) => {
 });
 
 app.get('/api/leaderboard', (req, res) => {
-    res.json({ players: eloStore.getLeaderboard(15) });
+    const auth = String(req.headers.authorization || '');
+    const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+    const user = authStore.verifyToken(token);
+    const myKey = user ? user.id : String(req.query.key || '');
+    res.json(eloStore.getLeaderboard(100, myKey));
 });
 
 const server = http.createServer(app);

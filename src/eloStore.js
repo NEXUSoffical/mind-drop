@@ -168,11 +168,10 @@ class EloStore {
         return this.getProfile(accKey, username, true);
     }
 
-    getLeaderboard(limit = 15) {
-        return Object.values(this.ratings)
+    getLeaderboard(limit = 100, myKey = null) {
+        const ranked = Object.values(this.ratings)
             .filter(r => r.isAccount && (r.wins + r.losses + r.draws) > 0)
             .sort((a, b) => (b.elo - a.elo) || (b.wins - a.wins))
-            .slice(0, limit)
             .map((r, idx) => ({
                 position: idx + 1,
                 key: r.key,
@@ -183,6 +182,15 @@ class EloStore {
                 draws: r.draws,
                 rank: this.getRankForElo(r.elo),
             }));
+
+        const cleanMyKey = myKey ? this._cleanKey(myKey) : null;
+        const me = cleanMyKey ? (ranked.find(r => r.key === cleanMyKey) || null) : null;
+
+        return {
+            players: ranked.slice(0, limit),
+            totalRanked: ranked.length,
+            me,
+        };
     }
 }
 

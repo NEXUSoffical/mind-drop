@@ -322,6 +322,22 @@
         .lb-pos-1 { color: #fde047; font-weight: 800; }
         .lb-pos-2 { color: #cbd5e1; font-weight: 800; }
         .lb-pos-3 { color: #fb923c; font-weight: 800; }
+        .lb-scroll {
+            max-height: 360px;
+            overflow-y: auto;
+            border-radius: 10px;
+        }
+        .lb-scroll thead th {
+            position: sticky;
+            top: 0;
+            background: #221008;
+            z-index: 2;
+        }
+        .lb-my-footer {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed rgba(245, 158, 11, 0.38);
+        }
 
         .modal-backdrop {
             position: fixed; inset: 0; z-index: 100;
@@ -470,27 +486,35 @@
                 <span><strong style="color:#fb7185;">SAME WORD</strong> CLASH BLOCKED</span>
             </div>
 
-            <!-- Live Global ELO Leaderboard (Signed-in Accounts) -->
+            <!-- Live Global ELO Leaderboard (Top 100 Signed-in Accounts) -->
             <div class="lb-section">
                 <div class="lb-header">
-                    <div style="font-size:13px; font-weight:800; letter-spacing:1px; color:#e2e8f0;">GLOBAL ELO LEADERBOARD</div>
-                    <div style="font-size:11px; color:#94a3b8;">Sign in to save your ELO permanently &amp; compete on the leaderboard</div>
+                    <div id="lbTitle" style="font-size:13px; font-weight:800; letter-spacing:1px; color:#fef3c7;">GLOBAL TOP 100 LEADERBOARD</div>
+                    <div id="lbSubtitle" style="font-size:11px; color:#fde68a;">Sign in to save your ELO permanently &amp; compete on the leaderboard</div>
                 </div>
-                <div id="lbEmpty" style="text-align:center; padding:16px; font-size:13px; color:#94a3b8; background:rgba(15,23,42,0.5); border-radius:12px;">
+                <div id="lbEmpty" style="text-align:center; padding:16px; font-size:13px; color:#cbd5e1; background:rgba(20,9,4,0.55); border-radius:12px;">
                     No signed-in players ranked yet — create a free account and win a match to claim #1.
                 </div>
-                <table id="lbTable" class="lb-table hidden">
-                    <thead>
-                        <tr>
-                            <th style="width:48px;">#</th>
-                            <th>Fighter</th>
-                            <th>Rank</th>
-                            <th style="text-align:right;">Record</th>
-                            <th style="text-align:right;">ELO</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lbBody"></tbody>
-                </table>
+                <div id="lbScrollWrap" class="lb-scroll hidden">
+                    <table id="lbTable" class="lb-table">
+                        <thead>
+                            <tr>
+                                <th style="width:54px;">#</th>
+                                <th>Gunslinger</th>
+                                <th>Rank</th>
+                                <th style="text-align:right;">Record</th>
+                                <th style="text-align:right;">ELO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lbBody"></tbody>
+                    </table>
+                </div>
+                <div id="lbMyFooter" class="lb-my-footer hidden">
+                    <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:#fbbf24; margin-bottom:4px;">YOUR POSITION (OUTSIDE TOP 100)</div>
+                    <table class="lb-table">
+                        <tbody id="lbMyFooterBody"></tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
@@ -1370,66 +1394,95 @@
                 applyProfileToHome(await res.json());
             } catch {}
         }
+        function buildLbRow(p, isMe) {
+            const tr = document.createElement('tr');
+            if (isMe) tr.className = 'lb-row-me';
+
+            const tdPos = document.createElement('td');
+            tdPos.className = 'mono ' + (p.position <= 3 ? `lb-pos-${p.position}` : '');
+            tdPos.textContent = `#${p.position}`;
+
+            const tdName = document.createElement('td');
+            tdName.style.fontWeight = '700';
+            tdName.textContent = isMe ? `${p.name} (YOU)` : p.name;
+
+            const tdRank = document.createElement('td');
+            const pill = document.createElement('span');
+            pill.className = 'elo-pill';
+            pill.style.marginLeft = '0';
+            pill.textContent = p.rank ? p.rank.name : 'BRONZE';
+            if (p.rank && p.rank.color) {
+                pill.style.color = p.rank.color;
+                pill.style.borderColor = p.rank.color;
+            }
+            tdRank.appendChild(pill);
+
+            const tdRec = document.createElement('td');
+            tdRec.className = 'mono';
+            tdRec.style.textAlign = 'right';
+            tdRec.style.color = '#94a3b8';
+            tdRec.textContent = `${p.wins}W - ${p.losses}L`;
+
+            const tdElo = document.createElement('td');
+            tdElo.className = 'mono';
+            tdElo.style.textAlign = 'right';
+            tdElo.style.fontWeight = '800';
+            tdElo.style.color = '#fff';
+            tdElo.textContent = `${p.elo}`;
+
+            tr.append(tdPos, tdName, tdRank, tdRec, tdElo);
+            return tr;
+        }
+
         async function loadLeaderboard() {
             try {
-                const res = await fetch('/api/leaderboard');
+                const myKey = authUser ? authUser.id : getProfileId();
+                const token = getAuthToken();
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const res = await fetch(`/api/leaderboard?key=${encodeURIComponent(myKey)}`, { headers });
                 if (!res.ok) return;
                 const data = await res.json();
                 const list = Array.isArray(data.players) ? data.players : [];
+                const totalRanked = data.totalRanked || list.length;
+                const me = data.me || null;
+
                 const emptyEl = document.getElementById('lbEmpty');
-                const tableEl = document.getElementById('lbTable');
+                const scrollWrap = document.getElementById('lbScrollWrap');
                 const bodyEl = document.getElementById('lbBody');
+                const footerEl = document.getElementById('lbMyFooter');
+                const footerBody = document.getElementById('lbMyFooterBody');
+                const subEl = document.getElementById('lbSubtitle');
+
+                if (totalRanked > 0) {
+                    subEl.textContent = me
+                        ? `${totalRanked} Ranked Gunslingers • Your Rank: #${me.position}`
+                        : `${totalRanked} Ranked Gunslingers • Sign in to save ELO & claim a spot`;
+                } else {
+                    subEl.textContent = 'Sign in to save your ELO permanently & compete on the leaderboard';
+                }
 
                 if (!list.length) {
                     emptyEl.classList.remove('hidden');
-                    tableEl.classList.add('hidden');
+                    scrollWrap.classList.add('hidden');
+                    footerEl.classList.add('hidden');
                     return;
                 }
 
-                const myKey = authUser ? authUser.id : getProfileId();
                 bodyEl.innerHTML = '';
                 list.forEach(p => {
-                    const tr = document.createElement('tr');
-                    if (p.key === myKey) tr.className = 'lb-row-me';
-
-                    const tdPos = document.createElement('td');
-                    tdPos.className = 'mono ' + (p.position <= 3 ? `lb-pos-${p.position}` : '');
-                    tdPos.textContent = `#${p.position}`;
-
-                    const tdName = document.createElement('td');
-                    tdName.style.fontWeight = '700';
-                    tdName.textContent = p.key === myKey ? `${p.name} (YOU)` : p.name;
-
-                    const tdRank = document.createElement('td');
-                    const pill = document.createElement('span');
-                    pill.className = 'elo-pill';
-                    pill.style.marginLeft = '0';
-                    pill.textContent = p.rank ? p.rank.name : 'BRONZE';
-                    if (p.rank && p.rank.color) {
-                        pill.style.color = p.rank.color;
-                        pill.style.borderColor = p.rank.color;
-                    }
-                    tdRank.appendChild(pill);
-
-                    const tdRec = document.createElement('td');
-                    tdRec.className = 'mono';
-                    tdRec.style.textAlign = 'right';
-                    tdRec.style.color = '#94a3b8';
-                    tdRec.textContent = `${p.wins}W - ${p.losses}L`;
-
-                    const tdElo = document.createElement('td');
-                    tdElo.className = 'mono';
-                    tdElo.style.textAlign = 'right';
-                    tdElo.style.fontWeight = '800';
-                    tdElo.style.color = '#fff';
-                    tdElo.textContent = `${p.elo}`;
-
-                    tr.append(tdPos, tdName, tdRank, tdRec, tdElo);
-                    bodyEl.appendChild(tr);
+                    bodyEl.appendChild(buildLbRow(p, p.key === myKey));
                 });
 
+                if (me && me.position > 100) {
+                    footerBody.innerHTML = '';
+                    footerBody.appendChild(buildLbRow(me, true));
+                    footerEl.classList.remove('hidden');
+                } else {
+                    footerEl.classList.add('hidden');
+                }
+
                 emptyEl.classList.add('hidden');
-                tableEl.classList.remove('hidden');
+                scrollWrap.classList.remove('hidden');
             } catch {}
         }
 
