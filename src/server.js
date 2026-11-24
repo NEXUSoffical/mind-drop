@@ -118,5 +118,15 @@ Promise.all([authStore.initCloud(), eloStore.initCloud()])
         server.listen(port, '0.0.0.0', () => {
             const mode = bloxCloud.isEnabled() ? 'BloxCloud Cloud DataStore + Telemetry' : 'Local Mode (set BLOXCLOUD_API_KEY to connect)';
             console.log(`[MindDrop] 1v1 Rarity Combat Arena running on http://0.0.0.0:${port} (${mode})`);
+
+            // Built-in 24/7 keep-alive pulse on Render so MindDrop never spins down after 15m idle
+            if (process.env.RENDER) {
+                const selfUrl = process.env.RENDER_EXTERNAL_URL
+                    ? `${process.env.RENDER_EXTERNAL_URL}/api/health`
+                    : 'https://minddrop-combat.onrender.com/api/health';
+                setInterval(() => {
+                    fetch(selfUrl).catch(() => {});
+                }, 5 * 60 * 1000).unref();
+            }
         });
     });
