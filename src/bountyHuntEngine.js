@@ -193,7 +193,7 @@ class BountyHuntEngine {
             : (String(name || 'Gunslinger').trim().slice(0, 16) || 'Gunslinger');
         const isAccount = Boolean(authUser);
         const profileKey = isAccount
-            ? `u_${authUser.id}`
+            ? authUser.id
             : (String(profileId || '').trim().slice(0, 40) || `anon_${playerId}`);
         const profile = eloStore.getProfile(profileKey, cleanName, isAccount);
 

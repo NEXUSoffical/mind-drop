@@ -12,6 +12,7 @@ const passEngine = require('./passEngine');
 const quickDrawEngine = require('./quickDrawEngine');
 const bountyHuntEngine = require('./bountyHuntEngine');
 const eloStore = require('./eloStore');
+const shopCatalog = require('./shopCatalog');
 const authStore = require('./authStore');
 const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
@@ -117,6 +118,48 @@ app.delete('/api/friends/:friendId', requireAccount, (req, res) => {
 app.post('/api/friends/invite', requireAccount, (req, res) => {
     const { toUserId, game, roomCode } = req.body || {};
     const out = socialStore.sendInvite(req.account, toUserId, game, roomCode);
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+});
+
+// Wild West Cosmetics & Gold Shop API (supports signed-in accounts & guest sessions)
+function resolveShopProfileKey(req) {
+    const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim();
+    const user = authStore.verifyToken(token);
+    if (user) return { key: user.id, name: user.username, isAccount: true };
+    const pid = String(req.query.pid || (req.body && req.body.pid) || '').trim();
+    if (!pid) return null;
+    return { key: pid, name: 'Guest', isAccount: false };
+}
+
+app.get('/api/shop', (req, res) => {
+    const who = resolveShopProfileKey(req);
+    if (!who) return res.status(400).json({ error: 'Missing player profile.' });
+    const profile = eloStore.getProfile(who.key, who.name, who.isAccount);
+    res.json({
+        items: shopCatalog.SHOP_ITEMS,
+        gold: profile.gold || 0,
+        ownedItems: profile.ownedItems || shopCatalog.DEFAULT_OWNED,
+        equipped: profile.equipped || shopCatalog.DEFAULT_EQUIPPED,
+        cosmetics: profile.cosmetics,
+        isAccount: who.isAccount,
+    });
+});
+
+app.post('/api/shop/buy', (req, res) => {
+    const who = resolveShopProfileKey(req);
+    if (!who) return res.status(400).json({ error: 'Missing player profile.' });
+    const { itemId } = req.body || {};
+    const out = eloStore.buyItem(who.key, itemId);
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+});
+
+app.post('/api/shop/equip', (req, res) => {
+    const who = resolveShopProfileKey(req);
+    if (!who) return res.status(400).json({ error: 'Missing player profile.' });
+    const { itemId } = req.body || {};
+    const out = eloStore.equipItem(who.key, itemId);
     if (out.error) return res.status(400).json({ error: out.error });
     res.json(out);
 });

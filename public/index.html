@@ -911,6 +911,7 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:8px;">
+            <button id="headerShopBtn" class="btn btn-ghost" onclick="openShopModal()" style="padding:7px 11px; font-size:11px; border-color:#fbbf24; color:#fde047; display:inline-flex; align-items:center; gap:5px;">Shop <span id="headerGoldText" class="mono" style="color:#fffbeb; background:rgba(245,158,11,0.32); padding:1px 6px; border-radius:999px; font-size:10px;">0G</span></button>
             <button id="headerFriendsBtn" class="btn btn-ghost" onclick="openFriendsModal()" style="padding:7px 11px; font-size:11px; display:inline-flex; align-items:center;">Friends<span id="friendsNotifBadge" class="notif-badge hidden">0</span></button>
             <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
             <div id="headerUserBox" class="hidden" style="display:flex; align-items:center; gap:8px;">
@@ -1394,6 +1395,31 @@
                     <div style="font-size:12px; color:#94a3b8; padding:12px; text-align:center;">No friends added yet — type a username above to send a request.</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Wild West Cosmetics & Gold Shop Modal -->
+    <div id="shopModal" class="modal-backdrop hidden" onclick="if (event.target === this) closeShopModal()">
+        <div class="modal-card" style="max-width:520px; max-height:86vh; overflow-y:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                <div>
+                    <div class="western-font" style="font-size:20px; color:#fde047;">SALOON SHOP</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Earn Gold every match (+50G Win • +15G Loss • +100G Level Up)</div>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="shopGoldBalance" class="mono" style="font-size:15px; font-weight:800; color:#fde047; background:rgba(180,83,9,0.35); border:1px solid #fbbf24; padding:5px 10px; border-radius:999px;">0 GOLD</span>
+                    <button type="button" onclick="closeShopModal()" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">X</button>
+                </div>
+            </div>
+
+            <div class="tab-bar" style="grid-template-columns: 1fr 1fr 1fr;">
+                <button id="shopTabHat" type="button" class="tab-btn active" onclick="setShopTab('hat')">Cowboy Hats</button>
+                <button id="shopTabTrail" type="button" class="tab-btn" onclick="setShopTab('trail')">Bullet Trails</button>
+                <button id="shopTabName" type="button" class="tab-btn" onclick="setShopTab('nameColor')">Name Colors</button>
+            </div>
+
+            <div id="shopActionMsg" class="hidden" style="font-size:12px; font-weight:700; margin-bottom:10px;"></div>
+            <div id="shopItemsGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
         </div>
     </div>
 
@@ -2431,6 +2457,168 @@
             loadLeaderboard();
         }
 
+        let myGold = 0;
+        let myCosmetics = { hatColor: '#0f0502', hatAccent: '#d97706', trailColor: '#fbbf24', nameHex: '#fef3c7' };
+        let shopCache = { items: [], ownedItems: [], equipped: {} };
+        let activeShopTab = 'hat';
+
+        function applyCosmeticsToUi(gold, cosmetics) {
+            if (typeof gold === 'number') {
+                myGold = gold;
+                const gEl = document.getElementById('headerGoldText');
+                if (gEl) gEl.textContent = `${gold}G`;
+                const sgEl = document.getElementById('shopGoldBalance');
+                if (sgEl) sgEl.textContent = `${gold} GOLD`;
+            }
+            if (cosmetics) {
+                myCosmetics = Object.assign({}, myCosmetics, cosmetics);
+                const uEl = document.getElementById('headerUsername');
+                if (uEl && myCosmetics.nameHex) uEl.style.color = myCosmetics.nameHex;
+            }
+        }
+
+        function openShopModal() {
+            document.getElementById('shopModal').classList.remove('hidden');
+            document.getElementById('shopActionMsg').classList.add('hidden');
+            loadShopData();
+        }
+
+        function closeShopModal() {
+            document.getElementById('shopModal').classList.add('hidden');
+        }
+
+        function setShopTab(slot) {
+            activeShopTab = slot;
+            document.getElementById('shopTabHat').classList.toggle('active', slot === 'hat');
+            document.getElementById('shopTabTrail').classList.toggle('active', slot === 'trail');
+            document.getElementById('shopTabName').classList.toggle('active', slot === 'nameColor');
+            renderShopItems();
+        }
+
+        function setShopMsg(text, ok) {
+            const el = document.getElementById('shopActionMsg');
+            el.textContent = text;
+            el.style.color = ok ? '#34d399' : '#fb7185';
+            el.classList.remove('hidden');
+        }
+
+        async function loadShopData() {
+            try {
+                const token = getAuthToken();
+                const headers = token ? { Authorization: `Bearer ${token}` } : {};
+                const res = await fetch(`/api/shop?pid=${encodeURIComponent(getProfileId())}`, { headers });
+                if (!res.ok) return;
+                const data = await res.json();
+                shopCache = data;
+                applyCosmeticsToUi(data.gold, data.cosmetics);
+                renderShopItems();
+            } catch {}
+        }
+
+        function renderShopItems() {
+            const grid = document.getElementById('shopItemsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const items = (shopCache.items || []).filter(i => i.slot === activeShopTab);
+            const owned = new Set(shopCache.ownedItems || []);
+            const equippedId = (shopCache.equipped || {})[activeShopTab];
+
+            items.forEach(item => {
+                const isOwned = owned.has(item.id);
+                const isEq = equippedId === item.id;
+
+                const card = document.createElement('div');
+                card.style.cssText = `padding:12px; border-radius:14px; background:rgba(15,23,42,0.8); border:1.5px solid ${isEq ? '#34d399' : 'rgba(245,158,11,0.3)'}; display:flex; flex-direction:column; gap:8px;`;
+
+                const top = document.createElement('div');
+                top.style.cssText = 'display:flex; align-items:center; gap:10px;';
+                const swatch = document.createElement('div');
+                swatch.style.cssText = `width:32px; height:32px; border-radius:10px; flex-shrink:0; background:${item.color}; border:2px solid ${item.accent || item.color}; box-shadow:0 0 12px ${item.accent || item.color}55;`;
+                const meta = document.createElement('div');
+                const nm = document.createElement('div');
+                nm.style.cssText = `font-size:13px; font-weight:800; color:${item.slot === 'nameColor' ? item.color : '#fffbeb'};`;
+                nm.textContent = item.name;
+                const ds = document.createElement('div');
+                ds.style.cssText = 'font-size:11px; color:#94a3b8; margin-top:2px;';
+                ds.textContent = item.desc;
+                meta.append(nm, ds);
+                top.append(swatch, meta);
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.style.cssText = 'width:100%; padding:8px 10px; font-size:11px;';
+                if (isEq) {
+                    btn.className = 'btn btn-ghost';
+                    btn.style.borderColor = '#34d399';
+                    btn.style.color = '#34d399';
+                    btn.textContent = 'Equipped';
+                    btn.disabled = true;
+                } else if (isOwned) {
+                    btn.className = 'btn btn-cyan';
+                    btn.textContent = 'Equip';
+                    btn.onclick = () => equipShopItem(item.id);
+                } else {
+                    const canAfford = myGold >= item.price;
+                    btn.className = canAfford ? 'btn btn-rose' : 'btn btn-ghost';
+                    btn.textContent = `Buy (${item.price} Gold)`;
+                    if (!canAfford) btn.style.opacity = '0.6';
+                    btn.onclick = () => buyShopItem(item.id);
+                }
+
+                card.append(top, btn);
+                grid.appendChild(card);
+            });
+        }
+
+        async function buyShopItem(itemId) {
+            try {
+                const token = getAuthToken();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers.Authorization = `Bearer ${token}`;
+                const res = await fetch('/api/shop/buy', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ itemId, pid: getProfileId() }),
+                });
+                const data = await res.json();
+                if (!res.ok) return setShopMsg(data.error || 'Could not buy item.', false);
+                playSfx(660, 0.1, 'triangle', 0.14);
+                playSfx(990, 0.18, 'triangle', 0.15, 0.09);
+                shopCache.gold = data.gold;
+                shopCache.ownedItems = data.ownedItems;
+                shopCache.equipped = data.equipped;
+                applyCosmeticsToUi(data.gold, data.cosmetics);
+                setShopMsg(`Unlocked & equipped ${data.item.name}!`, true);
+                renderShopItems();
+                loadLeaderboard();
+            } catch {
+                setShopMsg('Network error purchasing item.', false);
+            }
+        }
+
+        async function equipShopItem(itemId) {
+            try {
+                const token = getAuthToken();
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers.Authorization = `Bearer ${token}`;
+                const res = await fetch('/api/shop/equip', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ itemId, pid: getProfileId() }),
+                });
+                const data = await res.json();
+                if (!res.ok) return setShopMsg(data.error || 'Could not equip item.', false);
+                playSfx(540, 0.08, 'sine', 0.1);
+                shopCache.equipped = data.equipped;
+                applyCosmeticsToUi(data.gold, data.cosmetics);
+                setShopMsg(`Equipped ${data.item.name}!`, true);
+                renderShopItems();
+                loadLeaderboard();
+            } catch {
+                setShopMsg('Network error equipping item.', false);
+            }
+        }
+
         function applyProfileToHome(p) {
             if (!p) return;
             document.getElementById('homeEloValue').textContent = `${p.elo} ELO`;
@@ -2448,6 +2636,8 @@
             document.getElementById('homeLevelTitle').textContent = lvl.title || 'GREENHORN';
             document.getElementById('homeXpText').textContent = `${lvl.currentLevelXp} / ${lvl.nextLevelXp} XP to LVL ${lvl.level + 1}`;
             document.getElementById('homeXpBar').style.width = `${Math.max(0, Math.min(100, lvl.progressPct || 0))}%`;
+
+            applyCosmeticsToUi(typeof p.gold === 'number' ? p.gold : 0, p.cosmetics);
         }
 
         async function loadHomeProfile() {
@@ -2483,6 +2673,7 @@
 
             const tdName = document.createElement('td');
             tdName.style.fontWeight = '700';
+            if (p.nameHex) tdName.style.color = p.nameHex;
             tdName.textContent = isMe ? `${p.name} (YOU)` : p.name;
             if (p.level) {
                 const lp = document.createElement('span');
@@ -3685,7 +3876,7 @@
                 const myChange = eloChanges && eloChanges[passSelfId];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const xpTxt = (myChange.xpGained ? ` • +${myChange.xpGained} XP` : '') + (myChange.goldGained ? ` • +${myChange.goldGained}G` : '');
                     const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
                     eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
                     eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
@@ -3843,20 +4034,26 @@
 
             (qdAnim.players || []).forEach((p, i) => {
                 const pos = getQdPlayerPos(qdAnim.players, i);
+                const isMe = p.id === qdSelfId;
                 qdCtx.save();
                 qdCtx.translate(pos.x, pos.y);
                 qdCtx.globalAlpha = p.jammed ? 0.42 : 1;
 
-                qdCtx.fillStyle = '#0f0502';
+                qdCtx.fillStyle = isMe ? (myCosmetics.hatColor || '#0f0502') : '#0f0502';
                 qdCtx.fillRect(-18, -56, 36, 5);
                 qdCtx.fillRect(-11, -66, 22, 11);
+                if (isMe && myCosmetics.hatAccent) {
+                    qdCtx.fillStyle = myCosmetics.hatAccent;
+                    qdCtx.fillRect(-11, -58, 22, 3);
+                }
+                qdCtx.fillStyle = isMe ? (myCosmetics.hatColor || '#0f0502') : '#0f0502';
                 qdCtx.beginPath();
                 qdCtx.arc(0, -44, 9, 0, Math.PI * 2);
                 qdCtx.fill();
                 qdCtx.fillRect(-11, -35, 22, 26);
                 qdCtx.fillRect(-9, -9, 7, 16);
                 qdCtx.fillRect(2, -9, 7, 16);
-                qdCtx.strokeStyle = '#0f0502';
+                qdCtx.strokeStyle = isMe ? (myCosmetics.hatColor || '#0f0502') : '#0f0502';
                 qdCtx.lineWidth = 5;
                 qdCtx.beginPath();
                 qdCtx.moveTo(0, -28);
@@ -3865,7 +4062,7 @@
 
                 qdCtx.font = '800 11px "Plus Jakarta Sans", sans-serif';
                 qdCtx.textAlign = 'center';
-                qdCtx.fillStyle = p.id === qdSelfId ? '#38bdf8' : '#fef3c7';
+                qdCtx.fillStyle = isMe ? (myCosmetics.nameHex || '#38bdf8') : '#fef3c7';
                 qdCtx.fillText(`${p.name} (${p.score}/7)`, 0, 22);
                 qdCtx.restore();
             });
@@ -3875,7 +4072,7 @@
                 s.life -= 0.032;
                 qdCtx.save();
                 qdCtx.globalAlpha = Math.max(0, s.life);
-                qdCtx.strokeStyle = '#fef08a';
+                qdCtx.strokeStyle = myCosmetics.trailColor || '#fef08a';
                 qdCtx.lineWidth = 4;
                 qdCtx.beginPath();
                 qdCtx.moveTo(s.fromX, s.fromY);
@@ -4131,7 +4328,7 @@
                 const myChange = eloChanges && eloChanges[qdSelfId];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const xpTxt = (myChange.xpGained ? ` • +${myChange.xpGained} XP` : '') + (myChange.goldGained ? ` • +${myChange.goldGained}G` : '');
                     const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
                     eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
                     eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
@@ -4515,7 +4712,7 @@
                 bhCtx.save();
                 bhCtx.globalAlpha = Math.max(0, ef.life);
                 if (ef.type === 'hit') {
-                    bhCtx.strokeStyle = '#fde047';
+                    bhCtx.strokeStyle = myCosmetics.trailColor || '#fde047';
                     bhCtx.lineWidth = 3;
                     bhCtx.beginPath();
                     bhCtx.arc(px, py, (16 + (1 - ef.life) * 34) * baseScale, 0, Math.PI * 2);
@@ -4749,7 +4946,7 @@
                 const myChange = eloChanges && eloChanges[bhSelfId];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const xpTxt = (myChange.xpGained ? ` • +${myChange.xpGained} XP` : '') + (myChange.goldGained ? ` • +${myChange.goldGained}G` : '');
                     const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
                     eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
                     eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
@@ -4934,7 +5131,7 @@
                 const myChange = eloChanges && me && eloChanges[me.id];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const xpTxt = (myChange.xpGained ? ` • +${myChange.xpGained} XP` : '') + (myChange.goldGained ? ` • +${myChange.goldGained}G` : '');
                     const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
                     eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
                     eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta > 0 ? '#34d399' : (myChange.delta < 0 ? '#fb7185' : '#fbbf24'));
