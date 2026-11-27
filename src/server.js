@@ -11,6 +11,7 @@ const engine = require('./gameEngine');
 const passEngine = require('./passEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
+const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
 
 engine.setExtraPlayerCountFn(() => passEngine.getHumanCount());
@@ -81,6 +82,43 @@ app.get('/api/leaderboard', (req, res) => {
     res.json(eloStore.getLeaderboard(100, myKey));
 });
 
+function requireAccount(req, res, next) {
+    const auth = String(req.headers.authorization || '');
+    const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+    const user = authStore.verifyToken(token);
+    if (!user) return res.status(401).json({ error: 'Please sign in to use the Friends List.' });
+    req.account = user;
+    next();
+}
+
+app.get('/api/friends', requireAccount, (req, res) => {
+    res.json(socialStore.getSocialState(req.account.id));
+});
+
+app.post('/api/friends/request', requireAccount, (req, res) => {
+    const out = socialStore.sendRequest(req.account, req.body && req.body.username);
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+});
+
+app.post('/api/friends/respond', requireAccount, (req, res) => {
+    const { fromId, accept } = req.body || {};
+    const out = socialStore.respondRequest(req.account, fromId, Boolean(accept));
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+});
+
+app.delete('/api/friends/:friendId', requireAccount, (req, res) => {
+    res.json(socialStore.removeFriend(req.account.id, req.params.friendId));
+});
+
+app.post('/api/friends/invite', requireAccount, (req, res) => {
+    const { toUserId, game, roomCode } = req.body || {};
+    const out = socialStore.sendInvite(req.account, toUserId, game, roomCode);
+    if (out.error) return res.status(400).json({ error: out.error });
+    res.json(out);
+});
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
@@ -105,6 +143,12 @@ wss.on('connection', (ws, req) => {
         const seenRaw = url.searchParams.get('seen') || '';
         const seenIds = seenRaw ? seenRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 60) : [];
 
+        if (url.pathname === '/ws/social') {
+            if (!authedUser) { ws.close(); return; }
+            socialStore.registerSocket(authedUser, ws);
+            return;
+        }
+
         const payload = {
             mode: url.searchParams.get('mode') || 'quick',
             code: url.searchParams.get('code') || '',
@@ -125,7 +169,7 @@ wss.on('connection', (ws, req) => {
     }
 });
 
-Promise.all([authStore.initCloud(), eloStore.initCloud()])
+Promise.all([authStore.initCloud(), eloStore.initCloud(), socialStore.initCloud()])
     .catch(() => {})
     .finally(() => {
         server.listen(port, '0.0.0.0', () => {

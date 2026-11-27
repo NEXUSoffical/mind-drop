@@ -141,6 +141,18 @@ class AuthStore {
         const user = { id: rec.id, username: rec.username };
         return { token: this._signToken(user), user };
     }
+
+    findByUsername(rawUsername) {
+        const rec = this.users[String(rawUsername || '').trim().toLowerCase()];
+        return rec ? { id: rec.id, username: rec.username } : null;
+    }
+
+    findById(id) {
+        for (const rec of Object.values(this.users)) {
+            if (rec && rec.id === id) return { id: rec.id, username: rec.username };
+        }
+        return null;
+    }
 }
 
 module.exports = new AuthStore();

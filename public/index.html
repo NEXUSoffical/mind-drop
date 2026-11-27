@@ -411,6 +411,31 @@
             font-size: 12px; font-weight: 800; cursor: pointer; background: transparent; color: #94a3b8;
         }
         .tab-btn.active { background: #0284c7; color: #fff; }
+        .notif-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 17px; height: 17px; padding: 0 5px; margin-left: 5px;
+            border-radius: 999px; background: #ef4444; color: #fff;
+            font-size: 10px; font-weight: 800;
+        }
+        .friend-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            padding: 9px 11px; border-radius: 12px;
+            background: rgba(15, 23, 42, 0.72);
+            border: 1px solid rgba(245, 158, 11, 0.22);
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .dot-online { width: 8px; height: 8px; border-radius: 50%; background: #34d399; display: inline-block; box-shadow: 0 0 8px #34d399; }
+        .dot-offline { width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block; }
+        .invite-toast {
+            position: fixed; top: 70px; right: 16px; z-index: 220;
+            width: min(330px, calc(100vw - 32px));
+            background: rgba(24, 11, 5, 0.96);
+            border: 2px solid #fde047;
+            border-radius: 16px;
+            padding: 14px 16px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.75);
+        }
         footer { text-align: center; padding: 14px; font-size: 12px; color: #64748b; }
         footer a { color: #fbbf24; text-decoration: none; font-weight: 700; }
 
@@ -629,7 +654,8 @@
             <div class="logo-badge">M</div>
             <span>MindDrop <span class="logo-sub" style="color:#fbbf24; font-weight:700; font-size:13px;">Wild West Showdown</span></span>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button id="headerFriendsBtn" class="btn btn-ghost" onclick="openFriendsModal()" style="padding:7px 11px; font-size:11px; display:inline-flex; align-items:center;">Friends<span id="friendsNotifBadge" class="notif-badge hidden">0</span></button>
             <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
             <div id="headerUserBox" class="hidden" style="display:flex; align-items:center; gap:8px;">
                 <span id="headerUsername" class="mono" style="font-size:12px; font-weight:800; color:#34d399;"></span>
@@ -945,6 +971,51 @@
                 <div id="authError" class="hidden" style="font-size:12px; font-weight:700; color:#fb7185;"></div>
                 <button id="authSubmitBtn" type="button" class="btn btn-cyan" onclick="submitAuth()">Create Account &amp; Save ELO</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Friends List & Instant Game Invites Modal -->
+    <div id="friendsModal" class="modal-backdrop hidden" onclick="if (event.target === this) closeFriendsModal()">
+        <div class="modal-card" style="max-width:440px; max-height:84vh; overflow-y:auto;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <div style="font-size:17px; font-weight:800; color:#fffbeb;">Friends &amp; Game Invites</div>
+                <button type="button" onclick="closeFriendsModal()" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;">X</button>
+            </div>
+
+            <div id="friendsGuestNotice" class="hidden" style="text-align:center; padding:16px 8px;">
+                <div style="font-size:13px; color:#fde68a; line-height:1.5; margin-bottom:14px;">
+                    Sign in to add friends by username, see who is online live, and send 1-click game invites.
+                </div>
+                <button type="button" class="btn btn-cyan" onclick="closeFriendsModal(); openAuthModal('register');">Sign In / Create Account</button>
+            </div>
+
+            <div id="friendsAuthedBody" class="hidden">
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input id="addFriendInput" type="text" maxlength="16" placeholder="Add friend by username..." onkeydown="if(event.key==='Enter') sendFriendRequest()">
+                    <button type="button" class="btn btn-cyan" onclick="sendFriendRequest()" style="white-space:nowrap;">Add</button>
+                </div>
+                <div id="friendActionMsg" class="hidden" style="font-size:12px; font-weight:700; margin-bottom:10px;"></div>
+
+                <div id="incomingReqSection" class="hidden" style="margin-bottom:14px;">
+                    <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:#fde047; margin-bottom:6px;">PENDING REQUESTS</div>
+                    <div id="incomingReqList"></div>
+                </div>
+
+                <div style="font-size:10px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-bottom:6px;">YOUR FRIENDS</div>
+                <div id="friendsListBody">
+                    <div style="font-size:12px; color:#94a3b8; padding:12px; text-align:center;">No friends added yet — type a username above to send a request.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Real-Time Incoming Game Invite Toast -->
+    <div id="inviteToast" class="invite-toast hidden">
+        <div style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#fde047;">LIVE GAME INVITE</div>
+        <div id="inviteToastText" style="font-size:14px; font-weight:800; color:#fffbeb; margin-top:4px;"></div>
+        <div style="display:flex; gap:8px; margin-top:12px;">
+            <button type="button" class="btn btn-rose" onclick="acceptGameInvite()" style="flex:1; padding:9px 12px; font-size:12px;">Accept &amp; Join</button>
+            <button type="button" class="btn btn-ghost" onclick="dismissGameInvite()" style="padding:9px 12px; font-size:12px;">Decline</button>
         </div>
     </div>
 
@@ -1607,6 +1678,8 @@
                 banner.classList.add('hidden');
                 modeLbl.textContent = `SAVED ACCOUNT • ${authUser.username.toUpperCase()}`;
                 modeLbl.style.color = '#34d399';
+                connectSocialSocket();
+                loadFriendsState();
             } else {
                 authBtn.classList.remove('hidden');
                 userBox.classList.add('hidden');
@@ -1615,6 +1688,268 @@
                 banner.classList.remove('hidden');
                 modeLbl.textContent = 'GUEST SESSION RATING';
                 modeLbl.style.color = '#94a3b8';
+                disconnectSocialSocket();
+                updateFriendsBadge(0);
+            }
+        }
+
+        // -----------------------------------------------------------
+        // 3B. REAL-TIME FRIENDS & GAME INVITES CLIENT
+        // -----------------------------------------------------------
+        let socialWs = null, pendingInvite = null;
+
+        function updateFriendsBadge(count) {
+            const b = document.getElementById('friendsNotifBadge');
+            if (!b) return;
+            if (count > 0) {
+                b.textContent = String(count);
+                b.classList.remove('hidden');
+            } else {
+                b.classList.add('hidden');
+            }
+        }
+
+        function disconnectSocialSocket() {
+            if (socialWs) { socialWs.onclose = null; socialWs.close(); socialWs = null; }
+        }
+
+        function connectSocialSocket() {
+            const token = getAuthToken();
+            if (!token) return;
+            if (socialWs && (socialWs.readyState === 0 || socialWs.readyState === 1)) return;
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            socialWs = new WebSocket(`${proto}//${location.host}/ws/social?token=${encodeURIComponent(token)}`);
+            socialWs.onmessage = (ev) => {
+                let msg;
+                try { msg = JSON.parse(ev.data); } catch { return; }
+                if (msg.type === 'FRIEND_REQUEST' || msg.type === 'FRIEND_ACCEPTED' || msg.type === 'PRESENCE_UPDATE') {
+                    loadFriendsState();
+                    if (msg.type === 'FRIEND_REQUEST') playSfx(660, 0.12, 'sine', 0.12);
+                } else if (msg.type === 'GAME_INVITE') {
+                    pendingInvite = msg;
+                    document.getElementById('inviteToastText').textContent = `${msg.fromUsername} invited you to ${msg.gameLabel}!`;
+                    document.getElementById('inviteToast').classList.remove('hidden');
+                    playSfx(587, 0.12, 'triangle', 0.14, 0);
+                    playSfx(880, 0.18, 'triangle', 0.14, 0.12);
+                }
+            };
+            socialWs.onclose = () => {
+                socialWs = null;
+                if (authUser && getAuthToken()) {
+                    setTimeout(() => { if (authUser) connectSocialSocket(); }, 4000);
+                }
+            };
+        }
+
+        function acceptGameInvite() {
+            if (!pendingInvite) return;
+            const inv = pendingInvite;
+            dismissGameInvite();
+            closeFriendsModal();
+            if (inv.game === 'pass') {
+                selectGameHubMode('pass');
+                startPassGame('private', inv.roomCode);
+            } else {
+                selectGameHubMode('duel');
+                startDuel('private', inv.roomCode);
+            }
+        }
+
+        function dismissGameInvite() {
+            pendingInvite = null;
+            document.getElementById('inviteToast').classList.add('hidden');
+        }
+
+        function openFriendsModal() {
+            document.getElementById('friendsModal').classList.remove('hidden');
+            document.getElementById('friendActionMsg').classList.add('hidden');
+            const isAuthed = Boolean(authUser && getAuthToken());
+            document.getElementById('friendsGuestNotice').classList.toggle('hidden', isAuthed);
+            document.getElementById('friendsAuthedBody').classList.toggle('hidden', !isAuthed);
+            if (isAuthed) loadFriendsState();
+        }
+
+        function closeFriendsModal() {
+            document.getElementById('friendsModal').classList.add('hidden');
+        }
+
+        function setFriendMsg(text, ok) {
+            const el = document.getElementById('friendActionMsg');
+            el.textContent = text;
+            el.style.color = ok ? '#34d399' : '#fb7185';
+            el.classList.remove('hidden');
+        }
+
+        async function loadFriendsState() {
+            const token = getAuthToken();
+            if (!token) return;
+            try {
+                const res = await fetch('/api/friends', { headers: { Authorization: `Bearer ${token}` } });
+                if (!res.ok) return;
+                const data = await res.json();
+                const incoming = data.incoming || [];
+                const friends = data.friends || [];
+                updateFriendsBadge(incoming.length);
+
+                const incSec = document.getElementById('incomingReqSection');
+                const incList = document.getElementById('incomingReqList');
+                incList.innerHTML = '';
+                if (incoming.length) {
+                    incSec.classList.remove('hidden');
+                    incoming.forEach(r => {
+                        const row = document.createElement('div');
+                        row.className = 'friend-row';
+                        const nm = document.createElement('span');
+                        nm.style.fontWeight = '800';
+                        nm.style.fontSize = '13px';
+                        nm.textContent = r.fromUsername;
+                        const btns = document.createElement('div');
+                        btns.style.display = 'flex';
+                        btns.style.gap = '6px';
+                        const acc = document.createElement('button');
+                        acc.className = 'btn btn-cyan';
+                        acc.style.cssText = 'padding:5px 10px; font-size:11px;';
+                        acc.textContent = 'Accept';
+                        acc.onclick = () => respondFriendRequest(r.fromId, true);
+                        const dec = document.createElement('button');
+                        dec.className = 'btn btn-ghost';
+                        dec.style.cssText = 'padding:5px 10px; font-size:11px;';
+                        dec.textContent = 'Decline';
+                        dec.onclick = () => respondFriendRequest(r.fromId, false);
+                        btns.append(acc, dec);
+                        row.append(nm, btns);
+                        incList.appendChild(row);
+                    });
+                } else {
+                    incSec.classList.add('hidden');
+                }
+
+                const listEl = document.getElementById('friendsListBody');
+                listEl.innerHTML = '';
+                if (!friends.length) {
+                    listEl.innerHTML = '<div style="font-size:12px; color:#94a3b8; padding:12px; text-align:center;">No friends added yet — type a username above to send a request.</div>';
+                    return;
+                }
+                friends.forEach(f => {
+                    const row = document.createElement('div');
+                    row.className = 'friend-row';
+
+                    const left = document.createElement('div');
+                    left.style.cssText = 'display:flex; align-items:center; gap:7px;';
+                    const dot = document.createElement('span');
+                    dot.className = f.online ? 'dot-online' : 'dot-offline';
+                    const nm = document.createElement('span');
+                    nm.style.cssText = 'font-weight:800; font-size:13px; color:#fffbeb;';
+                    nm.textContent = f.username;
+                    const meta = document.createElement('span');
+                    meta.className = 'elo-pill mono';
+                    meta.style.marginLeft = '2px';
+                    meta.textContent = `LVL ${f.level} • ${f.elo} ELO`;
+                    left.append(dot, nm, meta);
+
+                    const right = document.createElement('div');
+                    right.style.cssText = 'display:flex; align-items:center; gap:5px; flex-wrap:wrap;';
+                    if (f.online) {
+                        const invDuel = document.createElement('button');
+                        invDuel.className = 'btn btn-rose';
+                        invDuel.style.cssText = 'padding:5px 9px; font-size:10px;';
+                        invDuel.textContent = 'Invite Duel';
+                        invDuel.onclick = () => inviteFriendToGame(f.id, f.username, 'duel');
+
+                        const invPass = document.createElement('button');
+                        invPass.className = 'btn btn-cyan';
+                        invPass.style.cssText = 'padding:5px 9px; font-size:10px;';
+                        invPass.textContent = 'Invite Dynamite';
+                        invPass.onclick = () => inviteFriendToGame(f.id, f.username, 'pass');
+                        right.append(invDuel, invPass);
+                    } else {
+                        const off = document.createElement('span');
+                        off.style.cssText = 'font-size:11px; color:#64748b; margin-right:4px;';
+                        off.textContent = 'Offline';
+                        right.appendChild(off);
+                    }
+                    const rem = document.createElement('button');
+                    rem.className = 'btn btn-ghost';
+                    rem.style.cssText = 'padding:4px 8px; font-size:10px; color:#fb7185;';
+                    rem.textContent = 'X';
+                    rem.title = 'Remove friend';
+                    rem.onclick = () => removeFriendById(f.id);
+                    right.appendChild(rem);
+
+                    row.append(left, right);
+                    listEl.appendChild(row);
+                });
+            } catch {}
+        }
+
+        async function sendFriendRequest() {
+            const inp = document.getElementById('addFriendInput');
+            const username = inp.value.trim();
+            if (!username) return;
+            try {
+                const res = await fetch('/api/friends/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
+                    body: JSON.stringify({ username }),
+                });
+                const data = await res.json();
+                if (!res.ok) return setFriendMsg(data.error || 'Could not send request.', false);
+                inp.value = '';
+                setFriendMsg(data.message || 'Friend request sent!', true);
+                loadFriendsState();
+            } catch {
+                setFriendMsg('Network error.', false);
+            }
+        }
+
+        async function respondFriendRequest(fromId, accept) {
+            try {
+                const res = await fetch('/api/friends/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
+                    body: JSON.stringify({ fromId, accept }),
+                });
+                if (res.ok) loadFriendsState();
+            } catch {}
+        }
+
+        async function removeFriendById(friendId) {
+            try {
+                const res = await fetch(`/api/friends/${encodeURIComponent(friendId)}`, {
+                    method: 'DELETE',
+                    headers: { Authorization: `Bearer ${getAuthToken()}` },
+                });
+                if (res.ok) loadFriendsState();
+            } catch {}
+        }
+
+        function genRandomRoomCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
+        }
+
+        async function inviteFriendToGame(toUserId, friendName, game) {
+            const roomCode = genRandomRoomCode();
+            try {
+                const res = await fetch('/api/friends/invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getAuthToken()}` },
+                    body: JSON.stringify({ toUserId, game, roomCode }),
+                });
+                const data = await res.json();
+                if (!res.ok) return setFriendMsg(data.error || 'Could not invite friend.', false);
+                closeFriendsModal();
+                if (game === 'pass') {
+                    selectGameHubMode('pass');
+                    startPassGame('private', roomCode);
+                } else {
+                    selectGameHubMode('duel');
+                    startDuel('private', roomCode);
+                }
+            } catch {
+                setFriendMsg('Network error sending invite.', false);
             }
         }
 
