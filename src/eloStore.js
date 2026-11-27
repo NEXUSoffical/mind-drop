@@ -6,7 +6,6 @@
 const fs = require('fs');
 const path = require('path');
 const bloxCloud = require('./bloxCloudClient');
-const shopCatalog = require('./shopCatalog');
 
 const DATA_DIR = path.join(__dirname, '../data');
 const DATA_FILE = path.join(DATA_DIR, 'ratings.json');
@@ -114,26 +113,6 @@ class EloStore {
         return rec.xp;
     }
 
-    _ensureEconomy(rec) {
-        this._ensureXp(rec);
-        if (typeof rec.gold !== 'number' || Number.isNaN(rec.gold)) {
-            // Retroactive Gold credit from past matches + levels so returning players can shop right away
-            const lvl = this.getLevelInfo(rec.xp).level;
-            rec.gold = (rec.wins || 0) * 50 + (rec.draws || 0) * 30 + (rec.losses || 0) * 15 + Math.max(0, lvl - 1) * 100;
-        }
-        if (!Array.isArray(rec.ownedItems)) {
-            rec.ownedItems = shopCatalog.DEFAULT_OWNED.slice();
-        } else {
-            for (const defId of shopCatalog.DEFAULT_OWNED) {
-                if (!rec.ownedItems.includes(defId)) rec.ownedItems.push(defId);
-            }
-        }
-        if (!rec.equipped || typeof rec.equipped !== 'object') {
-            rec.equipped = { ...shopCatalog.DEFAULT_EQUIPPED };
-        }
-        return rec;
-    }
-
     getProfile(rawKey, displayName, isAccount = false) {
         const key = this._cleanKey(rawKey);
         if (!this.ratings[key]) {
@@ -143,9 +122,6 @@ class EloStore {
                 isAccount: Boolean(isAccount),
                 elo: BASE_ELO,
                 xp: 0,
-                gold: 0,
-                ownedItems: shopCatalog.DEFAULT_OWNED.slice(),
-                equipped: { ...shopCatalog.DEFAULT_EQUIPPED },
                 wins: 0,
                 losses: 0,
                 draws: 0,
@@ -153,62 +129,14 @@ class EloStore {
         } else {
             if (displayName) this.ratings[key].name = displayName;
             if (isAccount) this.ratings[key].isAccount = true;
-            this._ensureEconomy(this.ratings[key]);
+            this._ensureXp(this.ratings[key]);
         }
         const rec = this.ratings[key];
         return {
             ...rec,
             rank: this.getRankForElo(rec.elo),
             levelInfo: this.getLevelInfo(rec.xp),
-            cosmetics: shopCatalog.resolveEquippedVisuals(rec.equipped),
             nextAiTier: this.getAiTierForElo(rec.elo).label,
-        };
-    }
-
-    buyItem(rawKey, itemId) {
-        const item = shopCatalog.getItemById(itemId);
-        if (!item) return { error: 'Item not found.' };
-        const key = this._cleanKey(rawKey);
-        const profile = this.getProfile(key, '', false);
-        const rec = this.ratings[key];
-        if (rec.ownedItems.includes(item.id)) {
-            return { error: 'You already own this item.' };
-        }
-        if (rec.gold < item.price) {
-            return { error: `Need ${item.price - rec.gold} more Gold to buy ${item.name}.` };
-        }
-        rec.gold -= item.price;
-        rec.ownedItems.push(item.id);
-        rec.equipped[item.slot] = item.id;
-        if (rec.isAccount) this._save();
-        return {
-            ok: true,
-            item,
-            gold: rec.gold,
-            ownedItems: rec.ownedItems,
-            equipped: rec.equipped,
-            cosmetics: shopCatalog.resolveEquippedVisuals(rec.equipped),
-        };
-    }
-
-    equipItem(rawKey, itemId) {
-        const item = shopCatalog.getItemById(itemId);
-        if (!item) return { error: 'Item not found.' };
-        const key = this._cleanKey(rawKey);
-        this.getProfile(key, '', false);
-        const rec = this.ratings[key];
-        if (!rec.ownedItems.includes(item.id)) {
-            return { error: 'Buy this item first before equipping.' };
-        }
-        rec.equipped[item.slot] = item.id;
-        if (rec.isAccount) this._save();
-        return {
-            ok: true,
-            item,
-            gold: rec.gold,
-            ownedItems: rec.ownedItems,
-            equipped: rec.equipped,
-            cosmetics: shopCatalog.resolveEquippedVisuals(rec.equipped),
         };
     }
 
@@ -231,18 +159,14 @@ class EloStore {
         const actualDelta = newElo - oldElo;
         const xpGained = result === 'WIN' ? 100 : (result === 'DRAW' ? 60 : 35);
 
-        this._ensureEconomy(this.ratings[key]);
         this.ratings[key].elo = newElo;
-        this.ratings[key].xp = this.ratings[key].xp + xpGained;
+        this.ratings[key].xp = this._ensureXp(this.ratings[key]) + xpGained;
         this.ratings[key].isAccount = Boolean(isAccount || this.ratings[key].isAccount);
         if (result === 'WIN') this.ratings[key].wins++;
         else if (result === 'LOSS') this.ratings[key].losses++;
         else this.ratings[key].draws++;
 
         const levelInfo = this.getLevelInfo(this.ratings[key].xp);
-        const leveledUp = levelInfo.level > oldLevel;
-        const goldGained = (result === 'WIN' ? 50 : (result === 'DRAW' ? 30 : 15)) + (leveledUp ? 100 : 0);
-        this.ratings[key].gold += goldGained;
 
         // Only permanently persist signed-in accounts to disk & BloxCloud
         if (this.ratings[key].isAccount) this._save();
@@ -252,13 +176,10 @@ class EloStore {
             newElo,
             delta: actualDelta,
             xpGained,
-            goldGained,
-            gold: this.ratings[key].gold,
-            leveledUp,
+            leveledUp: levelInfo.level > oldLevel,
             levelInfo,
             isAccount: this.ratings[key].isAccount,
             rank: this.getRankForElo(newElo),
-            cosmetics: shopCatalog.resolveEquippedVisuals(this.ratings[key].equipped),
             nextAiTier: this.getAiTierForElo(newElo).label,
             wins: this.ratings[key].wins,
             losses: this.ratings[key].losses,
@@ -273,16 +194,12 @@ class EloStore {
         const existing = this.ratings[accKey];
 
         if (guest && !guest.isAccount && (!existing || (existing.wins + existing.losses + existing.draws) === 0)) {
-            this._ensureEconomy(guest);
             this.ratings[accKey] = {
                 key: accKey,
                 name: username,
                 isAccount: true,
                 elo: guest.elo,
-                xp: guest.xp,
-                gold: guest.gold,
-                ownedItems: guest.ownedItems.slice(),
-                equipped: { ...guest.equipped },
+                xp: this._ensureXp(guest),
                 wins: guest.wins,
                 losses: guest.losses,
                 draws: guest.draws,
@@ -300,22 +217,17 @@ class EloStore {
         const ranked = Object.values(this.ratings)
             .filter(r => r.isAccount && (r.wins + r.losses + r.draws) > 0)
             .sort((a, b) => (b.elo - a.elo) || (b.wins - a.wins))
-            .map((r, idx) => {
-                this._ensureEconomy(r);
-                const visuals = shopCatalog.resolveEquippedVisuals(r.equipped);
-                return {
-                    position: idx + 1,
-                    key: r.key,
-                    name: r.name || 'Fighter',
-                    nameHex: visuals.nameHex,
-                    elo: r.elo,
-                    level: this.getLevelInfo(r.xp).level,
-                    wins: r.wins,
-                    losses: r.losses,
-                    draws: r.draws,
-                    rank: this.getRankForElo(r.elo),
-                };
-            });
+            .map((r, idx) => ({
+                position: idx + 1,
+                key: r.key,
+                name: r.name || 'Fighter',
+                elo: r.elo,
+                level: this.getLevelInfo(this._ensureXp(r)).level,
+                wins: r.wins,
+                losses: r.losses,
+                draws: r.draws,
+                rank: this.getRankForElo(r.elo),
+            }));
 
         const cleanMyKey = myKey ? this._cleanKey(myKey) : null;
         const me = cleanMyKey ? (ranked.find(r => r.key === cleanMyKey) || null) : null;
