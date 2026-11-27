@@ -4112,8 +4112,36 @@
         let bhw = 960, bhh = 540;
         const bhBgImg = new Image();
         let bhBgLoaded = false;
-        bhBgImg.onload = () => { bhBgLoaded = true; };
+
+        // Offscreen lighting sampler (samples exact local saloon color/shadow at each hiding spot)
+        const bhLightCanvas = document.createElement('canvas');
+        bhLightCanvas.width = 96; bhLightCanvas.height = 54;
+        const bhLightCtx = bhLightCanvas.getContext('2d', { willReadFrequently: true });
+        let bhLightData = null;
+
+        // Offscreen sprite buffer for warm sepia + local lighting compositing
+        const bhSpriteCanvas = document.createElement('canvas');
+        bhSpriteCanvas.width = 64; bhSpriteCanvas.height = 64;
+        const bhSpriteCtx = bhSpriteCanvas.getContext('2d');
+
+        bhBgImg.onload = () => {
+            bhBgLoaded = true;
+            try {
+                bhLightCtx.drawImage(bhBgImg, 0, 0, 96, 54);
+                bhLightData = bhLightCtx.getImageData(0, 0, 96, 54).data;
+            } catch {}
+        };
         bhBgImg.src = '/bounty-scene-saloon.jpg?v=1';
+
+        function sampleSaloonLight(nx, ny) {
+            if (!bhLightData) return { r: 130, g: 72, b: 30, lum: 0.45 };
+            const sx = Math.max(0, Math.min(95, Math.floor(nx * 96)));
+            const sy = Math.max(0, Math.min(53, Math.floor(ny * 54)));
+            const idx = (sy * 96 + sx) * 4;
+            const r = bhLightData[idx], g = bhLightData[idx + 1], b = bhLightData[idx + 2];
+            const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return { r, g, b, lum };
+        }
 
         const bhEffects = []; // { type: 'hit'|'miss', x, y, label, life }
 
@@ -4344,29 +4372,52 @@
             }
 
             const foundSet = new Set(bhLastSnap.myFoundIds || []);
-            const baseScale = Math.max(0.75, Math.min(1.2, bhw / 860));
+            const baseScale = Math.max(0.7, Math.min(1.15, bhw / 880));
 
-            // Draw all hidden objects naturally blended into the saloon scene
+            // Draw all hidden objects blended into the saloon's exact local lighting & antique sepia palette
             (bhLastSnap.objects || []).forEach(obj => {
                 const isFound = foundSet.has(obj.id);
                 const px = obj.x * bhw;
                 const py = obj.y * bhh;
+                const s = (obj.scale || 0.7) * baseScale;
+                const light = sampleSaloonLight(obj.x, obj.y);
+                const bright = Math.max(0.42, Math.min(0.92, 0.36 + light.lum * 0.85));
+
+                // Composite item onto offscreen 64x64 sprite with warm sepia + local saloon lighting tint
+                bhSpriteCtx.setTransform(1, 0, 0, 1, 0, 0);
+                bhSpriteCtx.clearRect(0, 0, 64, 64);
+                bhSpriteCtx.save();
+                bhSpriteCtx.translate(32, 32);
+                bhSpriteCtx.filter = `sepia(0.62) saturate(0.74) brightness(${bright.toFixed(2)}) contrast(1.06)`;
+                drawBountyItem(bhSpriteCtx, obj.id, 1);
+                bhSpriteCtx.filter = 'none';
+                // Blend local saloon ambient hue directly onto the item silhouette
+                bhSpriteCtx.globalCompositeOperation = 'source-atop';
+                bhSpriteCtx.fillStyle = `rgba(${light.r}, ${light.g}, ${light.b}, 0.44)`;
+                bhSpriteCtx.fillRect(-32, -32, 64, 64);
+                bhSpriteCtx.restore();
+
+                // Soft grounded contact shadow under the item
                 bhCtx.save();
                 bhCtx.translate(px, py);
+                bhCtx.fillStyle = `rgba(14, 5, 0, ${isFound ? 0.14 : 0.48})`;
+                bhCtx.beginPath();
+                bhCtx.ellipse(0, 11 * s, 13 * s, 4.5 * s, 0, 0, Math.PI * 2);
+                bhCtx.fill();
+
+                // Draw blended item into the saloon
                 bhCtx.rotate(obj.rot || 0);
-                bhCtx.shadowColor = 'rgba(12, 4, 0, 0.72)';
-                bhCtx.shadowBlur = 7;
-                bhCtx.shadowOffsetY = 3;
-                bhCtx.globalAlpha = isFound ? 0.28 : 0.88;
-                drawBountyItem(bhCtx, obj.id, (obj.scale || 1) * baseScale);
+                bhCtx.globalAlpha = isFound ? 0.24 : 0.86;
+                const drawSz = 64 * s;
+                bhCtx.drawImage(bhSpriteCanvas, -drawSz * 0.5, -drawSz * 0.5, drawSz, drawSz);
                 bhCtx.restore();
 
                 if (isFound) {
                     bhCtx.save();
                     bhCtx.strokeStyle = '#34d399';
-                    bhCtx.lineWidth = 2.5;
+                    bhCtx.lineWidth = 2.2;
                     bhCtx.beginPath();
-                    bhCtx.arc(px, py, 20 * baseScale, 0, Math.PI * 2);
+                    bhCtx.arc(px, py, 16 * baseScale, 0, Math.PI * 2);
                     bhCtx.stroke();
                     bhCtx.restore();
                 }

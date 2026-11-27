@@ -54,31 +54,64 @@ function shuffle(arr) {
     return out;
 }
 
+// 32 physically grounded hiding spots mapped directly to shelves, tables, crates, barrels, beams & railings in bounty-scene-saloon.jpg
+const SALOON_SPOTS = [
+    // Left bar shelves, counter & crates
+    { x: 0.08, y: 0.23, scale: 0.68 }, // upper left basket/bottles
+    { x: 0.16, y: 0.27, scale: 0.66 }, // top bar shelf bottles
+    { x: 0.05, y: 0.45, scale: 0.68 }, // behind bar middle shelf
+    { x: 0.11, y: 0.56, scale: 0.68 }, // behind bar lower shelf
+    { x: 0.22, y: 0.57, scale: 0.70 }, // wooden bar counter front
+    { x: 0.28, y: 0.51, scale: 0.66 }, // wooden bar counter mid
+    { x: 0.06, y: 0.78, scale: 0.74 }, // bottom-left barrel top
+    { x: 0.20, y: 0.80, scale: 0.72 }, // wooden crate next to bar
+    { x: 0.30, y: 0.88, scale: 0.74 }, // floor pile near bar stools
+    { x: 0.35, y: 0.69, scale: 0.66 }, // bar stool seat
+    // Ceiling beams, chandelier & back wall
+    { x: 0.30, y: 0.14, scale: 0.64 }, // left ceiling rafter
+    { x: 0.44, y: 0.16, scale: 0.64 }, // chandelier left rim
+    { x: 0.56, y: 0.15, scale: 0.64 }, // chandelier right rim
+    { x: 0.38, y: 0.35, scale: 0.62 }, // wall between left windows
+    { x: 0.53, y: 0.33, scale: 0.62 }, // back wall above stairs
+    { x: 0.61, y: 0.41, scale: 0.64 }, // stair wall frame area
+    // Center poker tables & rug
+    { x: 0.48, y: 0.58, scale: 0.66 }, // back poker table
+    { x: 0.43, y: 0.69, scale: 0.68 }, // rug near back table
+    { x: 0.60, y: 0.67, scale: 0.72 }, // front poker table felt
+    { x: 0.55, y: 0.76, scale: 0.70 }, // front chair seat
+    { x: 0.50, y: 0.87, scale: 0.74 }, // patterned rug foreground
+    { x: 0.65, y: 0.86, scale: 0.74 }, // rug beside front chair
+    // Right balcony, general store shelves & barrels
+    { x: 0.72, y: 0.26, scale: 0.62 }, // balcony railing left
+    { x: 0.82, y: 0.22, scale: 0.64 }, // upper balcony shelf
+    { x: 0.93, y: 0.26, scale: 0.64 }, // far-right upper shelf
+    { x: 0.70, y: 0.46, scale: 0.66 }, // store shelf mid-left
+    { x: 0.76, y: 0.54, scale: 0.68 }, // store shelf mid
+    { x: 0.88, y: 0.47, scale: 0.68 }, // store shelf mid-right
+    { x: 0.94, y: 0.56, scale: 0.68 }, // far-right store shelf
+    { x: 0.71, y: 0.66, scale: 0.70 }, // burlap sacks near stairs
+    { x: 0.83, y: 0.75, scale: 0.72 }, // crates & boots area
+    { x: 0.92, y: 0.85, scale: 0.76 }, // foreground right barrel
+];
+
 function generateSceneObjects() {
     const picked = shuffle(ITEM_CATALOG).slice(0, TARGET_COUNT + DECOY_COUNT);
+    const chosenSpots = shuffle(SALOON_SPOTS).slice(0, picked.length);
     const placed = [];
-    const minDist = 0.092;
 
     for (let i = 0; i < picked.length; i++) {
         const item = picked[i];
-        let x = 0.5, y = 0.5;
-        for (let attempt = 0; attempt < 90; attempt++) {
-            const cx = 0.07 + Math.random() * 0.86;
-            const cy = 0.10 + Math.random() * 0.80;
-            const tooClose = placed.some(o => Math.hypot(o.x - cx, o.y - cy) < minDist);
-            if (!tooClose) {
-                x = cx; y = cy;
-                break;
-            }
-        }
+        const spot = chosenSpots[i];
+        const jx = (Math.random() - 0.5) * 0.018;
+        const jy = (Math.random() - 0.5) * 0.018;
         placed.push({
             id: item.id,
             name: item.name,
             isTarget: i < TARGET_COUNT,
-            x: Number(x.toFixed(4)),
-            y: Number(y.toFixed(4)),
-            rot: Number(((Math.random() - 0.5) * 0.72).toFixed(3)),
-            scale: Number((0.82 + Math.random() * 0.28).toFixed(2)),
+            x: Number(Math.max(0.04, Math.min(0.96, spot.x + jx)).toFixed(4)),
+            y: Number(Math.max(0.08, Math.min(0.92, spot.y + jy)).toFixed(4)),
+            rot: Number(((Math.random() - 0.5) * 0.65).toFixed(3)),
+            scale: Number((spot.scale * (0.92 + Math.random() * 0.16)).toFixed(2)),
         });
     }
     return {
