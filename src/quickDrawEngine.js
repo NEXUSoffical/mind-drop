@@ -57,7 +57,7 @@ class QuickDrawEngine {
             isBot: true,
             isAccount: false,
             elo: tier.botElo,
-            rank: eloStore.getRank(tier.botElo),
+            rank: eloStore.getRankForElo(tier.botElo),
             aiTier: tier.label,
             aiSkill: tier.skill,
             aiCfg: cfg,
