@@ -299,6 +299,35 @@
             color: #e2e8f0;
             margin-left: 6px;
         }
+        .lvl-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.7px;
+            background: linear-gradient(90deg, #b45309, #f59e0b);
+            color: #fffbeb;
+            border: 1px solid #fde047;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
+        }
+        .xp-track {
+            width: 100%;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .xp-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #f59e0b, #fde047);
+            transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        }
         .ko-elo-box {
             display: inline-block;
             margin-top: 10px;
@@ -622,22 +651,30 @@
                 Free multiplayer brain &amp; trivia games with one shared ELO ladder, Top 100 leaderboard, 69+ categories, and live friend rooms.
             </p>
 
-            <!-- Compact Player Rating Card -->
+            <!-- Compact Player Level & Rating Card -->
             <div class="elo-card">
                 <div>
                     <div id="homeRatingModeLabel" style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#94a3b8;">GUEST SESSION RATING</div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
-                        <span id="homeEloValue" class="mono" style="font-size:20px; font-weight:800; color:#fff;">0 ELO</span>
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:4px;">
+                        <span id="homeLevelBadge" class="lvl-badge mono">LVL 1</span>
+                        <span id="homeEloValue" class="mono" style="font-size:19px; font-weight:800; color:#fff;">0 ELO</span>
                         <span id="homeRankBadge" class="elo-pill" style="margin-left:0; color:#fb923c; border-color:#fb923c;">BRONZE</span>
                     </div>
                 </div>
                 <div style="text-align:right;">
                     <div id="homeRecordText" class="mono" style="font-size:12px; font-weight:700; color:#cbd5e1;">0W - 0L</div>
-                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">AI Tier: <strong id="homeAiTier" style="color:#38bdf8;">EASY</strong></div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Title: <strong id="homeLevelTitle" style="color:#fde047;">GREENHORN</strong> • AI: <strong id="homeAiTier" style="color:#38bdf8;">EASY</strong></div>
+                </div>
+                <div style="width:100%; margin-top:2px;">
+                    <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:#fde68a;">
+                        <span id="homeXpLeftText">XP Progress</span>
+                        <span id="homeXpText" class="mono">0 / 100 XP to LVL 2</span>
+                    </div>
+                    <div class="xp-track"><div id="homeXpBar" class="xp-fill"></div></div>
                 </div>
                 <div id="guestSaveBanner" style="width:100%; padding-top:8px; border-top:1px solid rgba(148,163,184,0.14); display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; color:#94a3b8;">
-                    <span>Play as guest anytime, or sign up to permanently save ELO &amp; rank on the leaderboard.</span>
-                    <button class="btn btn-cyan" onclick="openAuthModal('register')" style="padding:6px 10px; font-size:11px; white-space:nowrap;">Save ELO</button>
+                    <span>Play as guest anytime, or sign up to permanently save your Level, ELO &amp; leaderboard spot.</span>
+                    <button class="btn btn-cyan" onclick="openAuthModal('register')" style="padding:6px 10px; font-size:11px; white-space:nowrap;">Save Progress</button>
                 </div>
             </div>
 
@@ -1660,6 +1697,12 @@
             }
             document.getElementById('homeRecordText').textContent = `${p.wins || 0}W - ${p.losses || 0}L`;
             document.getElementById('homeAiTier').textContent = p.nextAiTier || 'EASY';
+
+            const lvl = p.levelInfo || { level: 1, title: 'GREENHORN', currentLevelXp: 0, nextLevelXp: 100, progressPct: 0 };
+            document.getElementById('homeLevelBadge').textContent = `LVL ${lvl.level}`;
+            document.getElementById('homeLevelTitle').textContent = lvl.title || 'GREENHORN';
+            document.getElementById('homeXpText').textContent = `${lvl.currentLevelXp} / ${lvl.nextLevelXp} XP to LVL ${lvl.level + 1}`;
+            document.getElementById('homeXpBar').style.width = `${Math.max(0, Math.min(100, lvl.progressPct || 0))}%`;
         }
 
         async function loadHomeProfile() {
@@ -1696,6 +1739,14 @@
             const tdName = document.createElement('td');
             tdName.style.fontWeight = '700';
             tdName.textContent = isMe ? `${p.name} (YOU)` : p.name;
+            if (p.level) {
+                const lp = document.createElement('span');
+                lp.className = 'elo-pill mono';
+                lp.style.color = '#fde047';
+                lp.style.borderColor = 'rgba(251,191,36,0.5)';
+                lp.textContent = `LVL ${p.level}`;
+                tdName.appendChild(lp);
+            }
 
             const tdRank = document.createElement('td');
             const pill = document.createElement('span');
@@ -2841,9 +2892,16 @@
                 const myChange = eloChanges && eloChanges[passSelfId];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta}) • ${myChange.rank.name}`;
-                    eloEl.style.color = myChange.delta > 0 ? '#34d399' : '#fb7185';
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
                     eloEl.classList.remove('hidden');
+                    if (myChange.leveledUp) {
+                        playSfx(523, 0.14, 'triangle', 0.15, 0.1);
+                        playSfx(659, 0.14, 'triangle', 0.15, 0.22);
+                        playSfx(784, 0.25, 'triangle', 0.16, 0.34);
+                    }
                 } else {
                     eloEl.classList.add('hidden');
                 }
@@ -3027,11 +3085,18 @@
                 const myChange = eloChanges && me && eloChanges[me.id];
                 if (myChange) {
                     const sign = myChange.delta >= 0 ? '+' : '';
-                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta}) • ${myChange.rank.name} • Next AI: ${myChange.nextAiTier}`;
-                    eloEl.style.color = myChange.delta > 0 ? '#34d399' : (myChange.delta < 0 ? '#fb7185' : '#fbbf24');
-                    eloEl.style.borderColor = myChange.delta > 0 ? 'rgba(52,211,153,0.5)' : (myChange.delta < 0 ? 'rgba(251,113,133,0.5)' : 'rgba(251,191,36,0.5)');
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta > 0 ? '#34d399' : (myChange.delta < 0 ? '#fb7185' : '#fbbf24'));
+                    eloEl.style.borderColor = myChange.leveledUp ? 'rgba(253,224,71,0.7)' : (myChange.delta > 0 ? 'rgba(52,211,153,0.5)' : (myChange.delta < 0 ? 'rgba(251,113,133,0.5)' : 'rgba(251,191,36,0.5)'));
                     eloEl.classList.remove('hidden');
                     document.getElementById('koGuestPrompt').classList.toggle('hidden', Boolean(authUser));
+                    if (myChange.leveledUp) {
+                        playSfx(523, 0.14, 'triangle', 0.15, 0.1);
+                        playSfx(659, 0.14, 'triangle', 0.15, 0.22);
+                        playSfx(784, 0.25, 'triangle', 0.16, 0.34);
+                    }
                 } else {
                     eloEl.classList.add('hidden');
                     document.getElementById('koGuestPrompt').classList.add('hidden');

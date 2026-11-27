@@ -80,6 +80,39 @@ class EloStore {
         return { label: 'EASY', skill: 'easy', minDelayMs: 3200, maxDelayMs: 6800 };
     }
 
+    getLevelInfo(totalXp = 0) {
+        let xp = Math.max(0, Math.floor(Number(totalXp) || 0));
+        let level = 1;
+        let needed = 100;
+        while (xp >= needed) {
+            xp -= needed;
+            level++;
+            needed = 100 + (level - 1) * 50;
+        }
+        let title = 'GREENHORN';
+        if (level >= 25) title = 'FRONTIER LEGEND';
+        else if (level >= 15) title = 'MARSHAL';
+        else if (level >= 10) title = 'DEPUTY';
+        else if (level >= 6) title = 'SHARPSHOOTER';
+        else if (level >= 3) title = 'OUTLAW';
+
+        return {
+            level,
+            title,
+            totalXp: Math.max(0, Math.floor(Number(totalXp) || 0)),
+            currentLevelXp: xp,
+            nextLevelXp: needed,
+            progressPct: Math.min(100, Math.round((xp / needed) * 100)),
+        };
+    }
+
+    _ensureXp(rec) {
+        if (typeof rec.xp !== 'number' || Number.isNaN(rec.xp)) {
+            rec.xp = (rec.wins || 0) * 100 + (rec.losses || 0) * 35 + (rec.draws || 0) * 60;
+        }
+        return rec.xp;
+    }
+
     getProfile(rawKey, displayName, isAccount = false) {
         const key = this._cleanKey(rawKey);
         if (!this.ratings[key]) {
@@ -88,6 +121,7 @@ class EloStore {
                 name: displayName || 'Fighter',
                 isAccount: Boolean(isAccount),
                 elo: BASE_ELO,
+                xp: 0,
                 wins: 0,
                 losses: 0,
                 draws: 0,
@@ -95,11 +129,13 @@ class EloStore {
         } else {
             if (displayName) this.ratings[key].name = displayName;
             if (isAccount) this.ratings[key].isAccount = true;
+            this._ensureXp(this.ratings[key]);
         }
         const rec = this.ratings[key];
         return {
             ...rec,
             rank: this.getRankForElo(rec.elo),
+            levelInfo: this.getLevelInfo(rec.xp),
             nextAiTier: this.getAiTierForElo(rec.elo).label,
         };
     }
@@ -116,24 +152,32 @@ class EloStore {
         const key = this._cleanKey(rawKey);
         const profile = this.getProfile(key, displayName, isAccount);
         const oldElo = profile.elo;
+        const oldLevel = profile.levelInfo.level;
         const score = result === 'WIN' ? 1 : (result === 'LOSS' ? 0 : 0.5);
         const delta = this.calculateEloDelta(oldElo, oppElo, score);
         const newElo = Math.max(MIN_ELO, oldElo + delta);
         const actualDelta = newElo - oldElo;
+        const xpGained = result === 'WIN' ? 100 : (result === 'DRAW' ? 60 : 35);
 
         this.ratings[key].elo = newElo;
+        this.ratings[key].xp = this._ensureXp(this.ratings[key]) + xpGained;
         this.ratings[key].isAccount = Boolean(isAccount || this.ratings[key].isAccount);
         if (result === 'WIN') this.ratings[key].wins++;
         else if (result === 'LOSS') this.ratings[key].losses++;
         else this.ratings[key].draws++;
 
-        // Only permanently persist signed-in accounts to disk
+        const levelInfo = this.getLevelInfo(this.ratings[key].xp);
+
+        // Only permanently persist signed-in accounts to disk & BloxCloud
         if (this.ratings[key].isAccount) this._save();
 
         return {
             oldElo,
             newElo,
             delta: actualDelta,
+            xpGained,
+            leveledUp: levelInfo.level > oldLevel,
+            levelInfo,
             isAccount: this.ratings[key].isAccount,
             rank: this.getRankForElo(newElo),
             nextAiTier: this.getAiTierForElo(newElo).label,
@@ -155,6 +199,7 @@ class EloStore {
                 name: username,
                 isAccount: true,
                 elo: guest.elo,
+                xp: this._ensureXp(guest),
                 wins: guest.wins,
                 losses: guest.losses,
                 draws: guest.draws,
@@ -177,6 +222,7 @@ class EloStore {
                 key: r.key,
                 name: r.name || 'Fighter',
                 elo: r.elo,
+                level: this.getLevelInfo(this._ensureXp(r)).level,
                 wins: r.wins,
                 losses: r.losses,
                 draws: r.draws,
