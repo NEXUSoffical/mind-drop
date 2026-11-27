@@ -2457,6 +2457,7 @@
         }
 
         function leaveDuel() {
+            clearFullScreenExplosion();
             manualLeave = true;
             activeRoomCode = '';
             activeDuelMode = null;
@@ -2754,10 +2755,10 @@
                 try {
                     boomCtx.clearRect(0, 0, w, h);
 
-                    // 1. Blinding initial white-gold full-screen flash
-                    if (elapsed < 0.35) {
-                        const fa = Math.max(0, 1 - elapsed / 0.35);
-                        boomCtx.fillStyle = `rgba(255, 245, 200, ${fa * 0.92})`;
+                    // 1. Snappy initial white-gold flash (lets the fireball & KABOOM! pop clearly)
+                    if (elapsed < 0.18) {
+                        const fa = Math.max(0, 1 - elapsed / 0.18);
+                        boomCtx.fillStyle = `rgba(255, 235, 175, ${fa * 0.55})`;
                         boomCtx.fillRect(0, 0, w, h);
                     }
 
@@ -3064,6 +3065,7 @@
         }
 
         function startPassGame(mode, code) {
+            clearFullScreenExplosion();
             manualLeave = false;
             clearInterval(passTimerInt);
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
@@ -3125,6 +3127,7 @@
         }
 
         function sendPassRematch() {
+            clearFullScreenExplosion();
             if (passWs && passWs.readyState === 1) passWs.send(JSON.stringify({ type: 'REMATCH' }));
         }
 
@@ -3176,10 +3179,13 @@
             passAnim.state = snap.state;
             passAnim.activeId = snap.activePlayerId || null;
 
+            if (snap.state === 'PLAYING' && eventType === 'PASS_TURN') {
+                clearFullScreenExplosion();
+            }
             if (eventType === 'PASS_TURN' && snap.lastEvent && snap.lastEvent.type === 'PASSED' && prevActive && snap.activePlayerId && prevActive !== snap.activePlayerId) {
                 triggerPassThrow(prevActive, snap.activePlayerId, snap.lastEvent.word);
             }
-            if ((eventType === 'PASS_ELIMINATED' || eventType === 'PASS_GAME_OVER') && snap.lastEvent && snap.lastEvent.type === 'BOOM') {
+            if (eventType === 'PASS_GAME_OVER' && snap.lastEvent && snap.lastEvent.type === 'BOOM') {
                 triggerPassExplosion(snap.lastEvent.victimId);
             }
 
@@ -3314,7 +3320,8 @@
                 document.getElementById('passFuseBar').style.width = '0%';
                 playHitSfx(true);
 
-                const iWon = winner && winner.id === passSelfId;
+                const myPlayer = (snap.players || []).find(p => p.id === passSelfId);
+                const iWon = myPlayer ? Boolean(myPlayer.alive) : Boolean(winner && winner.id === passSelfId);
                 const hl = document.getElementById('passOverHeadline');
                 hl.textContent = iWon ? 'YOU SURVIVED — VICTORY!' : 'BOOM! YOU BLEW UP!';
                 hl.style.color = iWon ? '#34d399' : '#fb7185';

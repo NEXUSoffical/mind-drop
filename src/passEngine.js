@@ -360,30 +360,26 @@ class DynamitePassEngine {
             victimName: loser.name,
         };
 
-        const alive = room.players.filter(p => p.alive);
-        if (alive.length <= 1) {
-            const winner = alive[0] || null;
-            this._finishMatch(room, winner, `${loser.name} ran out of time and blew up!`);
-        } else {
-            // Party mode (3+ players): eliminate the player who blew up and keep passing!
-            this._broadcast(room, {
-                type: 'PASS_ELIMINATED',
-                victim: { id: loser.id, name: loser.name },
-                snapshot: this._snapshot(room),
-            });
-            room.timer = setTimeout(() => this._advanceTurn(room), 2200);
-        }
+        // Match ends immediately once the dynamite explodes — first person to blow up loses!
+        const survivors = room.players.filter(p => p.alive);
+        const primaryWinner = survivors.length === 1 ? survivors[0] : (survivors[0] || null);
+        this._finishMatch(room, primaryWinner, `${loser.name} ran out of time and blew up!`, loser);
     }
 
-    _finishMatch(room, winner, reason) {
+    _finishMatch(room, winner, reason, loser = null) {
         this._clearTimers(room);
         room.state = 'EXPLODED';
         const eloChanges = {};
+        const winnerIds = new Set(
+            loser
+                ? room.players.filter(p => p.alive && p.id !== loser.id).map(p => p.id)
+                : (winner ? [winner.id] : [])
+        );
 
         const avgElo = Math.round(room.players.reduce((s, p) => s + (p.elo ?? 0), 0) / Math.max(1, room.players.length));
         for (const p of room.players) {
             if (!p.isBot) {
-                const res = winner && winner.id === p.id ? 'WIN' : 'LOSS';
+                const res = winnerIds.has(p.id) ? 'WIN' : 'LOSS';
                 const oppElo = room.players.length === 2
                     ? ((room.players.find(o => o.id !== p.id) || {}).elo ?? avgElo)
                     : avgElo;
@@ -397,6 +393,8 @@ class DynamitePassEngine {
         this._broadcast(room, {
             type: 'PASS_GAME_OVER',
             winner: winner ? { id: winner.id, name: winner.name, answeredCount: winner.answeredCount } : null,
+            winnerIds: Array.from(winnerIds),
+            loser: loser ? { id: loser.id, name: loser.name } : null,
             reason,
             eloChanges,
             snapshot: this._snapshot(room),
