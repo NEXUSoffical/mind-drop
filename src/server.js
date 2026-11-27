@@ -10,12 +10,13 @@ const { WebSocketServer } = require('ws');
 const engine = require('./gameEngine');
 const passEngine = require('./passEngine');
 const quickDrawEngine = require('./quickDrawEngine');
+const bountyHuntEngine = require('./bountyHuntEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
 const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
 
-engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players);
+engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players + bountyHuntEngine.getStats().players);
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -170,6 +171,14 @@ wss.on('connection', (ws, req) => {
                 profileId: payload.profileId,
                 authUser: authedUser,
                 seenIds,
+            });
+        } else if (url.pathname === '/ws/bounty') {
+            bountyHuntEngine.joinBountyHunt(ws, {
+                mode: payload.mode,
+                roomCode: payload.code,
+                name: payload.name,
+                profileId: payload.profileId,
+                authUser: authedUser,
             });
         } else {
             engine.joinOrCreateDuel(payload);

@@ -566,9 +566,12 @@
         /* MindDrop Game Portal Homepage Grid */
         .portal-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 18px;
             margin-top: 20px;
+        }
+        @media (max-width: 680px) {
+            .portal-grid { grid-template-columns: 1fr; }
         }
         .game-tile {
             display: flex;
@@ -782,6 +785,56 @@
             font-size: 12px;
             font-weight: 800;
         }
+        .bh-canvas-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(245, 158, 11, 0.55);
+            background: #1c0c06;
+            box-shadow: 0 14px 38px rgba(0, 0, 0, 0.65);
+            cursor: crosshair;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #bhCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: manipulation;
+        }
+        .bh-targets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .bh-target-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 12px;
+            background: rgba(20, 9, 4, 0.85);
+            border: 1.5px solid rgba(245, 158, 11, 0.38);
+            font-size: 12px;
+            font-weight: 800;
+            color: #fef3c7;
+            transition: 0.16s;
+        }
+        .bh-target-chip.found {
+            background: rgba(6, 78, 59, 0.65);
+            border-color: #34d399;
+            color: #6ee7b7;
+            text-decoration: line-through;
+            opacity: 0.72;
+        }
+        .bh-target-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
             .mode-card { padding: 11px 13px; }
@@ -886,6 +939,16 @@
                         <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Quick-Draw Trivia</button>
                     </div>
                 </div>
+
+                <div class="game-tile" onclick="openGameLobby('bounty')">
+                    <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">2-8 PLAYERS • HIDDEN OBJECTS</span>
+                        <div class="game-tile-title">Bounty Hunt</div>
+                        <div class="game-tile-desc">A packed Wild West saloon hiding 10 target treasures among decoys. Spot and click all 10 hidden items before your rival to win.</div>
+                        <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Bounty Hunt</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Live Global ELO Leaderboard (Top 100 Signed-in Accounts) -->
@@ -960,6 +1023,12 @@
                     <span><strong style="color:#38bdf8;">FASTEST SHOT</strong> SCORES +1</span>
                     <span><strong style="color:#fb7185;">WRONG SHOT</strong> JAMS GUN</span>
                     <span><strong style="color:#34d399;">KEYS 1-4</strong> INSTANT DRAW</span>
+                </div>
+                <div id="lobbyBhLegend" class="dmg-legend hidden" style="margin-top:18px;">
+                    <span><strong style="color:#fde047;">10 HIDDEN ITEMS</strong> TO FIND</span>
+                    <span><strong style="color:#38bdf8;">FIRST TO 10/10</strong> WINS</span>
+                    <span><strong style="color:#fb7185;">WRONG CLICK</strong> 1.1S PENALTY</span>
+                    <span><strong style="color:#34d399;">FRESH SPOTS</strong> EVERY MATCH</span>
                 </div>
             </div>
         </section>
@@ -1167,6 +1236,58 @@
                 <div id="qdOverElo" class="ko-elo-box mono hidden"></div>
                 <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
                     <button class="btn btn-rose" onclick="sendQdRematch()">Play Again</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 4: BOUNTY HUNT (HIDDEN-OBJECT RACE — FIRST TO FIND 10 ITEMS WINS) -->
+        <section id="viewBounty" class="card hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <span class="tier-badge tier-LEGENDARY">BOUNTY HUNT • FIND 10 ITEMS</span>
+                    <span id="bhFoundBadge" class="elo-pill mono">FOUND: 0 / 10</span>
+                    <button id="bhHintBtn" type="button" class="btn btn-ghost hidden" onclick="useBountyHint()" style="padding:5px 10px; font-size:11px; border-color:#fbbf24; color:#fde047;">Hint Radar</button>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="bhRoomTag" class="mono" style="font-size:12px; color:#fde68a;">ROOM ----</span>
+                    <button class="btn btn-ghost" onclick="leaveDuel()" style="padding:6px 10px; font-size:11px;">Exit</button>
+                </div>
+            </div>
+
+            <!-- Live Player Progress Race Strip -->
+            <div id="bhPlayersBar" class="qd-score-grid"></div>
+
+            <!-- Waiting Room Controls (2-8 Players) -->
+            <div id="bhWaitingBox" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.72); border:1px solid rgba(245,158,11,0.45); margin-bottom:12px;">
+                <div id="bhWaitTitle" style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Bounty Hunters (2-8 players)...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Room Code: <strong id="bhShareCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="bhStartBtn" class="btn btn-rose hidden" onclick="startBhNow()" style="padding:8px 16px; font-size:12px;">Start Hunt Now</button>
+                    <button id="bhCopyBtn" class="btn btn-ghost" onclick="copyBhInviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="startBountyHunt('ai', '')" style="padding:8px 14px; font-size:12px;">Hunt vs AI Instead</button>
+                </div>
+            </div>
+
+            <!-- Big Interactive 16:9 Hidden-Object Scene -->
+            <div id="bhPlayArea" class="hidden">
+                <div class="bh-canvas-wrap">
+                    <canvas id="bhCanvas"></canvas>
+                </div>
+                <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                    <div style="font-size:11px; font-weight:800; letter-spacing:1.2px; color:#fde68a;">FIND ALL 10 TARGET ITEMS IN THE SALOON ABOVE</div>
+                    <div id="bhStatusHint" class="mono" style="font-size:11px; font-weight:700; color:#94a3b8;">Click hidden items — watch out for decoys!</div>
+                </div>
+                <div id="bhTargetList" class="bh-targets-grid"></div>
+            </div>
+
+            <!-- Match Over Box -->
+            <div id="bhOverBox" class="hidden" style="text-align:center; padding:16px; border-radius:16px; background:rgba(20,9,4,0.92); border:1.5px solid #fbbf24; margin-top:12px;">
+                <div id="bhOverHeadline" class="western-font" style="font-size:28px; color:#fde047;">BOUNTY CLAIMED!</div>
+                <div id="bhOverSub" style="font-size:13px; color:#fde68a; margin-top:6px;"></div>
+                <div id="bhOverElo" class="ko-elo-box mono hidden"></div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+                    <button class="btn btn-rose" onclick="sendBhRematch()">Play Again</button>
                     <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
                 </div>
             </div>
@@ -1974,6 +2095,9 @@
             } else if (inv.game === 'quickdraw') {
                 selectGameHubMode('quickdraw');
                 startQuickDraw('private', inv.roomCode);
+            } else if (inv.game === 'bounty') {
+                selectGameHubMode('bounty');
+                startBountyHunt('private', inv.roomCode);
             } else {
                 selectGameHubMode('duel');
                 startDuel('private', inv.roomCode);
@@ -2091,7 +2215,12 @@
                         invQd.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#fbbf24; color:#fde047;';
                         invQd.textContent = 'Invite Quick-Draw';
                         invQd.onclick = () => inviteFriendToGame(f.id, f.username, 'quickdraw');
-                        right.append(invDuel, invPass, invQd);
+                        const invBh = document.createElement('button');
+                        invBh.className = 'btn btn-ghost';
+                        invBh.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#34d399; color:#6ee7b7;';
+                        invBh.textContent = 'Invite Bounty';
+                        invBh.onclick = () => inviteFriendToGame(f.id, f.username, 'bounty');
+                        right.append(invDuel, invPass, invQd, invBh);
                     } else {
                         const off = document.createElement('span');
                         off.style.cssText = 'font-size:11px; color:#64748b; margin-right:4px;';
@@ -2177,6 +2306,9 @@
                 } else if (game === 'quickdraw') {
                     selectGameHubMode('quickdraw');
                     startQuickDraw('private', roomCode);
+                } else if (game === 'bounty') {
+                    selectGameHubMode('bounty');
+                    startBountyHunt('private', roomCode);
                 } else {
                     selectGameHubMode('duel');
                     startDuel('private', roomCode);
@@ -2578,29 +2710,33 @@
         let passSuggestDebounce = null, passSuggestions = [];
 
         function selectGameHubMode(game) {
-            selectedHubGame = game === 'pass' ? 'pass' : (game === 'quickdraw' ? 'quickdraw' : 'duel');
+            selectedHubGame = ['pass', 'quickdraw', 'bounty'].includes(game) ? game : 'duel';
             const isPass = selectedHubGame === 'pass';
             const isQd = selectedHubGame === 'quickdraw';
+            const isBh = selectedHubGame === 'bounty';
             document.getElementById('lobbyTag').textContent = isPass
                 ? '2-8 PLAYERS • 15S HOT POTATO'
-                : (isQd ? '2-8 PLAYERS • FIRST TO 7' : '1V1 RARITY COMBAT');
+                : (isQd ? '2-8 PLAYERS • FIRST TO 7' : (isBh ? '2-8 PLAYERS • HIDDEN OBJECTS' : '1V1 RARITY COMBAT'));
             document.getElementById('lobbyTitle').textContent = isPass
                 ? 'Dynamite Pass'
-                : (isQd ? 'Quick-Draw Trivia' : 'High-Noon Showdown');
+                : (isQd ? 'Quick-Draw Trivia' : (isBh ? 'Bounty Hunt' : 'High-Noon Showdown'));
             document.getElementById('lobbyDesc').textContent = isPass
                 ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
                 : (isQd
                     ? 'Hands on holsters. A trivia question flashes — first gunslinger to fire the right answer scores +1. Wrong shot jams your revolver for the round.'
-                    : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.');
+                    : (isBh
+                        ? 'A packed Wild West saloon with 10 hidden target items tucked among decoys. First gunslinger to spot and click all 10 items wins!'
+                        : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.'));
             document.getElementById('btnPlayQuick').textContent = isPass
                 ? 'Quick Online Dynamite Pass'
-                : (isQd ? 'Quick Online Quick-Draw' : 'Quick 1v1 Online Match');
+                : (isQd ? 'Quick Online Quick-Draw' : (isBh ? 'Quick Online Bounty Hunt' : 'Quick 1v1 Online Match'));
             document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
-                : (isQd ? 'Instant Quick-Draw vs AI' : 'Instant 1v1 vs AI Fighter');
-            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd);
+                : (isQd ? 'Instant Quick-Draw vs AI' : (isBh ? 'Instant Bounty Hunt vs AI' : 'Instant 1v1 vs AI Fighter'));
+            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh);
             document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
             document.getElementById('lobbyQdLegend').classList.toggle('hidden', !isQd);
+            document.getElementById('lobbyBhLegend').classList.toggle('hidden', !isBh);
         }
 
         function openGameLobby(game) {
@@ -2609,6 +2745,7 @@
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewQuickDraw').classList.add('hidden');
+            document.getElementById('viewBounty').classList.add('hidden');
             document.getElementById('viewLobby').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -2617,6 +2754,7 @@
             document.getElementById('viewLobby').classList.add('hidden');
             if (selectedHubGame === 'pass') startPassGame(subMode, code);
             else if (selectedHubGame === 'quickdraw') startQuickDraw(subMode, code);
+            else if (selectedHubGame === 'bounty') startBountyHunt(subMode, code);
             else startDuel(subMode, code);
         }
 
@@ -2627,6 +2765,7 @@
             activeDuelMode = null;
             passRoomCode = '';
             qdRoomCode = '';
+            bhRoomCode = '';
             clearTimeout(reconnectTimer);
             clearInterval(timerInt);
             clearInterval(passTimerInt);
@@ -2638,9 +2777,11 @@
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
             if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
             if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
+            if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewQuickDraw').classList.add('hidden');
+            document.getElementById('viewBounty').classList.add('hidden');
             document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
@@ -3956,7 +4097,537 @@
             }
         }
 
-        // Auto-join if opened via ?room=XXXX, ?mode=pass&room=XXXX, or ?mode=quickdraw&room=XXXX invite link
+        // ============================================================
+        // MODE 4: BOUNTY HUNT (HIDDEN-OBJECT RACE — FIND 10 ITEMS)
+        // ============================================================
+        let bhWs = null;
+        let bhSelfId = null;
+        let bhRoomCode = '';
+        let bhLastSnap = null;
+        let bhHintReadyAt = 0;
+        let bhHintTarget = null; // { x, y, until }
+
+        const bhCanvas = document.getElementById('bhCanvas');
+        const bhCtx = bhCanvas ? bhCanvas.getContext('2d') : null;
+        let bhw = 960, bhh = 540;
+        const bhBgImg = new Image();
+        let bhBgLoaded = false;
+        bhBgImg.onload = () => { bhBgLoaded = true; };
+        bhBgImg.src = '/bounty-scene-saloon.jpg?v=1';
+
+        const bhEffects = []; // { type: 'hit'|'miss', x, y, label, life }
+
+        function resizeBhCanvas() {
+            if (!bhCanvas || !bhCtx) return;
+            const rect = bhCanvas.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            bhw = Math.max(320, rect.width || 960);
+            bhh = Math.max(180, rect.height || 540);
+            bhCanvas.width = bhw * dpr;
+            bhCanvas.height = bhh * dpr;
+            bhCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        window.addEventListener('resize', resizeBhCanvas);
+
+        // 24 distinct hand-crafted Wild West hidden objects (drawn at center 0,0 within ~radius 18*s)
+        function drawBountyItem(ctx, id, s = 1) {
+            ctx.save();
+            ctx.scale(s, s);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            switch (id) {
+                case 'sheriff_star': {
+                    ctx.fillStyle = '#fbbf24'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.6;
+                    ctx.beginPath();
+                    for (let i = 0; i < 12; i++) {
+                        const r = i % 2 === 0 ? 15 : 7;
+                        const a = (i * Math.PI) / 6 - Math.PI / 2;
+                        if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+                        else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+                    }
+                    ctx.closePath(); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+                    break;
+                }
+                case 'pocket_watch': {
+                    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(0, -14, 3.5, 0, Math.PI * 2); ctx.stroke();
+                    ctx.fillStyle = '#f59e0b'; ctx.strokeStyle = '#78350f';
+                    ctx.beginPath(); ctx.arc(0, 2, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.arc(0, 2, 9, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#1c1917'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(0, -4); ctx.moveTo(0, 2); ctx.lineTo(5, 4); ctx.stroke();
+                    break;
+                }
+                case 'horseshoe': {
+                    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 5;
+                    ctx.beginPath(); ctx.arc(0, 1, 11, Math.PI * 0.82, Math.PI * 2.18, false); ctx.stroke();
+                    ctx.strokeStyle = '#fef08a'; ctx.lineWidth = 1.4;
+                    ctx.beginPath(); ctx.arc(0, 1, 11, Math.PI * 0.9, Math.PI * 2.1, false); ctx.stroke();
+                    break;
+                }
+                case 'dynamite': {
+                    ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 1.4;
+                    ctx.fillRect(-10, -8, 20, 16); ctx.strokeRect(-10, -8, 20, 16);
+                    ctx.fillStyle = '#1c1917'; ctx.fillRect(-10, -3, 20, 2.5); ctx.fillRect(-10, 2, 20, 2.5);
+                    ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.moveTo(10, 0); ctx.quadraticCurveTo(15, -6, 17, -10); ctx.stroke();
+                    ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(17, -10, 3, 0, Math.PI * 2); ctx.fill();
+                    break;
+                }
+                case 'gold_bar': {
+                    ctx.fillStyle = '#f59e0b'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.moveTo(-14, 7); ctx.lineTo(-9, -7); ctx.lineTo(9, -7); ctx.lineTo(14, 7); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fde047';
+                    ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(8, -5); ctx.lineTo(10, 0); ctx.lineTo(-10, 0); ctx.closePath(); ctx.fill();
+                    break;
+                }
+                case 'revolver': {
+                    ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+                    ctx.fillRect(-4, -6, 19, 5); ctx.strokeRect(-4, -6, 19, 5);
+                    ctx.fillStyle = '#64748b'; ctx.fillRect(-6, -4, 9, 7); ctx.strokeRect(-6, -4, 9, 7);
+                    ctx.fillStyle = '#92400e';
+                    ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(-13, 12); ctx.lineTo(-7, 13); ctx.lineTo(-1, 3); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    break;
+                }
+                case 'cowboy_hat': {
+                    ctx.fillStyle = '#92400e'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.ellipse(0, 6, 17, 5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-9, 4); ctx.lineTo(-7, -9); ctx.quadraticCurveTo(0, -6, 7, -9); ctx.lineTo(9, 4); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fbbf24'; ctx.fillRect(-8, 0, 16, 3);
+                    break;
+                }
+                case 'lantern': {
+                    ctx.fillStyle = '#78350f'; ctx.fillRect(-7, 7, 14, 5); ctx.fillRect(-6, -10, 12, 4);
+                    ctx.fillStyle = '#fde047'; ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.5;
+                    ctx.fillRect(-6, -6, 12, 13); ctx.strokeRect(-6, -6, 12, 13);
+                    ctx.strokeStyle = '#d97706'; ctx.beginPath(); ctx.arc(0, -10, 6, Math.PI, 0); ctx.stroke();
+                    break;
+                }
+                case 'compass': {
+                    ctx.fillStyle = '#d97706'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fffbeb'; ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(3, 0); ctx.lineTo(-3, 0); ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(3, 0); ctx.lineTo(-3, 0); ctx.closePath(); ctx.fill();
+                    break;
+                }
+                case 'boot': {
+                    ctx.fillStyle = '#9a3412'; ctx.strokeStyle = '#431407'; ctx.lineWidth = 1.6;
+                    ctx.beginPath();
+                    ctx.moveTo(-7, -13); ctx.lineTo(3, -13); ctx.lineTo(3, 3); ctx.lineTo(14, 6);
+                    ctx.lineTo(14, 12); ctx.lineTo(-9, 12); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fbbf24'; ctx.fillRect(-7, -9, 10, 2.5);
+                    break;
+                }
+                case 'whiskey': {
+                    ctx.fillStyle = '#b45309'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.roundRect(-8, -4, 16, 17, 5); ctx.fill(); ctx.stroke();
+                    ctx.fillRect(-3.5, -12, 7, 8); ctx.strokeRect(-3.5, -12, 7, 8);
+                    ctx.fillStyle = '#fef3c7'; ctx.fillRect(-5, 1, 10, 7);
+                    break;
+                }
+                case 'key': {
+                    ctx.strokeStyle = '#fbbf24'; ctx.fillStyle = '#f59e0b'; ctx.lineWidth = 2.6;
+                    ctx.beginPath(); ctx.arc(-8, 0, 6, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(14, 0); ctx.moveTo(9, 0); ctx.lineTo(9, 5); ctx.moveTo(13, 0); ctx.lineTo(13, 5); ctx.stroke();
+                    break;
+                }
+                case 'coin_bag': {
+                    ctx.fillStyle = '#d97706'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.arc(0, 4, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-5, -6); ctx.lineTo(-7, -12); ctx.lineTo(7, -12); ctx.lineTo(5, -6); ctx.closePath(); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#fef08a'; ctx.font = '800 11px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('$', 0, 8);
+                    break;
+                }
+                case 'ace_card': {
+                    ctx.fillStyle = '#fffbeb'; ctx.strokeStyle = '#1c1917'; ctx.lineWidth = 1.5;
+                    ctx.fillRect(-9, -13, 18, 26); ctx.strokeRect(-9, -13, 18, 26);
+                    ctx.fillStyle = '#111827'; ctx.font = '800 14px serif'; ctx.textAlign = 'center'; ctx.fillText('A', 0, 5);
+                    break;
+                }
+                case 'wanted_scroll': {
+                    ctx.fillStyle = '#fde68a'; ctx.strokeStyle = '#92400e'; ctx.lineWidth = 1.5;
+                    ctx.fillRect(-10, -12, 20, 24); ctx.strokeRect(-10, -12, 20, 24);
+                    ctx.fillStyle = '#78350f'; ctx.fillRect(-7, -8, 14, 3);
+                    ctx.beginPath(); ctx.arc(0, 1, 4.5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillRect(-6, 7, 12, 2);
+                    break;
+                }
+                case 'lasso': {
+                    ctx.strokeStyle = '#d6b370'; ctx.lineWidth = 3.2;
+                    ctx.beginPath(); ctx.ellipse(0, 0, 13, 9, -0.2, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(0, 1, 9, 5.5, -0.2, 0, Math.PI * 2); ctx.stroke();
+                    break;
+                }
+                case 'cactus': {
+                    ctx.fillStyle = '#b45309'; ctx.fillRect(-6, 6, 12, 8);
+                    ctx.fillStyle = '#16a34a'; ctx.strokeStyle = '#14532d'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.roundRect(-4, -12, 8, 19, 4); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.roundRect(-11, -5, 7, 4, 2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.roundRect(4, -7, 7, 4, 2); ctx.fill(); ctx.stroke();
+                    break;
+                }
+                case 'spyglass': {
+                    ctx.fillStyle = '#d97706'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.4;
+                    ctx.rotate(-0.45);
+                    ctx.fillRect(-14, -4, 12, 8); ctx.strokeRect(-14, -4, 12, 8);
+                    ctx.fillStyle = '#f59e0b'; ctx.fillRect(-2, -3, 10, 6); ctx.strokeRect(-2, -3, 10, 6);
+                    ctx.fillStyle = '#38bdf8'; ctx.fillRect(8, -2.5, 6, 5); ctx.strokeRect(8, -2.5, 6, 5);
+                    break;
+                }
+                case 'canteen': {
+                    ctx.fillStyle = '#64748b'; ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.6;
+                    ctx.beginPath(); ctx.arc(0, 2, 11, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.fillStyle = '#92400e'; ctx.fillRect(-3.5, -13, 7, 5);
+                    ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(-7, -5); ctx.lineTo(7, 9); ctx.stroke();
+                    break;
+                }
+                case 'pickaxe': {
+                    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 3.5;
+                    ctx.beginPath(); ctx.moveTo(-10, 12); ctx.lineTo(8, -8); ctx.stroke();
+                    ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.arc(4, -4, 12, Math.PI * 1.15, Math.PI * 1.9); ctx.stroke();
+                    break;
+                }
+                case 'magnet': {
+                    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 5;
+                    ctx.beginPath(); ctx.arc(0, -1, 10, Math.PI, 0, false); ctx.lineTo(10, 9); ctx.moveTo(-10, -1); ctx.lineTo(-10, 9); ctx.stroke();
+                    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-12.5, 6, 5, 5); ctx.fillRect(7.5, 6, 5, 5);
+                    break;
+                }
+                case 'feather': {
+                    ctx.fillStyle = '#f97316'; ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 1.4;
+                    ctx.beginPath(); ctx.ellipse(0, -2, 6, 14, 0.35, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.strokeStyle = '#fffbeb'; ctx.beginPath(); ctx.moveTo(-5, 11); ctx.lineTo(5, -13); ctx.stroke();
+                    break;
+                }
+                case 'skull': {
+                    ctx.fillStyle = '#fef3c7'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.5;
+                    ctx.beginPath(); ctx.moveTo(-8, -4); ctx.lineTo(8, -4); ctx.lineTo(5, 11); ctx.lineTo(-5, 11); ctx.closePath(); ctx.fill(); ctx.stroke();
+                    ctx.strokeStyle = '#fef3c7'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.moveTo(-8, -3); ctx.quadraticCurveTo(-16, -6, -14, -13); ctx.moveTo(8, -3); ctx.quadraticCurveTo(16, -6, 14, -13); ctx.stroke();
+                    ctx.fillStyle = '#1c1917'; ctx.beginPath(); ctx.arc(-3.5, 2, 2, 0, Math.PI * 2); ctx.arc(3.5, 2, 2, 0, Math.PI * 2); ctx.fill();
+                    break;
+                }
+                case 'wheel': {
+                    ctx.strokeStyle = '#92400e'; ctx.lineWidth = 3;
+                    ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.stroke();
+                    ctx.lineWidth = 1.6;
+                    for (let i = 0; i < 6; i++) {
+                        const a = (i * Math.PI) / 3;
+                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * 12, Math.sin(a) * 12); ctx.stroke();
+                    }
+                    ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+                    break;
+                }
+            }
+            ctx.restore();
+        }
+
+        function renderBhCanvasFrame() {
+            requestAnimationFrame(renderBhCanvasFrame);
+            if (!bhCtx || document.getElementById('viewBounty').classList.contains('hidden')) return;
+            if (!bhLastSnap || bhLastSnap.state === 'WAITING') return;
+
+            bhCtx.clearRect(0, 0, bhw, bhh);
+            if (bhBgLoaded) {
+                bhCtx.drawImage(bhBgImg, 0, 0, bhw, bhh);
+            } else {
+                bhCtx.fillStyle = '#291207';
+                bhCtx.fillRect(0, 0, bhw, bhh);
+            }
+
+            const foundSet = new Set(bhLastSnap.myFoundIds || []);
+            const baseScale = Math.max(0.75, Math.min(1.2, bhw / 860));
+
+            // Draw all hidden objects naturally blended into the saloon scene
+            (bhLastSnap.objects || []).forEach(obj => {
+                const isFound = foundSet.has(obj.id);
+                const px = obj.x * bhw;
+                const py = obj.y * bhh;
+                bhCtx.save();
+                bhCtx.translate(px, py);
+                bhCtx.rotate(obj.rot || 0);
+                bhCtx.shadowColor = 'rgba(12, 4, 0, 0.72)';
+                bhCtx.shadowBlur = 7;
+                bhCtx.shadowOffsetY = 3;
+                bhCtx.globalAlpha = isFound ? 0.28 : 0.88;
+                drawBountyItem(bhCtx, obj.id, (obj.scale || 1) * baseScale);
+                bhCtx.restore();
+
+                if (isFound) {
+                    bhCtx.save();
+                    bhCtx.strokeStyle = '#34d399';
+                    bhCtx.lineWidth = 2.5;
+                    bhCtx.beginPath();
+                    bhCtx.arc(px, py, 20 * baseScale, 0, Math.PI * 2);
+                    bhCtx.stroke();
+                    bhCtx.restore();
+                }
+            });
+
+            // Pulsing Hint Radar Ring
+            if (bhHintTarget && Date.now() < bhHintTarget.until) {
+                const px = bhHintTarget.x * bhw;
+                const py = bhHintTarget.y * bhh;
+                const pulse = (Math.sin(performance.now() * 0.012) + 1) * 0.5;
+                bhCtx.save();
+                bhCtx.strokeStyle = '#fde047';
+                bhCtx.lineWidth = 3.5;
+                bhCtx.globalAlpha = 0.55 + pulse * 0.45;
+                bhCtx.beginPath();
+                bhCtx.arc(px, py, (26 + pulse * 14) * baseScale, 0, Math.PI * 2);
+                bhCtx.stroke();
+                bhCtx.restore();
+            }
+
+            // Click Hit / Miss Pop Effects
+            for (let i = bhEffects.length - 1; i >= 0; i--) {
+                const ef = bhEffects[i];
+                ef.life -= 0.025;
+                if (ef.life <= 0) { bhEffects.splice(i, 1); continue; }
+                const px = ef.x * bhw, py = ef.y * bhh;
+                bhCtx.save();
+                bhCtx.globalAlpha = Math.max(0, ef.life);
+                if (ef.type === 'hit') {
+                    bhCtx.strokeStyle = '#fde047';
+                    bhCtx.lineWidth = 3;
+                    bhCtx.beginPath();
+                    bhCtx.arc(px, py, (16 + (1 - ef.life) * 34) * baseScale, 0, Math.PI * 2);
+                    bhCtx.stroke();
+                    bhCtx.font = '800 13px "Plus Jakarta Sans", sans-serif';
+                    bhCtx.textAlign = 'center';
+                    bhCtx.fillStyle = '#34d399';
+                    bhCtx.fillText(ef.label, px, py - 24 - (1 - ef.life) * 20);
+                } else {
+                    bhCtx.strokeStyle = '#fb7185';
+                    bhCtx.lineWidth = 3;
+                    bhCtx.beginPath();
+                    bhCtx.moveTo(px - 9, py - 9); bhCtx.lineTo(px + 9, py + 9);
+                    bhCtx.moveTo(px + 9, py - 9); bhCtx.lineTo(px - 9, py + 9);
+                    bhCtx.stroke();
+                    bhCtx.font = '800 12px "JetBrains Mono", monospace';
+                    bhCtx.textAlign = 'center';
+                    bhCtx.fillStyle = '#fb7185';
+                    bhCtx.fillText('MISS! 1.1s', px, py - 16);
+                }
+                bhCtx.restore();
+            }
+        }
+        requestAnimationFrame(renderBhCanvasFrame);
+
+        if (bhCanvas) {
+            bhCanvas.addEventListener('pointerdown', (e) => {
+                if (!bhWs || bhWs.readyState !== 1 || !bhLastSnap || bhLastSnap.state !== 'PLAYING') return;
+                const rect = bhCanvas.getBoundingClientRect();
+                const nx = (e.clientX - rect.left) / rect.width;
+                const ny = (e.clientY - rect.top) / rect.height;
+                bhWs.send(JSON.stringify({ type: 'CLICK_SPOT', x: nx, y: ny }));
+            });
+        }
+
+        function useBountyHint() {
+            if (!bhLastSnap || bhLastSnap.state !== 'PLAYING') return;
+            if (Date.now() < bhHintReadyAt) return;
+            const foundSet = new Set(bhLastSnap.myFoundIds || []);
+            const unfound = (bhLastSnap.objects || []).filter(o => o.isTarget && !foundSet.has(o.id));
+            if (unfound.length === 0) return;
+            const pick = unfound[Math.floor(Math.random() * unfound.length)];
+            bhHintTarget = { x: pick.x, y: pick.y, until: Date.now() + 3500 };
+            bhHintReadyAt = Date.now() + 15000;
+            playSfx(660, 0.12, 'sine', 0.12);
+            const btn = document.getElementById('bhHintBtn');
+            btn.disabled = true;
+            btn.textContent = 'Radar Cooling (15s)';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = 'Hint Radar';
+            }, 15000);
+        }
+
+        function startBountyHunt(mode, code) {
+            clearFullScreenExplosion();
+            manualLeave = false;
+            bhHintReadyAt = 0;
+            bhHintTarget = null;
+            bhEffects.length = 0;
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+            if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
+            if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
+
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const cleanCode = encodeURIComponent((code || '').trim().toUpperCase());
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.add('hidden');
+            document.getElementById('viewBounty').classList.remove('hidden');
+            document.getElementById('bhOverBox').classList.add('hidden');
+
+            bhWs = new WebSocket(`${proto}//${location.host}/ws/bounty?mode=${mode}&code=${cleanCode}&name=${name}&pid=${pid}&token=${token}`);
+            bhWs.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'BH_ERROR') {
+                    alert(msg.message || 'Could not join Bounty Hunt room.');
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'BH_JOINED') {
+                    bhSelfId = msg.selfId;
+                    bhRoomCode = msg.snapshot.code;
+                    renderBountyHunt(msg.snapshot, 'BH_JOINED');
+                } else if (msg.type === 'BH_START' || msg.type === 'BH_UPDATE') {
+                    if (msg.type === 'BH_START') {
+                        bhHintTarget = null;
+                        bhEffects.length = 0;
+                        playSfx(740, 0.14, 'triangle', 0.14);
+                    }
+                    renderBountyHunt(msg.snapshot, msg.type);
+                } else if (msg.type === 'BH_FOUND') {
+                    playSfx(660, 0.09, 'triangle', 0.14);
+                    playSfx(990, 0.15, 'triangle', 0.14, 0.07);
+                    if (msg.item) {
+                        bhEffects.push({ type: 'hit', x: msg.item.x, y: msg.item.y, label: `FOUND: ${msg.item.name.toUpperCase()}!`, life: 1 });
+                    }
+                    renderBountyHunt(msg.snapshot, 'BH_FOUND');
+                } else if (msg.type === 'BH_MISS') {
+                    playSfx(145, 0.16, 'sawtooth', 0.12);
+                    bhEffects.push({ type: 'miss', x: msg.x, y: msg.y, label: 'MISS', life: 1 });
+                    const st = document.getElementById('bhStatusHint');
+                    st.textContent = 'MISS! 1.1s cooldown...';
+                    st.style.color = '#fb7185';
+                    setTimeout(() => {
+                        st.textContent = 'Click hidden items — watch out for decoys!';
+                        st.style.color = '#94a3b8';
+                    }, 1100);
+                } else if (msg.type === 'BH_GAME_OVER') {
+                    renderBountyHunt(msg.snapshot, 'BH_GAME_OVER', msg.winner, msg.reason, msg.eloChanges);
+                    loadHomeProfile();
+                    loadLeaderboard();
+                }
+            };
+        }
+
+        function startBhNow() {
+            if (bhWs && bhWs.readyState === 1) bhWs.send(JSON.stringify({ type: 'START_NOW' }));
+        }
+
+        function sendBhRematch() {
+            if (bhWs && bhWs.readyState === 1) bhWs.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function copyBhInviteLink() {
+            if (!bhRoomCode) return;
+            const url = `${location.origin}/?mode=bounty&room=${bhRoomCode}`;
+            navigator.clipboard?.writeText(url).catch(() => {});
+            const btn = document.getElementById('bhCopyBtn');
+            btn.textContent = 'Invite Link Copied!';
+            setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+        }
+
+        function renderBountyHunt(snap, eventType, winner, reason, eloChanges) {
+            bhLastSnap = snap;
+            const foundCount = (snap.myFoundIds || []).length;
+            const totalTargets = snap.targetCount || 10;
+            document.getElementById('bhRoomTag').textContent = `ROOM ${snap.code}`;
+            document.getElementById('bhShareCode').textContent = snap.code;
+            document.getElementById('bhFoundBadge').textContent = `FOUND: ${foundCount} / ${totalTargets}`;
+            document.getElementById('bhHintBtn').classList.toggle('hidden', snap.state !== 'PLAYING');
+
+            // Player Progress Race Strip
+            const bar = document.getElementById('bhPlayersBar');
+            bar.innerHTML = '';
+            (snap.players || []).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'qd-score-card' + (p.foundCount >= totalTargets ? ' scored' : '');
+                const top = document.createElement('div');
+                top.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:6px;';
+                const nm = document.createElement('span');
+                nm.style.cssText = `font-weight:800; font-size:13px; color:${p.id === bhSelfId ? '#38bdf8' : '#fffbeb'};`;
+                nm.textContent = p.id === bhSelfId ? `${p.name} (YOU)` : p.name;
+                const sc = document.createElement('span');
+                sc.className = 'mono';
+                sc.style.cssText = 'font-size:15px; font-weight:800; color:#fde047;';
+                sc.textContent = `${p.foundCount} / ${totalTargets}`;
+                top.append(nm, sc);
+
+                const track = document.createElement('div');
+                track.className = 'xp-track';
+                const fill = document.createElement('div');
+                fill.className = 'xp-fill';
+                fill.style.width = `${Math.min(100, (p.foundCount / totalTargets) * 100)}%`;
+                track.appendChild(fill);
+                card.append(top, track);
+                bar.appendChild(card);
+            });
+
+            document.getElementById('bhWaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('bhPlayArea').classList.toggle('hidden', snap.state === 'WAITING');
+            document.getElementById('bhOverBox').classList.toggle('hidden', snap.state !== 'FINISHED');
+
+            if (snap.state === 'WAITING') {
+                const isHost = snap.hostId === bhSelfId;
+                document.getElementById('bhStartBtn').classList.toggle('hidden', !(isHost && snap.players.length >= 2));
+                document.getElementById('bhWaitTitle').textContent = snap.players.length >= 2
+                    ? `${snap.players.length} Bounty Hunters Ready — Host can start anytime!`
+                    : 'Waiting for Opponent to Join...';
+            } else {
+                requestAnimationFrame(resizeBhCanvas);
+                // Render 10-item visual target checklist with mini canvas icons
+                const foundSet = new Set(snap.myFoundIds || []);
+                const listEl = document.getElementById('bhTargetList');
+                listEl.innerHTML = '';
+                (snap.targets || []).forEach(t => {
+                    const chip = document.createElement('div');
+                    chip.className = 'bh-target-chip' + (foundSet.has(t.id) ? ' found' : '');
+                    const iconCanvas = document.createElement('canvas');
+                    iconCanvas.width = 48; iconCanvas.height = 48;
+                    iconCanvas.className = 'bh-target-icon';
+                    const ictx = iconCanvas.getContext('2d');
+                    ictx.translate(24, 24);
+                    drawBountyItem(ictx, t.id, 1.15);
+                    const lbl = document.createElement('span');
+                    lbl.textContent = t.name;
+                    chip.append(iconCanvas, lbl);
+                    listEl.appendChild(chip);
+                });
+            }
+
+            if (snap.state === 'FINISHED') {
+                const iWon = Boolean(winner && winner.id === bhSelfId);
+                const hl = document.getElementById('bhOverHeadline');
+                hl.textContent = iWon ? 'BOUNTY CLAIMED — VICTORY!' : 'OUTSPOTTED!';
+                hl.style.color = iWon ? '#34d399' : '#fb7185';
+                document.getElementById('bhOverSub').textContent = reason || (winner ? `${winner.name} found all 10 items first!` : 'Match ended.');
+
+                const eloEl = document.getElementById('bhOverElo');
+                const myChange = eloChanges && eloChanges[bhSelfId];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
+                    eloEl.classList.remove('hidden');
+                } else {
+                    eloEl.classList.add('hidden');
+                }
+            }
+        }
+
+        // Auto-join if opened via ?room=XXXX, ?mode=pass&room=XXXX, ?mode=quickdraw&room=XXXX, or ?mode=bounty&room=XXXX invite link
         (function checkInviteRoomParam() {
             try {
                 const params = new URLSearchParams(location.search);
@@ -3970,6 +4641,9 @@
                     } else if (modeParam === 'quickdraw') {
                         selectGameHubMode('quickdraw');
                         setTimeout(() => startQuickDraw('private', room), 250);
+                    } else if (modeParam === 'bounty') {
+                        selectGameHubMode('bounty');
+                        setTimeout(() => startBountyHunt('private', room), 250);
                     } else {
                         setTimeout(() => startDuel('private', room), 250);
                     }
