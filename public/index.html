@@ -987,9 +987,9 @@
                 <div class="game-tile" onclick="openGameLobby('bounty')">
                     <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
                     <div class="game-tile-body">
-                        <span class="game-tile-tag">2-8 PLAYERS • HIDDEN OBJECTS</span>
+                        <span class="game-tile-tag">2-8 PLAYERS • 6 SCENES</span>
                         <div class="game-tile-title">Bounty Hunt</div>
-                        <div class="game-tile-desc">A packed Wild West saloon hiding 10 target treasures among decoys. Spot and click all 10 hidden items before your rival to win.</div>
+                        <div class="game-tile-desc">6 packed Wild West scenes hiding 10 target treasures among decoys. Spot and click all 10 hidden items before your rival to win.</div>
                         <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Bounty Hunt</button>
                     </div>
                 </div>
@@ -1289,7 +1289,7 @@
         <section id="viewBounty" class="card hidden">
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                    <span class="tier-badge tier-LEGENDARY">BOUNTY HUNT • FIND 10 ITEMS</span>
+                    <span id="bhSceneBadge" class="tier-badge tier-LEGENDARY">BOUNTY HUNT • SUNSET SALOON</span>
                     <span id="bhFoundBadge" class="elo-pill mono">FOUND: 0 / 10</span>
                     <button id="bhHintBtn" type="button" class="btn btn-ghost hidden" onclick="useBountyHint()" style="padding:5px 10px; font-size:11px; border-color:#fbbf24; color:#fde047;">Hint Radar</button>
                 </div>
@@ -4166,6 +4166,7 @@
 
         // Pre-baked sprite cache per match so we never re-run expensive canvas filters 60 times/sec
         const bhSpriteCache = new Map();
+        let bhCurrentBgUrl = '';
 
         bhBgImg.onload = () => {
             bhBgLoaded = true;
@@ -4175,7 +4176,16 @@
                 bhLightData = bhLightCtx.getImageData(0, 0, 96, 54).data;
             } catch {}
         };
-        bhBgImg.src = '/bounty-scene-saloon.jpg?v=1';
+        function setBountySceneImage(url) {
+            const target = url || '/bounty-scene-saloon.jpg?v=1';
+            if (bhCurrentBgUrl === target) return;
+            bhCurrentBgUrl = target;
+            bhBgLoaded = false;
+            bhLightData = null;
+            bhSpriteCache.clear();
+            bhBgImg.src = target;
+        }
+        setBountySceneImage('/bounty-scene-saloon.jpg?v=1');
 
         function sampleSaloonLight(nx, ny) {
             if (!bhLightData) return { r: 130, g: 72, b: 30, lum: 0.45 };
@@ -4660,6 +4670,10 @@
             bhLastSnap = snap;
             const foundCount = (snap.myFoundIds || []).length;
             const totalTargets = snap.targetCount || 10;
+            if (snap.scene && snap.scene.image) {
+                setBountySceneImage(snap.scene.image);
+                document.getElementById('bhSceneBadge').textContent = `BOUNTY HUNT • ${(snap.scene.name || 'SUNSET SALOON').toUpperCase()}`;
+            }
             document.getElementById('bhRoomTag').textContent = `ROOM ${snap.code}`;
             document.getElementById('bhShareCode').textContent = snap.code;
             document.getElementById('bhFoundBadge').textContent = `FOUND: ${foundCount} / ${totalTargets}`;

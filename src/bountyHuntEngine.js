@@ -54,7 +54,16 @@ function shuffle(arr) {
     return out;
 }
 
-// 32 physically grounded hiding spots mapped directly to shelves, tables, crates, barrels, beams & railings in bounty-scene-saloon.jpg
+const BOUNTY_SCENES = [
+    { id: 'saloon', name: 'Sunset Saloon', image: '/bounty-scene-saloon.jpg?v=1' },
+    { id: 'mine', name: 'Gold Mine Camp', image: '/bounty-scene-mine.jpg?v=1' },
+    { id: 'sheriff', name: "Sheriff's Office", image: '/bounty-scene-sheriff.jpg?v=1' },
+    { id: 'train', name: 'Frontier Train Depot', image: '/bounty-scene-train.jpg?v=1' },
+    { id: 'blacksmith', name: 'Blacksmith & Stable', image: '/bounty-scene-blacksmith.jpg?v=1' },
+    { id: 'canyon', name: 'Desert Ghost Town', image: '/bounty-scene-canyon.jpg?v=1' },
+];
+
+// Grounded hiding spots across foreground tables/crates/barrels, mid-ground shelves/counters, and upper rafters/ledges
 const SALOON_SPOTS = [
     // Left bar shelves, counter & crates
     { x: 0.08, y: 0.23, scale: 0.68 }, // upper left basket/bottles
@@ -166,6 +175,8 @@ class BountyHuntEngine {
             state: 'WAITING', // WAITING | PLAYING | FINISHED
             hostId: null,
             players: [],
+            scene: BOUNTY_SCENES[0],
+            lastSceneId: null,
             objects: [],
             targets: [],
             startedAt: 0,
@@ -288,6 +299,10 @@ class BountyHuntEngine {
         this._clearTimers(room);
         room.state = 'PLAYING';
         room.startedAt = Date.now();
+        const pool = BOUNTY_SCENES.filter(s => s.id !== room.lastSceneId);
+        const chosenScene = pool[Math.floor(Math.random() * pool.length)] || BOUNTY_SCENES[0];
+        room.scene = chosenScene;
+        room.lastSceneId = chosenScene.id;
         const scene = generateSceneObjects();
         room.objects = scene.objects;
         room.targets = scene.targets;
@@ -432,6 +447,7 @@ class BountyHuntEngine {
             state: room.state,
             hostId: room.hostId,
             targetCount: TARGET_COUNT,
+            scene: room.scene || BOUNTY_SCENES[0],
             objects: room.state === 'WAITING' ? [] : room.objects,
             targets: room.state === 'WAITING' ? [] : room.targets,
             myFoundIds: viewer ? viewer.foundIds : [],
