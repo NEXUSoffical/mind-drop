@@ -835,6 +835,50 @@
             height: 24px;
             flex-shrink: 0;
         }
+        .bh-mobile-pan-hint {
+            display: none;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fde047;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        @media (max-width: 768px) {
+            #bhPlayArea {
+                display: flex;
+                flex-direction: column;
+            }
+            .bh-targets-header { order: 1; margin-top: 0 !important; margin-bottom: 6px; }
+            #bhTargetList {
+                order: 2;
+                margin-top: 0;
+                margin-bottom: 10px;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 6px;
+            }
+            .bh-target-chip {
+                padding: 5px 7px;
+                font-size: 11px;
+                gap: 6px;
+            }
+            .bh-target-icon { width: 20px; height: 20px; }
+            .bh-mobile-pan-hint { display: block; order: 3; }
+            .bh-canvas-wrap {
+                order: 4;
+                aspect-ratio: auto;
+                height: 390px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                border-radius: 12px;
+            }
+            #bhCanvas {
+                width: 700px;
+                height: 390px;
+                max-width: none;
+                touch-action: pan-x pan-y;
+            }
+        }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
             .mode-card { padding: 11px 13px; }
@@ -1274,8 +1318,9 @@
                 <div class="bh-canvas-wrap">
                     <canvas id="bhCanvas"></canvas>
                 </div>
-                <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
-                    <div style="font-size:11px; font-weight:800; letter-spacing:1.2px; color:#fde68a;">FIND ALL 10 TARGET ITEMS IN THE SALOON ABOVE</div>
+                <div class="bh-mobile-pan-hint">Swipe left &amp; right across the saloon to search — tap items to collect</div>
+                <div class="bh-targets-header" style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                    <div style="font-size:11px; font-weight:800; letter-spacing:1.2px; color:#fde68a;">FIND ALL 10 TARGET ITEMS IN THE SALOON</div>
                     <div id="bhStatusHint" class="mono" style="font-size:11px; font-weight:700; color:#94a3b8;">Click hidden items — watch out for decoys!</div>
                 </div>
                 <div id="bhTargetList" class="bh-targets-grid"></div>
@@ -4487,7 +4532,16 @@
         requestAnimationFrame(renderBhCanvasFrame);
 
         if (bhCanvas) {
+            let bhDownX = 0, bhDownY = 0, bhDownActive = false;
             bhCanvas.addEventListener('pointerdown', (e) => {
+                bhDownX = e.clientX;
+                bhDownY = e.clientY;
+                bhDownActive = true;
+            });
+            bhCanvas.addEventListener('pointerup', (e) => {
+                if (!bhDownActive) return;
+                bhDownActive = false;
+                if (Math.hypot(e.clientX - bhDownX, e.clientY - bhDownY) > 12) return; // swipe/pan, not a tap
                 if (!bhWs || bhWs.readyState !== 1 || !bhLastSnap || bhLastSnap.state !== 'PLAYING') return;
                 const rect = bhCanvas.getBoundingClientRect();
                 const nx = (e.clientX - rect.left) / rect.width;
