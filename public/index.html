@@ -53,8 +53,9 @@
         .hidden { display: none !important; }
 
         header {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 22px; background: rgba(28, 12, 6, 0.72);
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            flex-wrap: wrap;
+            padding: 10px 22px; background: rgba(28, 12, 6, 0.82);
             backdrop-filter: blur(8px);
             border-bottom: 1px solid rgba(245, 158, 11, 0.35);
         }
@@ -328,72 +329,75 @@
             background: linear-gradient(90deg, #f59e0b, #fde047);
             transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        #viewHome {
-            position: relative;
-        }
-        .top-level-widget {
+        .header-level-bar {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
-            border-radius: 16px;
-            background: rgba(24, 11, 5, 0.84);
-            border: 1.5px solid rgba(251, 191, 36, 0.55);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5), 0 0 18px rgba(245, 158, 11, 0.18);
-            backdrop-filter: blur(8px);
-            width: fit-content;
-            min-width: 235px;
-            margin: 0 0 14px auto;
+            padding: 6px 14px 6px 8px;
+            border-radius: 14px;
+            background: rgba(18, 8, 4, 0.88);
+            border: 1.5px solid rgba(251, 191, 36, 0.58);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 14px rgba(245, 158, 11, 0.16);
+            min-width: 260px;
+            max-width: 340px;
+            flex: 0 1 auto;
         }
-        @media (min-width: 920px) {
-            .top-level-widget {
-                position: absolute;
-                top: 4px;
-                right: 8px;
-                margin: 0;
-                z-index: 5;
-            }
-        }
-        .top-lvl-crest {
-            min-width: 68px;
-            padding: 8px 11px;
-            border-radius: 13px;
+        .header-lvl-crest {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 10px;
             background: linear-gradient(135deg, #b45309, #f59e0b);
             border: 1.5px solid #fde047;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
-            text-align: center;
-            line-height: 1.05;
+            box-shadow: 0 2px 12px rgba(245, 158, 11, 0.45);
             flex-shrink: 0;
         }
-        .top-lvl-crest-label {
-            font-size: 9px;
+        .header-lvl-label {
+            font-size: 10px;
             font-weight: 800;
-            letter-spacing: 1.4px;
+            letter-spacing: 1px;
             color: #fef3c7;
-            opacity: 0.9;
         }
-        .top-lvl-crest-num {
-            font-size: 24px;
+        .header-lvl-num {
+            font-size: 20px;
             font-weight: 800;
             color: #fffbeb;
-            text-shadow: 0 2px 6px rgba(120, 53, 15, 0.65);
-            margin-top: 2px;
+            line-height: 1;
+            text-shadow: 0 2px 5px rgba(120, 53, 15, 0.65);
         }
-        .top-lvl-meta {
+        .header-lvl-meta {
             flex: 1;
-            min-width: 138px;
+            min-width: 145px;
         }
-        .top-lvl-title {
-            font-size: 13px;
+        .header-lvl-top {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .header-lvl-title {
+            font-size: 12px;
             font-weight: 800;
             color: #fde047;
             letter-spacing: 0.6px;
         }
-        .top-lvl-xp {
+        .header-lvl-xp {
             font-size: 10px;
             font-weight: 700;
             color: #fde68a;
-            margin-top: 2px;
+            white-space: nowrap;
+        }
+        .header-level-bar .xp-track {
+            height: 8px;
+            margin-top: 5px;
+        }
+        @media (max-width: 820px) {
+            .header-level-bar {
+                order: 3;
+                width: 100%;
+                max-width: none;
+            }
         }
         .ko-elo-box {
             display: inline-block;
@@ -721,6 +725,22 @@
             <div class="logo-badge">M</div>
             <span>MindDrop <span class="logo-sub" style="color:#fbbf24; font-weight:700; font-size:13px;">Wild West Showdown</span></span>
         </div>
+
+        <!-- Centered Bold Level & XP Bar in Top Header -->
+        <div class="header-level-bar">
+            <div class="header-lvl-crest">
+                <span class="header-lvl-label">LVL</span>
+                <span id="homeLevelBadge" class="header-lvl-num mono">1</span>
+            </div>
+            <div class="header-lvl-meta">
+                <div class="header-lvl-top">
+                    <span id="homeLevelTitle" class="header-lvl-title">GREENHORN</span>
+                    <span id="homeXpText" class="header-lvl-xp mono">0 / 100 XP</span>
+                </div>
+                <div class="xp-track"><div id="homeXpBar" class="xp-fill"></div></div>
+            </div>
+        </div>
+
         <div style="display:flex; align-items:center; gap:8px;">
             <button id="headerFriendsBtn" class="btn btn-ghost" onclick="openFriendsModal()" style="padding:7px 11px; font-size:11px; display:inline-flex; align-items:center;">Friends<span id="friendsNotifBadge" class="notif-badge hidden">0</span></button>
             <button id="headerAuthBtn" class="btn btn-ghost" onclick="openAuthModal('register')" style="padding:7px 12px; font-size:11px;">Sign In / Save ELO</button>
@@ -736,19 +756,6 @@
     <main>
         <!-- HOME PAGE: MINDDROP GAME PORTAL (ALL GAMES) -->
         <section id="viewHome" class="card">
-            <!-- Dedicated Top-Right Level Widget -->
-            <div class="top-level-widget">
-                <div class="top-lvl-crest">
-                    <div class="top-lvl-crest-label">LEVEL</div>
-                    <div id="homeLevelBadge" class="top-lvl-crest-num mono">1</div>
-                </div>
-                <div class="top-lvl-meta">
-                    <div id="homeLevelTitle" class="top-lvl-title">GREENHORN</div>
-                    <div id="homeXpText" class="top-lvl-xp mono">0 / 100 XP to LVL 2</div>
-                    <div class="xp-track"><div id="homeXpBar" class="xp-fill"></div></div>
-                </div>
-            </div>
-
             <div style="text-align:center; margin-bottom:10px;">
                 <span class="tier-badge tier-LEGENDARY">MINDDROP GAMES • POWERED BY BLOXCLOUD</span>
             </div>
