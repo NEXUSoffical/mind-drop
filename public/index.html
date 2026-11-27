@@ -4119,13 +4119,12 @@
         const bhLightCtx = bhLightCanvas.getContext('2d', { willReadFrequently: true });
         let bhLightData = null;
 
-        // Offscreen sprite buffer for warm sepia + local lighting compositing
-        const bhSpriteCanvas = document.createElement('canvas');
-        bhSpriteCanvas.width = 64; bhSpriteCanvas.height = 64;
-        const bhSpriteCtx = bhSpriteCanvas.getContext('2d');
+        // Pre-baked sprite cache per match so we never re-run expensive canvas filters 60 times/sec
+        const bhSpriteCache = new Map();
 
         bhBgImg.onload = () => {
             bhBgLoaded = true;
+            bhSpriteCache.clear();
             try {
                 bhLightCtx.drawImage(bhBgImg, 0, 0, 96, 54);
                 bhLightData = bhLightCtx.getImageData(0, 0, 96, 54).data;
@@ -4143,17 +4142,46 @@
             return { r, g, b, lum };
         }
 
+        function getBlendedBountySprite(obj) {
+            const key = `${obj.id}_${obj.x}_${obj.y}_${bhLightData ? 1 : 0}`;
+            let cached = bhSpriteCache.get(key);
+            if (cached) return cached;
+            const c = document.createElement('canvas');
+            c.width = 64; c.height = 64;
+            const sctx = c.getContext('2d');
+            const light = sampleSaloonLight(obj.x, obj.y);
+            const bright = Math.max(0.42, Math.min(0.92, 0.36 + light.lum * 0.85));
+            sctx.save();
+            sctx.translate(32, 32);
+            sctx.filter = `sepia(0.62) saturate(0.74) brightness(${bright.toFixed(2)}) contrast(1.06)`;
+            drawBountyItem(sctx, obj.id, 1);
+            sctx.filter = 'none';
+            sctx.globalCompositeOperation = 'source-atop';
+            sctx.fillStyle = `rgba(${light.r}, ${light.g}, ${light.b}, 0.44)`;
+            sctx.fillRect(-32, -32, 64, 64);
+            sctx.restore();
+            bhSpriteCache.set(key, c);
+            return c;
+        }
+
         const bhEffects = []; // { type: 'hit'|'miss', x, y, label, life }
 
         function resizeBhCanvas() {
             if (!bhCanvas || !bhCtx) return;
             const rect = bhCanvas.getBoundingClientRect();
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            bhw = Math.max(320, rect.width || 960);
-            bhh = Math.max(180, rect.height || 540);
-            bhCanvas.width = bhw * dpr;
-            bhCanvas.height = bhh * dpr;
-            bhCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            const nw = Math.max(320, Math.round(rect.width || 960));
+            const nh = Math.max(180, Math.round(rect.height || 540));
+            const targetW = Math.round(nw * dpr);
+            const targetH = Math.round(nh * dpr);
+            // Only reallocate canvas when dimensions actually change (prevents blank-frame flashing!)
+            if (bhCanvas.width !== targetW || bhCanvas.height !== targetH) {
+                bhw = nw;
+                bhh = nh;
+                bhCanvas.width = targetW;
+                bhCanvas.height = targetH;
+                bhCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
         }
         window.addEventListener('resize', resizeBhCanvas);
 
@@ -4380,22 +4408,7 @@
                 const px = obj.x * bhw;
                 const py = obj.y * bhh;
                 const s = (obj.scale || 0.7) * baseScale;
-                const light = sampleSaloonLight(obj.x, obj.y);
-                const bright = Math.max(0.42, Math.min(0.92, 0.36 + light.lum * 0.85));
-
-                // Composite item onto offscreen 64x64 sprite with warm sepia + local saloon lighting tint
-                bhSpriteCtx.setTransform(1, 0, 0, 1, 0, 0);
-                bhSpriteCtx.clearRect(0, 0, 64, 64);
-                bhSpriteCtx.save();
-                bhSpriteCtx.translate(32, 32);
-                bhSpriteCtx.filter = `sepia(0.62) saturate(0.74) brightness(${bright.toFixed(2)}) contrast(1.06)`;
-                drawBountyItem(bhSpriteCtx, obj.id, 1);
-                bhSpriteCtx.filter = 'none';
-                // Blend local saloon ambient hue directly onto the item silhouette
-                bhSpriteCtx.globalCompositeOperation = 'source-atop';
-                bhSpriteCtx.fillStyle = `rgba(${light.r}, ${light.g}, ${light.b}, 0.44)`;
-                bhSpriteCtx.fillRect(-32, -32, 64, 64);
-                bhSpriteCtx.restore();
+                const sprite = getBlendedBountySprite(obj);
 
                 // Soft grounded contact shadow under the item
                 bhCtx.save();
@@ -4405,11 +4418,11 @@
                 bhCtx.ellipse(0, 11 * s, 13 * s, 4.5 * s, 0, 0, Math.PI * 2);
                 bhCtx.fill();
 
-                // Draw blended item into the saloon
+                // Draw pre-baked blended item into the saloon
                 bhCtx.rotate(obj.rot || 0);
                 bhCtx.globalAlpha = isFound ? 0.24 : 0.86;
                 const drawSz = 64 * s;
-                bhCtx.drawImage(bhSpriteCanvas, -drawSz * 0.5, -drawSz * 0.5, drawSz, drawSz);
+                bhCtx.drawImage(sprite, -drawSz * 0.5, -drawSz * 0.5, drawSz, drawSz);
                 bhCtx.restore();
 
                 if (isFound) {
@@ -4543,6 +4556,7 @@
                     if (msg.type === 'BH_START') {
                         bhHintTarget = null;
                         bhEffects.length = 0;
+                        bhSpriteCache.clear();
                         playSfx(740, 0.14, 'triangle', 0.14);
                     }
                     renderBountyHunt(msg.snapshot, msg.type);
