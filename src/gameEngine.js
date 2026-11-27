@@ -27,9 +27,14 @@ class DuelCombatEngine {
     constructor() {
         this.duels = new Map(); // code -> duel room
         this.playerRecentPrompts = new Map(); // profileKey -> recent prompt IDs across matches
+        this.extraPlayerCountFn = null;
         this.serverStartTime = Date.now();
         this.jobId = 'mindduel_' + crypto.randomBytes(3).toString('hex');
         this._startBloxCloudTelemetry();
+    }
+
+    setExtraPlayerCountFn(fn) {
+        this.extraPlayerCountFn = fn;
     }
 
     _startBloxCloudTelemetry() {
@@ -41,6 +46,9 @@ class DuelCombatEngine {
             let humans = 0;
             for (const d of this.duels.values()) {
                 for (const p of d.players) if (!p.isBot) humans++;
+            }
+            if (typeof this.extraPlayerCountFn === 'function') {
+                try { humans += Number(this.extraPlayerCountFn()) || 0; } catch {}
             }
             try {
                 await fetch(`${baseUrl}/api/v1/telemetry/heartbeat`, {

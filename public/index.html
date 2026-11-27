@@ -417,6 +417,122 @@
         body.embed-mode #arenaCanvas { height: 175px; }
         body.embed-mode .arena-wrap { margin-bottom: 8px; }
         body.embed-mode #promptText { font-size: 18px !important; margin-bottom: 6px !important; }
+
+        /* MindDrop Multi-Game Hub Mode Cards */
+        .game-hub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            max-width: 640px;
+            margin: 18px auto 0;
+        }
+        .mode-card {
+            text-align: left;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(28, 13, 6, 0.72);
+            border: 1.5px solid rgba(245, 158, 11, 0.3);
+            cursor: pointer;
+            transition: 0.16s;
+            color: #fef3c7;
+            font-family: inherit;
+        }
+        .mode-card:hover { border-color: rgba(251, 191, 36, 0.75); transform: translateY(-2px); }
+        .mode-card.active {
+            background: rgba(120, 40, 12, 0.78);
+            border-color: #fde047;
+            box-shadow: 0 0 0 2px rgba(253, 224, 71, 0.25), 0 10px 28px rgba(0, 0, 0, 0.5);
+        }
+        .mode-card-tag {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.22);
+            color: #fde047;
+            border: 1px solid rgba(251, 191, 36, 0.45);
+            margin-bottom: 6px;
+        }
+        .mode-card-title { font-size: 15px; font-weight: 800; color: #fffbeb; }
+        .mode-card-desc { font-size: 11.5px; color: #fde68a; margin-top: 4px; line-height: 1.38; opacity: 0.9; }
+
+        /* Dynamite Pass Arena */
+        #viewPass.card {
+            background: rgba(28, 13, 6, 0.82);
+            border: 1.5px solid rgba(245, 158, 11, 0.48);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+        }
+        .fuse-bar-track {
+            height: 14px;
+            border-radius: 999px;
+            background: #140804;
+            border: 1.5px solid rgba(245, 158, 11, 0.45);
+            overflow: hidden;
+            margin: 10px 0 14px;
+        }
+        .fuse-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #dc2626, #f97316, #fde047);
+            transition: width 0.12s linear;
+        }
+        .pass-roster {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .pass-player {
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(18, 8, 4, 0.78);
+            border: 1.5px solid rgba(245, 158, 11, 0.22);
+            transition: 0.16s;
+        }
+        .pass-player.holding {
+            border-color: #ef4444;
+            background: rgba(127, 29, 29, 0.52);
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.45);
+            animation: fusePulse 0.65s ease-in-out infinite alternate;
+        }
+        @keyframes fusePulse {
+            from { box-shadow: 0 0 12px rgba(239, 68, 68, 0.35); }
+            to { box-shadow: 0 0 26px rgba(251, 146, 60, 0.75); }
+        }
+        .pass-player.dead {
+            opacity: 0.42;
+            border-color: rgba(148, 163, 184, 0.2);
+            text-decoration: line-through;
+        }
+        .used-words-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(14, 6, 3, 0.65);
+            border: 1px solid rgba(245, 158, 11, 0.18);
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .used-word-chip {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.16);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            color: #fde68a;
+        }
+        @media (max-width: 640px) {
+            .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+            .mode-card { padding: 11px 13px; }
+        }
     </style>
 </head>
 <body>
@@ -438,15 +554,29 @@
     </header>
 
     <main>
-        <!-- HOME SCREEN -->
+        <!-- HOME SCREEN (MINDDROP MULTIPLAYER QUIZ HUB) -->
         <section id="viewHome" class="card">
             <div style="text-align:center; margin-bottom:10px;">
-                <span class="tier-badge tier-LEGENDARY">1V1 WILD WEST RARITY SHOWDOWN</span>
+                <span class="tier-badge tier-LEGENDARY">MULTIPLAYER WILD WEST QUIZ HUB • 69 CATEGORIES</span>
             </div>
-            <h1 class="hero-title">HIGH NOON. <span class="hero-grad">RARER SHOTS.</span></h1>
+            <h1 class="hero-title">MINDDROP <span class="hero-grad">SHOWDOWN.</span></h1>
             <p class="hero-sub">
-                Two gunslingers face off at 200 HP each. Every round draws a topic from 65+ categories — type the rarest valid answer you know to fire a heavier shot. First cowboy to 0 HP drops.
+                Pick a multiplayer trivia game below. Shared ELO ladder, Top 100 leaderboard, 69+ categories with smart auto-spell, and live BloxCloud matchmaking.
             </p>
+
+            <!-- Game Mode Selector -->
+            <div class="game-hub-grid">
+                <button id="modeCardDuel" type="button" class="mode-card active" onclick="selectGameHubMode('duel')">
+                    <span class="mode-card-tag">1V1 COMBAT</span>
+                    <div class="mode-card-title">High-Noon Rarity Duel</div>
+                    <div class="mode-card-desc">200 HP cowboy standoff. Rarer answers fire heavier revolver shots. Hit the #1 Mythic answer for 100 DMG.</div>
+                </button>
+                <button id="modeCardPass" type="button" class="mode-card" onclick="selectGameHubMode('pass')">
+                    <span class="mode-card-tag">2-8 PLAYERS • NEW</span>
+                    <div class="mode-card-title">Dynamite Pass (15s Hot Potato)</div>
+                    <div class="mode-card-desc">One category, 15 seconds per turn. Name an unused answer to pass the lit dynamite — first player to run out of time explodes.</div>
+                </button>
+            </div>
 
             <div class="elo-card">
                 <div>
@@ -466,13 +596,13 @@
                 </div>
             </div>
 
-            <div style="max-width:360px; margin:22px auto 0; display:flex; flex-direction:column; gap:10px;">
-                <input id="fighterNameInput" type="text" maxlength="16" placeholder="Enter your fighter name...">
-                <button class="btn btn-rose" onclick="startDuel('quick', '')">Quick 1v1 Online Match</button>
-                <button class="btn btn-cyan" onclick="startDuel('ai', '')">Instant 1v1 vs AI Fighter</button>
+            <div style="max-width:360px; margin:20px auto 0; display:flex; flex-direction:column; gap:10px;">
+                <input id="fighterNameInput" type="text" maxlength="16" placeholder="Enter your gunslinger name...">
+                <button id="btnPlayQuick" class="btn btn-rose" onclick="launchSelectedGame('quick', '')">Quick 1v1 Online Match</button>
+                <button id="btnPlayAi" class="btn btn-cyan" onclick="launchSelectedGame('ai', '')">Instant 1v1 vs AI Fighter</button>
                 <div style="display:flex; gap:8px; margin-top:4px;">
                     <input id="duelCodeInput" type="text" maxlength="12" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:16px; padding:10px 12px;">
-                    <button class="btn btn-ghost" onclick="startDuel('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
+                    <button class="btn btn-ghost" onclick="launchSelectedGame('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
                 </div>
             </div>
 
@@ -591,6 +721,76 @@
                 </div>
                 <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
                     <button class="btn btn-rose" onclick="sendRematch()">Rematch</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 2: DYNAMITE PASS (15s HOT POTATO ARENA) -->
+        <section id="viewPass" class="card hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+                <div>
+                    <span class="tier-badge tier-LEGENDARY">DYNAMITE PASS • 15S FUSE</span>
+                    <span id="passStreakBadge" class="elo-pill mono">PASSES: 0</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="passRoomTag" class="mono" style="font-size:12px; color:#fde68a;">ROOM ----</span>
+                    <button class="btn btn-ghost" onclick="leaveDuel()" style="padding:6px 10px; font-size:11px;">Exit</button>
+                </div>
+            </div>
+
+            <!-- Live Burning Fuse Timer -->
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-top:6px;">
+                <div id="passTurnBanner" style="font-size:15px; font-weight:800; color:#fde047;">Waiting for players...</div>
+                <div id="passTimerSec" class="mono" style="font-size:28px; font-weight:800; color:#fffbeb;">15.0s</div>
+            </div>
+            <div class="fuse-bar-track"><div id="passFuseBar" class="fuse-bar-fill"></div></div>
+
+            <!-- Players Holding / Surviving Roster -->
+            <div id="passRoster" class="pass-roster"></div>
+
+            <!-- Waiting Room Controls (2-8 Players) -->
+            <div id="passWaitingBox" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.72); border:1px solid rgba(245,158,11,0.45); margin-bottom:12px;">
+                <div id="passWaitTitle" style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Gunslingers (2-8 players)...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Room Code: <strong id="passShareCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="passStartBtn" class="btn btn-rose hidden" onclick="startPassNow()" style="padding:8px 16px; font-size:12px;">Start Match Now</button>
+                    <button id="passCopyBtn" class="btn btn-ghost" onclick="copyPassInviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="startPassGame('ai', '')" style="padding:8px 14px; font-size:12px;">Play vs AI Instead</button>
+                </div>
+            </div>
+
+            <!-- Active Category & Turn Input -->
+            <div id="passPlayBox" class="hidden">
+                <div id="passPromptCat" style="font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#fbbf24; margin-bottom:4px;">CATEGORY</div>
+                <div id="passPromptText" style="font-size:24px; font-weight:800; color:#fffbeb; margin-bottom:12px;">Name a country</div>
+
+                <div id="passInputRow" style="display:flex; gap:8px;">
+                    <input id="passInput" type="text" maxlength="40" enterkeyhint="send" placeholder="Type an unused answer to pass the dynamite..." autocomplete="off">
+                    <button class="btn btn-rose" onclick="submitPassAnswer()" style="white-space:nowrap; padding:12px 16px;">PASS</button>
+                </div>
+                <div id="passWaitingTurnMsg" class="hidden" style="padding:12px; border-radius:12px; background:rgba(20,9,4,0.65); border:1px solid rgba(245,158,11,0.25); font-size:13px; font-weight:700; color:#fde68a; text-align:center;">
+                    Waiting for opponent to pass the dynamite...
+                </div>
+                <div id="passRejectMsg" class="reject-msg hidden"></div>
+                <div id="passSuggestRow" class="suggest-row hidden"></div>
+
+                <!-- Used Words Wall -->
+                <div style="margin-top:12px;">
+                    <div style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#fde68a; margin-bottom:4px;">ALREADY USED (CANNOT REPEAT)</div>
+                    <div id="passUsedWords" class="used-words-wrap">
+                        <span style="font-size:12px; color:#94a3b8;">No answers used yet — go first!</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explosion / Game Over Box -->
+            <div id="passOverBox" class="hidden" style="text-align:center; padding:16px; border-radius:16px; background:rgba(20,9,4,0.92); border:1.5px solid #fbbf24; margin-top:12px;">
+                <div id="passOverHeadline" class="western-font" style="font-size:28px; color:#fde047;">BOOM!</div>
+                <div id="passOverSub" style="font-size:13px; color:#fde68a; margin-top:6px;"></div>
+                <div id="passOverElo" class="ko-elo-box mono hidden"></div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+                    <button class="btn btn-rose" onclick="sendPassRematch()">Play Again</button>
                     <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
                 </div>
             </div>
@@ -1662,19 +1862,358 @@
             startDuel('ai', '');
         }
 
+        let selectedHubGame = 'duel';
+        let passWs = null, passSelfId = null, passTimerInt = null, passRoomCode = '';
+        let passSuggestDebounce = null, passSuggestions = [];
+
+        function selectGameHubMode(game) {
+            selectedHubGame = game === 'pass' ? 'pass' : 'duel';
+            document.getElementById('modeCardDuel').classList.toggle('active', selectedHubGame === 'duel');
+            document.getElementById('modeCardPass').classList.toggle('active', selectedHubGame === 'pass');
+            document.getElementById('btnPlayQuick').textContent = selectedHubGame === 'pass'
+                ? 'Quick Online Dynamite Pass'
+                : 'Quick 1v1 Online Match';
+            document.getElementById('btnPlayAi').textContent = selectedHubGame === 'pass'
+                ? 'Instant Dynamite Pass vs AI'
+                : 'Instant 1v1 vs AI Fighter';
+        }
+
+        function launchSelectedGame(subMode, code) {
+            if (selectedHubGame === 'pass') startPassGame(subMode, code);
+            else startDuel(subMode, code);
+        }
+
         function leaveDuel() {
             manualLeave = true;
             activeRoomCode = '';
             activeDuelMode = null;
+            passRoomCode = '';
             clearTimeout(reconnectTimer);
             clearInterval(timerInt);
+            clearInterval(passTimerInt);
             clearTimeout(suggestDebounce);
+            clearTimeout(passSuggestDebounce);
             clearSuggestions();
+            clearPassSuggestions();
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
             document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
             loadLeaderboard();
+        }
+
+        // -----------------------------------------------------------
+        // 4. DYNAMITE PASS (15s HOT POTATO) WEBSOCKET CLIENT
+        // -----------------------------------------------------------
+        function clearPassSuggestions() {
+            passSuggestions = [];
+            const row = document.getElementById('passSuggestRow');
+            if (row) { row.innerHTML = ''; row.classList.add('hidden'); }
+        }
+
+        function renderPassSuggestions(items, labelText) {
+            const row = document.getElementById('passSuggestRow');
+            row.innerHTML = '';
+            passSuggestions = Array.isArray(items) ? items : [];
+            if (!passSuggestions.length) { row.classList.add('hidden'); return; }
+            const lbl = document.createElement('span');
+            lbl.className = 'suggest-label';
+            lbl.textContent = labelText || 'Auto-spell:';
+            row.appendChild(lbl);
+            passSuggestions.forEach((word, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'suggest-pill';
+                btn.textContent = word;
+                if (idx === 0) {
+                    const hint = document.createElement('span');
+                    hint.className = 'tab-hint';
+                    hint.textContent = 'TAB';
+                    btn.appendChild(hint);
+                }
+                btn.onclick = () => {
+                    const inp = document.getElementById('passInput');
+                    inp.value = word;
+                    document.getElementById('passRejectMsg').classList.add('hidden');
+                    clearPassSuggestions();
+                    inp.focus();
+                    playSfx(540, 0.06, 'sine', 0.08);
+                };
+                row.appendChild(btn);
+            });
+            row.classList.remove('hidden');
+        }
+
+        function copyPassInviteLink() {
+            const code = passRoomCode || document.getElementById('passShareCode').textContent.trim();
+            if (!code || code === '----') return;
+            const url = `${location.origin}/?mode=pass&room=${encodeURIComponent(code)}`;
+            const btn = document.getElementById('passCopyBtn');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    btn.textContent = 'Link Copied!';
+                    setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+                }).catch(() => prompt('Copy invite link:', url));
+            } else {
+                prompt('Copy invite link:', url);
+            }
+        }
+
+        function startPassGame(mode, code) {
+            manualLeave = false;
+            clearInterval(passTimerInt);
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const seen = encodeURIComponent(getSeenPromptIds().join(','));
+            const cleanCode = (code || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+            passRoomCode = cleanCode;
+
+            passWs = new WebSocket(`${proto}//${location.host}/ws/pass?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.remove('hidden');
+
+            passWs.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'ERROR') {
+                    alert(msg.message);
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'PASS_JOINED') {
+                    passSelfId = msg.selfId;
+                    if (msg.snapshot && msg.snapshot.code) passRoomCode = msg.snapshot.code;
+                }
+                if (msg.type === 'SUGGESTIONS') {
+                    renderPassSuggestions(msg.items, 'Auto-spell:');
+                    return;
+                }
+                if (msg.type === 'PASS_REJECTED') {
+                    const inp = document.getElementById('passInput');
+                    inp.classList.remove('input-error-shake');
+                    void inp.offsetWidth;
+                    inp.classList.add('input-error-shake');
+                    setTimeout(() => inp.classList.remove('input-error-shake'), 360);
+                    const rej = document.getElementById('passRejectMsg');
+                    rej.textContent = msg.message || 'Not recognized — keep guessing!';
+                    rej.classList.remove('hidden');
+                    if (msg.suggestions && msg.suggestions.length) {
+                        renderPassSuggestions(msg.suggestions, 'Did you mean:');
+                    }
+                    playSfx(160, 0.14, 'sawtooth', 0.11);
+                    inp.focus();
+                    inp.select();
+                    return;
+                }
+                if (msg.snapshot) renderPass(msg.snapshot, msg.type, msg.winner || null, msg.reason || '', msg.eloChanges || null);
+            };
+        }
+
+        function startPassNow() {
+            if (passWs && passWs.readyState === 1) passWs.send(JSON.stringify({ type: 'START_NOW' }));
+        }
+
+        function sendPassRematch() {
+            if (passWs && passWs.readyState === 1) passWs.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function submitPassAnswer() {
+            const inp = document.getElementById('passInput');
+            const ans = inp.value.trim();
+            if (!ans || !passWs || passWs.readyState !== 1) return;
+            passWs.send(JSON.stringify({ type: 'SUBMIT_ANSWER', answer: ans }));
+        }
+
+        const passInputEl = document.getElementById('passInput');
+        passInputEl.addEventListener('input', () => {
+            document.getElementById('passRejectMsg').classList.add('hidden');
+            clearTimeout(passSuggestDebounce);
+            const val = passInputEl.value.trim();
+            if (val.length < 3 || !passWs || passWs.readyState !== 1) {
+                clearPassSuggestions();
+                return;
+            }
+            passSuggestDebounce = setTimeout(() => {
+                if (passWs && passWs.readyState === 1) {
+                    passWs.send(JSON.stringify({ type: 'SUGGEST', query: val }));
+                }
+            }, 110);
+        });
+        passInputEl.addEventListener('keydown', e => {
+            if (e.key === 'Tab' && passSuggestions.length > 0) {
+                e.preventDefault();
+                passInputEl.value = passSuggestions[0];
+                document.getElementById('passRejectMsg').classList.add('hidden');
+                clearPassSuggestions();
+                playSfx(540, 0.06, 'sine', 0.08);
+                return;
+            }
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitPassAnswer();
+            }
+        });
+
+        function renderPass(snap, eventType, winner, reason, eloChanges) {
+            document.getElementById('passRoomTag').textContent = `ROOM ${snap.code}`;
+            document.getElementById('passShareCode').textContent = snap.code;
+            document.getElementById('passStreakBadge').textContent = `PASSES: ${snap.passCount || 0}`;
+
+            // Render player roster with lit dynamite highlight
+            const rosterEl = document.getElementById('passRoster');
+            rosterEl.innerHTML = '';
+            (snap.players || []).forEach(p => {
+                const isHolding = snap.state === 'PLAYING' && snap.activePlayerId === p.id;
+                const div = document.createElement('div');
+                div.className = 'pass-player' + (isHolding ? ' holding' : '') + (!p.alive ? ' dead' : '');
+
+                const topRow = document.createElement('div');
+                topRow.style.display = 'flex';
+                topRow.style.justifyContent = 'space-between';
+                topRow.style.alignItems = 'center';
+                topRow.style.gap = '6px';
+
+                const nm = document.createElement('span');
+                nm.style.fontWeight = '800';
+                nm.style.fontSize = '13px';
+                nm.style.color = p.id === passSelfId ? '#38bdf8' : '#fffbeb';
+                nm.textContent = p.id === passSelfId ? `${p.name} (YOU)` : p.name;
+
+                const eloTag = document.createElement('span');
+                eloTag.className = 'elo-pill mono';
+                eloTag.style.marginLeft = '0';
+                eloTag.textContent = p.aiTier ? `${p.aiTier} • ${p.elo}` : `${p.elo} ELO`;
+                topRow.append(nm, eloTag);
+
+                const sub = document.createElement('div');
+                sub.style.fontSize = '11px';
+                sub.style.marginTop = '5px';
+                sub.style.fontWeight = '700';
+                if (!p.alive) {
+                    sub.style.color = '#fb7185';
+                    sub.textContent = 'BLOWN UP';
+                } else if (isHolding) {
+                    sub.style.color = '#fde047';
+                    sub.textContent = 'HOLDING LIT DYNAMITE!';
+                } else {
+                    sub.style.color = '#94a3b8';
+                    sub.textContent = `Passed: ${p.answeredCount}`;
+                }
+
+                div.append(topRow, sub);
+                rosterEl.appendChild(div);
+            });
+
+            document.getElementById('passWaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('passPlayBox').classList.toggle('hidden', snap.state !== 'PLAYING');
+            document.getElementById('passOverBox').classList.toggle('hidden', snap.state !== 'EXPLODED');
+
+            if (snap.state === 'WAITING') {
+                clearInterval(passTimerInt);
+                document.getElementById('passTimerSec').textContent = '15.0s';
+                document.getElementById('passFuseBar').style.width = '100%';
+                document.getElementById('passTurnBanner').textContent = `Lobby (${snap.players.length}/8 gunslingers)`;
+                const canStart = snap.players.length >= 2;
+                document.getElementById('passStartBtn').classList.toggle('hidden', !canStart);
+            }
+
+            if (snap.state === 'PLAYING' && snap.currentPrompt) {
+                recordSeenPromptId(snap.currentPrompt.id);
+                document.getElementById('passPromptCat').textContent = snap.currentPrompt.category;
+                document.getElementById('passPromptText').textContent = snap.currentPrompt.prompt;
+
+                const myTurn = snap.activePlayerId === passSelfId;
+                document.getElementById('passInputRow').classList.toggle('hidden', !myTurn);
+                document.getElementById('passWaitingTurnMsg').classList.toggle('hidden', myTurn);
+
+                if (myTurn) {
+                    document.getElementById('passTurnBanner').textContent = 'YOUR TURN — PASS THE DYNAMITE!';
+                    document.getElementById('passTurnBanner').style.color = '#fb7185';
+                    if (eventType === 'PASS_TURN') {
+                        passInputEl.value = '';
+                        document.getElementById('passRejectMsg').classList.add('hidden');
+                        clearPassSuggestions();
+                        passInputEl.focus();
+                        playSfx(520, 0.1, 'triangle', 0.12);
+                    }
+                } else {
+                    document.getElementById('passTurnBanner').textContent = `${snap.activePlayerName || 'Opponent'} has the dynamite...`;
+                    document.getElementById('passTurnBanner').style.color = '#fde047';
+                    document.getElementById('passWaitingTurnMsg').textContent = `Waiting for ${snap.activePlayerName || 'opponent'} to name an unused answer...`;
+                    document.getElementById('passRejectMsg').classList.add('hidden');
+                    clearPassSuggestions();
+                    if (eventType === 'PASS_TURN' && snap.passCount > 0) {
+                        playSfx(680, 0.08, 'sine', 0.09);
+                    }
+                }
+
+                // Used words chips
+                const usedWrap = document.getElementById('passUsedWords');
+                usedWrap.innerHTML = '';
+                if (!snap.usedAnswers || !snap.usedAnswers.length) {
+                    usedWrap.innerHTML = '<span style="font-size:12px; color:#94a3b8;">No answers used yet — go first!</span>';
+                } else {
+                    snap.usedAnswers.forEach(item => {
+                        const chip = document.createElement('span');
+                        chip.className = 'used-word-chip';
+                        chip.textContent = `${item.word} (${item.by})`;
+                        usedWrap.appendChild(chip);
+                    });
+                }
+
+                // Live 15.0s fuse countdown
+                clearInterval(passTimerInt);
+                const endsAt = Date.now() + snap.timeRemainingMs;
+                let lastBeepSec = 4;
+                passTimerInt = setInterval(() => {
+                    const leftMs = Math.max(0, endsAt - Date.now());
+                    const sec = (leftMs / 1000).toFixed(1);
+                    document.getElementById('passTimerSec').textContent = `${sec}s`;
+                    document.getElementById('passFuseBar').style.width = `${Math.max(0, (leftMs / 15000) * 100)}%`;
+                    const ceilSec = Math.ceil(leftMs / 1000);
+                    if (ceilSec <= 3 && ceilSec > 0 && ceilSec < lastBeepSec) {
+                        lastBeepSec = ceilSec;
+                        playSfx(880, 0.06, 'square', 0.08);
+                    }
+                    if (leftMs <= 0) clearInterval(passTimerInt);
+                }, 80);
+            }
+
+            if (eventType === 'PASS_ELIMINATED') {
+                playHitSfx(true);
+            }
+
+            if (snap.state === 'EXPLODED') {
+                clearInterval(passTimerInt);
+                document.getElementById('passTimerSec').textContent = '0.0s';
+                document.getElementById('passFuseBar').style.width = '0%';
+                playHitSfx(true);
+
+                const iWon = winner && winner.id === passSelfId;
+                const hl = document.getElementById('passOverHeadline');
+                hl.textContent = iWon ? 'YOU SURVIVED — VICTORY!' : 'BOOM! YOU BLEW UP!';
+                hl.style.color = iWon ? '#34d399' : '#fb7185';
+                document.getElementById('passOverSub').textContent = reason || (winner ? `${winner.name} wins after ${snap.passCount} passes!` : 'Match ended.');
+
+                const eloEl = document.getElementById('passOverElo');
+                const myChange = eloChanges && eloChanges[passSelfId];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta}) • ${myChange.rank.name}`;
+                    eloEl.style.color = myChange.delta > 0 ? '#34d399' : '#fb7185';
+                    eloEl.classList.remove('hidden');
+                } else {
+                    eloEl.classList.add('hidden');
+                }
+            }
         }
 
         // Auto-reconnect immediately when returning from another app on mobile
@@ -1686,14 +2225,20 @@
             }
         });
 
-        // Auto-join if opened via ?room=XXXX invite link
+        // Auto-join if opened via ?room=XXXX or ?mode=pass&room=XXXX invite link
         (function checkInviteRoomParam() {
             try {
                 const params = new URLSearchParams(location.search);
                 const room = (params.get('room') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+                const modeParam = (params.get('mode') || '').toLowerCase();
                 if (room.length === 4) {
                     document.getElementById('duelCodeInput').value = room;
-                    setTimeout(() => startDuel('private', room), 250);
+                    if (modeParam === 'pass') {
+                        selectGameHubMode('pass');
+                        setTimeout(() => startPassGame('private', room), 250);
+                    } else {
+                        setTimeout(() => startDuel('private', room), 250);
+                    }
                 }
             } catch {}
         })();

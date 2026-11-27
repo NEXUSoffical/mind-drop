@@ -8,9 +8,12 @@ const express = require('express');
 const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const engine = require('./gameEngine');
+const passEngine = require('./passEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
 const bloxCloud = require('./bloxCloudClient');
+
+engine.setExtraPlayerCountFn(() => passEngine.getHumanCount());
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -102,7 +105,7 @@ wss.on('connection', (ws, req) => {
         const seenRaw = url.searchParams.get('seen') || '';
         const seenIds = seenRaw ? seenRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 60) : [];
 
-        engine.joinOrCreateDuel({
+        const payload = {
             mode: url.searchParams.get('mode') || 'quick',
             code: url.searchParams.get('code') || '',
             name: authedUser ? authedUser.username : (url.searchParams.get('name') || ''),
@@ -110,7 +113,13 @@ wss.on('connection', (ws, req) => {
             isAccount: Boolean(authedUser),
             seenIds,
             ws,
-        });
+        };
+
+        if (url.pathname === '/ws/pass') {
+            passEngine.joinOrCreateRoom(payload);
+        } else {
+            engine.joinOrCreateDuel(payload);
+        }
     } catch {
         ws.close();
     }
