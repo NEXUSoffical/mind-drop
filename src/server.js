@@ -9,12 +9,13 @@ const cors = require('cors');
 const { WebSocketServer } = require('ws');
 const engine = require('./gameEngine');
 const passEngine = require('./passEngine');
+const quickDrawEngine = require('./quickDrawEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
 const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
 
-engine.setExtraPlayerCountFn(() => passEngine.getHumanCount());
+engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players);
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -161,6 +162,15 @@ wss.on('connection', (ws, req) => {
 
         if (url.pathname === '/ws/pass') {
             passEngine.joinOrCreateRoom(payload);
+        } else if (url.pathname === '/ws/quickdraw') {
+            quickDrawEngine.joinQuickDraw(ws, {
+                mode: payload.mode,
+                roomCode: payload.code,
+                name: payload.name,
+                profileId: payload.profileId,
+                authUser: authedUser,
+                seenIds,
+            });
         } else {
             engine.joinOrCreateDuel(payload);
         }

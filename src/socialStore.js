@@ -190,16 +190,21 @@ class SocialStore {
         if (!myFriends.includes(toUserId)) {
             return { error: 'You can only invite players on your friends list.' };
         }
-        const cleanGame = game === 'pass' ? 'pass' : 'duel';
+        const cleanGame = game === 'pass' ? 'pass' : (game === 'quickdraw' ? 'quickdraw' : 'duel');
         const cleanCode = String(roomCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
         if (cleanCode.length !== 4) return { error: 'Invalid room code.' };
 
+        const labelMap = {
+            duel: 'High-Noon Showdown',
+            pass: 'Dynamite Pass',
+            quickdraw: 'Quick-Draw Trivia',
+        };
         const delivered = this._pushToUser(toUserId, {
             type: 'GAME_INVITE',
             fromId: fromUser.id,
             fromUsername: fromUser.username,
             game: cleanGame,
-            gameLabel: cleanGame === 'pass' ? 'Dynamite Pass' : 'High-Noon Showdown',
+            gameLabel: labelMap[cleanGame] || 'High-Noon Showdown',
             roomCode: cleanCode,
             sentAt: Date.now(),
         });

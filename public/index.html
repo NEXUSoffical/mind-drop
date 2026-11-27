@@ -75,7 +75,7 @@
         .bc-pill:hover { background: rgba(217, 119, 6, 0.45); color: #fff; }
 
         main {
-            flex: 1; width: 100%; max-width: 960px; margin: 0 auto;
+            flex: 1; width: 100%; max-width: 1080px; margin: 0 auto;
             padding: 20px 16px 32px; display: flex; flex-direction: column; justify-content: center; gap: 16px;
         }
 
@@ -711,9 +711,81 @@
             border: 1px solid rgba(245, 158, 11, 0.35);
             color: #fde68a;
         }
+        .qd-score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .qd-score-card {
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(18, 8, 4, 0.8);
+            border: 1.5px solid rgba(245, 158, 11, 0.28);
+            transition: 0.16s;
+        }
+        .qd-score-card.scored {
+            border-color: #34d399;
+            background: rgba(6, 78, 59, 0.55);
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.35);
+        }
+        .qd-score-card.jammed {
+            border-color: rgba(244, 63, 94, 0.5);
+            opacity: 0.58;
+        }
+        .qd-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .qd-choice-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(24, 11, 5, 0.88);
+            border: 1.5px solid rgba(245, 158, 11, 0.45);
+            color: #fffbeb;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.12s;
+        }
+        .qd-choice-btn:hover:not(:disabled) {
+            background: rgba(180, 83, 9, 0.45);
+            border-color: #fde047;
+            transform: translateY(-2px);
+        }
+        .qd-choice-btn:active:not(:disabled) { transform: scale(0.98); }
+        .qd-choice-btn:disabled { cursor: not-allowed; opacity: 0.72; }
+        .qd-choice-btn.correct {
+            background: rgba(6, 95, 70, 0.85) !important;
+            border-color: #34d399 !important;
+            color: #ecfdf5 !important;
+            opacity: 1 !important;
+        }
+        .qd-choice-btn.wrong {
+            background: rgba(127, 29, 29, 0.82) !important;
+            border-color: #fb7185 !important;
+            color: #ffe4e6 !important;
+        }
+        .qd-key-pill {
+            width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(245, 158, 11, 0.24);
+            border: 1px solid rgba(251, 191, 36, 0.55);
+            color: #fde047;
+            font-size: 12px;
+            font-weight: 800;
+        }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
             .mode-card { padding: 11px 13px; }
+            .qd-choices { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -804,6 +876,16 @@
                         <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Dynamite Pass</button>
                     </div>
                 </div>
+
+                <div class="game-tile" onclick="openGameLobby('quickdraw')">
+                    <img class="game-tile-art" src="/quick-draw-poster.jpg?v=1" alt="Quick-Draw Trivia First-to-Buzz">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">2-8 PLAYERS • FIRST TO 7</span>
+                        <div class="game-tile-title">Quick-Draw Trivia</div>
+                        <div class="game-tile-desc">Hands on holsters. A trivia question flashes — first gunslinger to fire the right answer scores +1. Wrong shot jams your revolver.</div>
+                        <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Quick-Draw Trivia</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Live Global ELO Leaderboard (Top 100 Signed-in Accounts) -->
@@ -871,7 +953,13 @@
                     <span><strong style="color:#fde047;">15 SECONDS</strong> PER TURN</span>
                     <span><strong style="color:#38bdf8;">2-8 PLAYERS</strong> OR VS AI</span>
                     <span><strong style="color:#fb7185;">NO REPEATS</strong> ALLOWED</span>
-                    <span><strong style="color:#34d399;">LAST SURVIVOR</strong> WINS ELO</span>
+                    <span><strong style="color:#34d399;">FIRST EXPLOSION</strong> LOSES</span>
+                </div>
+                <div id="lobbyQdLegend" class="dmg-legend hidden" style="margin-top:18px;">
+                    <span><strong style="color:#fde047;">FIRST TO 7</strong> WINS MATCH</span>
+                    <span><strong style="color:#38bdf8;">FASTEST SHOT</strong> SCORES +1</span>
+                    <span><strong style="color:#fb7185;">WRONG SHOT</strong> JAMS GUN</span>
+                    <span><strong style="color:#34d399;">KEYS 1-4</strong> INSTANT DRAW</span>
                 </div>
             </div>
         </section>
@@ -1024,6 +1112,61 @@
                 <div id="passOverElo" class="ko-elo-box mono hidden"></div>
                 <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
                     <button class="btn btn-rose" onclick="sendPassRematch()">Play Again</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 3: QUICK-DRAW TRIVIA (FIRST-TO-BUZZ, FIRST TO 7) -->
+        <section id="viewQuickDraw" class="card hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:8px;">
+                <div>
+                    <span class="tier-badge tier-LEGENDARY">QUICK-DRAW TRIVIA • FIRST TO 7</span>
+                    <span id="qdRoundBadge" class="elo-pill mono">RD 1</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span id="qdRoomTag" class="mono" style="font-size:12px; color:#fde68a;">ROOM ----</span>
+                    <button class="btn btn-ghost" onclick="leaveDuel()" style="padding:6px 10px; font-size:11px;">Exit</button>
+                </div>
+            </div>
+
+            <!-- Live 60fps Quick-Draw Shooting Gallery Canvas -->
+            <div id="qdArenaWrap" class="arena-wrap" style="margin-bottom:12px;">
+                <canvas id="qdCanvas" style="width:100%; height:235px; display:block;"></canvas>
+            </div>
+
+            <!-- Live Scoreboard -->
+            <div id="qdScoreboard" class="qd-score-grid"></div>
+
+            <!-- Waiting Room Controls (2-8 Players) -->
+            <div id="qdWaitingBox" class="hidden" style="text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.72); border:1px solid rgba(245,158,11,0.45); margin-bottom:12px;">
+                <div id="qdWaitTitle" style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Gunslingers (2-8 players)...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Room Code: <strong id="qdShareCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="qdStartBtn" class="btn btn-rose hidden" onclick="startQdNow()" style="padding:8px 16px; font-size:12px;">Start Match Now</button>
+                    <button id="qdCopyBtn" class="btn btn-ghost" onclick="copyQdInviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="startQuickDraw('ai', '')" style="padding:8px 14px; font-size:12px;">Play vs AI Instead</button>
+                </div>
+            </div>
+
+            <!-- Active Question & 4 Quick-Draw Choices -->
+            <div id="qdPlayBox" class="hidden" style="padding:14px 16px; border-radius:16px; background:rgba(20,9,4,0.82); border:1px solid rgba(245,158,11,0.35);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">
+                    <span id="qdCategory" style="font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#fbbf24;">CATEGORY</span>
+                    <span id="qdStatusText" class="mono" style="font-size:12px; font-weight:800; color:#fde047;">STEADY...</span>
+                </div>
+                <div class="fuse-bar-track" style="height:8px; margin:4px 0 12px;"><div id="qdTimerBar" class="fuse-bar-fill" style="width:100%;"></div></div>
+                <div id="qdQuestionText" style="font-size:21px; font-weight:800; color:#fffbeb; line-height:1.3; margin-bottom:8px;">Hands on holsters...</div>
+                <div id="qdChoices" class="qd-choices"></div>
+            </div>
+
+            <!-- Match Over Box -->
+            <div id="qdOverBox" class="hidden" style="text-align:center; padding:16px; border-radius:16px; background:rgba(20,9,4,0.92); border:1.5px solid #fbbf24; margin-top:12px;">
+                <div id="qdOverHeadline" class="western-font" style="font-size:28px; color:#fde047;">FASTEST GUN IN THE WEST!</div>
+                <div id="qdOverSub" style="font-size:13px; color:#fde68a; margin-top:6px;"></div>
+                <div id="qdOverElo" class="ko-elo-box mono hidden"></div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:14px;">
+                    <button class="btn btn-rose" onclick="sendQdRematch()">Play Again</button>
                     <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
                 </div>
             </div>
@@ -1828,6 +1971,9 @@
             if (inv.game === 'pass') {
                 selectGameHubMode('pass');
                 startPassGame('private', inv.roomCode);
+            } else if (inv.game === 'quickdraw') {
+                selectGameHubMode('quickdraw');
+                startQuickDraw('private', inv.roomCode);
             } else {
                 selectGameHubMode('duel');
                 startDuel('private', inv.roomCode);
@@ -1940,7 +2086,12 @@
                         invPass.style.cssText = 'padding:5px 9px; font-size:10px;';
                         invPass.textContent = 'Invite Dynamite';
                         invPass.onclick = () => inviteFriendToGame(f.id, f.username, 'pass');
-                        right.append(invDuel, invPass);
+                        const invQd = document.createElement('button');
+                        invQd.className = 'btn btn-ghost';
+                        invQd.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#fbbf24; color:#fde047;';
+                        invQd.textContent = 'Invite Quick-Draw';
+                        invQd.onclick = () => inviteFriendToGame(f.id, f.username, 'quickdraw');
+                        right.append(invDuel, invPass, invQd);
                     } else {
                         const off = document.createElement('span');
                         off.style.cssText = 'font-size:11px; color:#64748b; margin-right:4px;';
@@ -2023,6 +2174,9 @@
                 if (game === 'pass') {
                     selectGameHubMode('pass');
                     startPassGame('private', roomCode);
+                } else if (game === 'quickdraw') {
+                    selectGameHubMode('quickdraw');
+                    startQuickDraw('private', roomCode);
                 } else {
                     selectGameHubMode('duel');
                     startDuel('private', roomCode);
@@ -2424,21 +2578,29 @@
         let passSuggestDebounce = null, passSuggestions = [];
 
         function selectGameHubMode(game) {
-            selectedHubGame = game === 'pass' ? 'pass' : 'duel';
+            selectedHubGame = game === 'pass' ? 'pass' : (game === 'quickdraw' ? 'quickdraw' : 'duel');
             const isPass = selectedHubGame === 'pass';
-            document.getElementById('lobbyTag').textContent = isPass ? '2-8 PLAYERS • 15S HOT POTATO' : '1V1 RARITY COMBAT';
-            document.getElementById('lobbyTitle').textContent = isPass ? 'Dynamite Pass' : 'High-Noon Showdown';
+            const isQd = selectedHubGame === 'quickdraw';
+            document.getElementById('lobbyTag').textContent = isPass
+                ? '2-8 PLAYERS • 15S HOT POTATO'
+                : (isQd ? '2-8 PLAYERS • FIRST TO 7' : '1V1 RARITY COMBAT');
+            document.getElementById('lobbyTitle').textContent = isPass
+                ? 'Dynamite Pass'
+                : (isQd ? 'Quick-Draw Trivia' : 'High-Noon Showdown');
             document.getElementById('lobbyDesc').textContent = isPass
                 ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
-                : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.';
+                : (isQd
+                    ? 'Hands on holsters. A trivia question flashes — first gunslinger to fire the right answer scores +1. Wrong shot jams your revolver for the round.'
+                    : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.');
             document.getElementById('btnPlayQuick').textContent = isPass
                 ? 'Quick Online Dynamite Pass'
-                : 'Quick 1v1 Online Match';
+                : (isQd ? 'Quick Online Quick-Draw' : 'Quick 1v1 Online Match');
             document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
-                : 'Instant 1v1 vs AI Fighter';
-            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass);
+                : (isQd ? 'Instant Quick-Draw vs AI' : 'Instant 1v1 vs AI Fighter');
+            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd);
             document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
+            document.getElementById('lobbyQdLegend').classList.toggle('hidden', !isQd);
         }
 
         function openGameLobby(game) {
@@ -2446,6 +2608,7 @@
             document.getElementById('viewHome').classList.add('hidden');
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewLobby').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -2453,6 +2616,7 @@
         function launchSelectedGame(subMode, code) {
             document.getElementById('viewLobby').classList.add('hidden');
             if (selectedHubGame === 'pass') startPassGame(subMode, code);
+            else if (selectedHubGame === 'quickdraw') startQuickDraw(subMode, code);
             else startDuel(subMode, code);
         }
 
@@ -2462,17 +2626,21 @@
             activeRoomCode = '';
             activeDuelMode = null;
             passRoomCode = '';
+            qdRoomCode = '';
             clearTimeout(reconnectTimer);
             clearInterval(timerInt);
             clearInterval(passTimerInt);
+            clearInterval(qdTimerInt);
             clearTimeout(suggestDebounce);
             clearTimeout(passSuggestDebounce);
             clearSuggestions();
             clearPassSuggestions();
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
             if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+            if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
@@ -3356,7 +3524,439 @@
             }
         });
 
-        // Auto-join if opened via ?room=XXXX or ?mode=pass&room=XXXX invite link
+        // ============================================================
+        // MODE 3: QUICK-DRAW TRIVIA (FIRST-TO-BUZZ, FIRST TO 7)
+        // ============================================================
+        let qdWs = null;
+        let qdSelfId = null;
+        let qdRoomCode = '';
+        let qdTimerInt = null;
+        let qdLastSnap = null;
+        let qdMyWrongIdx = -1;
+
+        // 60fps Quick-Draw Shooting Gallery Stage Canvas
+        const qdCanvas = document.getElementById('qdCanvas');
+        const qdCtx = qdCanvas ? qdCanvas.getContext('2d') : null;
+        let qdw = 800, qdh = 235;
+        const qdAnim = {
+            players: [],
+            state: 'WAITING',
+            banner: 'WAITING FOR GUNSLINGERS',
+            bannerColor: '#fde68a',
+            shot: null,
+            sparks: [],
+        };
+
+        function resizeQdCanvas() {
+            if (!qdCanvas || !qdCtx) return;
+            const rect = qdCanvas.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            qdw = Math.max(320, rect.width || 800);
+            qdh = Math.max(200, rect.height || 235);
+            qdCanvas.width = qdw * dpr;
+            qdCanvas.height = qdh * dpr;
+            qdCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        window.addEventListener('resize', resizeQdCanvas);
+
+        function getQdPlayerPos(players, idx) {
+            const n = Math.max(1, players.length);
+            if (n === 2) {
+                return idx === 0
+                    ? { x: qdw * 0.17, y: qdh * 0.72, dir: 1 }
+                    : { x: qdw * 0.83, y: qdh * 0.72, dir: -1 };
+            }
+            const t = n === 1 ? 0.5 : idx / (n - 1);
+            const x = qdw * (0.12 + t * 0.76);
+            return { x, y: qdh * 0.76, dir: x < qdw * 0.5 ? 1 : -1 };
+        }
+
+        function triggerQdShotVisual(shooterId, reactionMs) {
+            const idx = qdAnim.players.findIndex(p => p.id === shooterId);
+            const from = idx !== -1 ? getQdPlayerPos(qdAnim.players, idx) : { x: qdw * 0.2, y: qdh * 0.72, dir: 1 };
+            const bellX = qdw * 0.5, bellY = qdh * 0.42;
+            qdAnim.shot = {
+                fromX: from.x + from.dir * 22,
+                fromY: from.y - 26,
+                toX: bellX,
+                toY: bellY,
+                life: 1,
+                text: `BULLSEYE! ${(reactionMs / 1000).toFixed(2)}s`,
+            };
+            const colors = ['#ffffff', '#fef08a', '#fbbf24', '#f97316'];
+            for (let i = 0; i < 34; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const sp = 2 + Math.random() * 8;
+                qdAnim.sparks.push({
+                    x: bellX, y: bellY,
+                    vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.5,
+                    r: 2 + Math.random() * 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 1,
+                });
+            }
+        }
+
+        function renderQdCanvasFrame() {
+            requestAnimationFrame(renderQdCanvasFrame);
+            if (!qdCtx || document.getElementById('viewQuickDraw').classList.contains('hidden')) return;
+
+            const sky = qdCtx.createLinearGradient(0, 0, 0, qdh);
+            sky.addColorStop(0, '#1f0805');
+            sky.addColorStop(0.55, '#6b1d0c');
+            sky.addColorStop(1, '#261006');
+            qdCtx.fillStyle = sky;
+            qdCtx.fillRect(0, 0, qdw, qdh);
+
+            const sunG = qdCtx.createRadialGradient(qdw * 0.5, qdh * 0.65, 10, qdw * 0.5, qdh * 0.65, qdw * 0.34);
+            sunG.addColorStop(0, 'rgba(253, 224, 71, 0.35)');
+            sunG.addColorStop(0.6, 'rgba(234, 88, 12, 0.14)');
+            sunG.addColorStop(1, 'rgba(0,0,0,0)');
+            qdCtx.fillStyle = sunG;
+            qdCtx.fillRect(0, 0, qdw, qdh);
+
+            qdCtx.fillStyle = '#2d1307';
+            qdCtx.fillRect(0, qdh * 0.78, qdw, qdh * 0.22);
+            qdCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+            qdCtx.lineWidth = 1.5;
+            qdCtx.beginPath();
+            qdCtx.moveTo(0, qdh * 0.78);
+            qdCtx.lineTo(qdw, qdh * 0.78);
+            qdCtx.stroke();
+
+            const bellX = qdw * 0.5, bellY = qdh * 0.42;
+            const isDraw = qdAnim.state === 'DRAW';
+            const ringPulse = isDraw ? (1 + Math.sin(performance.now() * 0.015) * 0.08) : 1;
+            qdCtx.save();
+            qdCtx.translate(bellX, bellY);
+            qdCtx.scale(ringPulse, ringPulse);
+            qdCtx.beginPath();
+            qdCtx.arc(0, 0, 34, 0, Math.PI * 2);
+            qdCtx.fillStyle = isDraw ? 'rgba(251, 191, 36, 0.22)' : 'rgba(120, 53, 15, 0.32)';
+            qdCtx.fill();
+            qdCtx.lineWidth = 3;
+            qdCtx.strokeStyle = isDraw ? '#fde047' : '#b45309';
+            qdCtx.stroke();
+            qdCtx.beginPath();
+            qdCtx.arc(0, 0, 18, 0, Math.PI * 2);
+            qdCtx.strokeStyle = isDraw ? '#f97316' : '#92400e';
+            qdCtx.lineWidth = 2.5;
+            qdCtx.stroke();
+            qdCtx.beginPath();
+            qdCtx.arc(0, 0, 6, 0, Math.PI * 2);
+            qdCtx.fillStyle = isDraw ? '#fef08a' : '#d97706';
+            qdCtx.fill();
+            qdCtx.restore();
+
+            qdCtx.save();
+            qdCtx.font = '800 18px "Rye", serif';
+            qdCtx.textAlign = 'center';
+            qdCtx.fillStyle = qdAnim.bannerColor || '#fde68a';
+            qdCtx.fillText(qdAnim.banner || '', qdw * 0.5, 30);
+            qdCtx.restore();
+
+            (qdAnim.players || []).forEach((p, i) => {
+                const pos = getQdPlayerPos(qdAnim.players, i);
+                qdCtx.save();
+                qdCtx.translate(pos.x, pos.y);
+                qdCtx.globalAlpha = p.jammed ? 0.42 : 1;
+
+                qdCtx.fillStyle = '#0f0502';
+                qdCtx.fillRect(-18, -56, 36, 5);
+                qdCtx.fillRect(-11, -66, 22, 11);
+                qdCtx.beginPath();
+                qdCtx.arc(0, -44, 9, 0, Math.PI * 2);
+                qdCtx.fill();
+                qdCtx.fillRect(-11, -35, 22, 26);
+                qdCtx.fillRect(-9, -9, 7, 16);
+                qdCtx.fillRect(2, -9, 7, 16);
+                qdCtx.strokeStyle = '#0f0502';
+                qdCtx.lineWidth = 5;
+                qdCtx.beginPath();
+                qdCtx.moveTo(0, -28);
+                qdCtx.lineTo(pos.dir * 24, -26);
+                qdCtx.stroke();
+
+                qdCtx.font = '800 11px "Plus Jakarta Sans", sans-serif';
+                qdCtx.textAlign = 'center';
+                qdCtx.fillStyle = p.id === qdSelfId ? '#38bdf8' : '#fef3c7';
+                qdCtx.fillText(`${p.name} (${p.score}/7)`, 0, 22);
+                qdCtx.restore();
+            });
+
+            if (qdAnim.shot && qdAnim.shot.life > 0) {
+                const s = qdAnim.shot;
+                s.life -= 0.032;
+                qdCtx.save();
+                qdCtx.globalAlpha = Math.max(0, s.life);
+                qdCtx.strokeStyle = '#fef08a';
+                qdCtx.lineWidth = 4;
+                qdCtx.beginPath();
+                qdCtx.moveTo(s.fromX, s.fromY);
+                qdCtx.lineTo(s.toX, s.toY);
+                qdCtx.stroke();
+                qdCtx.font = '800 14px "JetBrains Mono", monospace';
+                qdCtx.textAlign = 'center';
+                qdCtx.fillStyle = '#34d399';
+                qdCtx.fillText(s.text, s.toX, s.toY - 44);
+                qdCtx.restore();
+            }
+
+            for (let i = qdAnim.sparks.length - 1; i >= 0; i--) {
+                const sp = qdAnim.sparks[i];
+                sp.life -= 0.035;
+                if (sp.life <= 0) { qdAnim.sparks.splice(i, 1); continue; }
+                sp.x += sp.vx; sp.y += sp.vy; sp.vy += 0.22;
+                qdCtx.save();
+                qdCtx.globalAlpha = sp.life;
+                qdCtx.fillStyle = sp.color;
+                qdCtx.beginPath();
+                qdCtx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+                qdCtx.fill();
+                qdCtx.restore();
+            }
+        }
+        requestAnimationFrame(renderQdCanvasFrame);
+
+        function startQuickDraw(mode, code) {
+            clearFullScreenExplosion();
+            manualLeave = false;
+            clearInterval(qdTimerInt);
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+            if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
+
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const seen = encodeURIComponent(getSeenPromptIds().join(','));
+            const cleanCode = encodeURIComponent((code || '').trim().toUpperCase());
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.remove('hidden');
+            document.getElementById('qdOverBox').classList.add('hidden');
+            resizeQdCanvas();
+
+            qdWs = new WebSocket(`${proto}//${location.host}/ws/quickdraw?mode=${mode}&code=${cleanCode}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
+            qdWs.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'QD_ERROR') {
+                    alert(msg.message || 'Could not join Quick-Draw room.');
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'QD_JOINED') {
+                    qdSelfId = msg.selfId;
+                    qdRoomCode = msg.snapshot.code;
+                    renderQuickDraw(msg.snapshot, 'QD_JOINED');
+                } else if (msg.type === 'QD_UPDATE' || msg.type === 'QD_READY' || msg.type === 'QD_DRAW' || msg.type === 'QD_JAMMED' || msg.type === 'QD_REVEAL') {
+                    if (msg.type === 'QD_DRAW') {
+                        qdMyWrongIdx = -1;
+                        if (msg.snapshot.question && msg.snapshot.question.id) recordSeenPromptId(msg.snapshot.question.id);
+                        playSfx(880, 0.11, 'triangle', 0.14);
+                    }
+                    if (msg.type === 'QD_JAMMED' && msg.playerId === qdSelfId) {
+                        qdMyWrongIdx = msg.choiceIndex;
+                        playSfx(140, 0.18, 'sawtooth', 0.14);
+                    }
+                    renderQuickDraw(msg.snapshot, msg.type);
+                } else if (msg.type === 'QD_SHOT') {
+                    playSfx(240, 0.08, 'sawtooth', 0.18);
+                    playSfx(960, 0.16, 'triangle', 0.15, 0.05);
+                    if (msg.shooter) triggerQdShotVisual(msg.shooter.id, msg.shooter.reactionMs);
+                    renderQuickDraw(msg.snapshot, 'QD_SHOT');
+                } else if (msg.type === 'QD_GAME_OVER') {
+                    renderQuickDraw(msg.snapshot, 'QD_GAME_OVER', msg.winner, msg.reason, msg.eloChanges);
+                    loadHomeProfile();
+                    loadLeaderboard();
+                }
+            };
+        }
+
+        function startQdNow() {
+            if (qdWs && qdWs.readyState === 1) qdWs.send(JSON.stringify({ type: 'START_NOW' }));
+        }
+
+        function sendQdRematch() {
+            if (qdWs && qdWs.readyState === 1) qdWs.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function copyQdInviteLink() {
+            if (!qdRoomCode) return;
+            const url = `${location.origin}/?mode=quickdraw&room=${qdRoomCode}`;
+            navigator.clipboard?.writeText(url).catch(() => {});
+            const btn = document.getElementById('qdCopyBtn');
+            btn.textContent = 'Invite Link Copied!';
+            setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+        }
+
+        function buzzQdAnswer(idx) {
+            if (!qdWs || qdWs.readyState !== 1) return;
+            if (!qdLastSnap || qdLastSnap.state !== 'DRAW') return;
+            const me = (qdLastSnap.players || []).find(p => p.id === qdSelfId);
+            if (me && me.jammed) return;
+            qdWs.send(JSON.stringify({ type: 'BUZZ_ANSWER', choiceIndex: idx }));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('viewQuickDraw').classList.contains('hidden')) return;
+            if (!qdLastSnap || qdLastSnap.state !== 'DRAW') return;
+            const map = { '1': 0, '2': 1, '3': 2, '4': 3, a: 0, b: 1, c: 2, d: 3 };
+            const k = (e.key || '').toLowerCase();
+            if (k in map) {
+                e.preventDefault();
+                buzzQdAnswer(map[k]);
+            }
+        });
+
+        function renderQuickDraw(snap, eventType, winner, reason, eloChanges) {
+            qdLastSnap = snap;
+            document.getElementById('qdRoomTag').textContent = `ROOM ${snap.code}`;
+            document.getElementById('qdShareCode').textContent = snap.code;
+            document.getElementById('qdRoundBadge').textContent = `RD ${snap.round || 1}`;
+
+            qdAnim.players = snap.players || [];
+            qdAnim.state = snap.state;
+            if (snap.state === 'WAITING') {
+                qdAnim.banner = 'WAITING FOR GUNSLINGERS';
+                qdAnim.bannerColor = '#fde68a';
+            } else if (snap.state === 'READY') {
+                qdAnim.banner = 'STEADY... HANDS ON HOLSTERS';
+                qdAnim.bannerColor = '#fbbf24';
+            } else if (snap.state === 'DRAW') {
+                qdAnim.banner = 'DRAW! FIRE THE RIGHT ANSWER!';
+                qdAnim.bannerColor = '#34d399';
+            } else if (snap.state === 'REVEAL') {
+                qdAnim.banner = snap.lastRevealReason || 'ROUND OVER';
+                qdAnim.bannerColor = snap.lastWinner ? '#fde047' : '#fb7185';
+            } else {
+                qdAnim.banner = 'SHOOTOUT COMPLETE';
+                qdAnim.bannerColor = '#fde047';
+            }
+
+            const sb = document.getElementById('qdScoreboard');
+            sb.innerHTML = '';
+            (snap.players || []).forEach(p => {
+                const justScored = snap.state === 'REVEAL' && snap.lastWinner && snap.lastWinner.id === p.id;
+                const card = document.createElement('div');
+                card.className = 'qd-score-card' + (justScored ? ' scored' : '') + (p.jammed ? ' jammed' : '');
+
+                const top = document.createElement('div');
+                top.style.cssText = 'display:flex; justify-content:space-between; align-items:center; gap:6px;';
+                const nm = document.createElement('span');
+                nm.style.cssText = `font-weight:800; font-size:13px; color:${p.id === qdSelfId ? '#38bdf8' : '#fffbeb'};`;
+                nm.textContent = p.id === qdSelfId ? `${p.name} (YOU)` : p.name;
+                const sc = document.createElement('span');
+                sc.className = 'mono';
+                sc.style.cssText = 'font-size:16px; font-weight:800; color:#fde047;';
+                sc.textContent = `${p.score} / ${snap.winScore || 7}`;
+                top.append(nm, sc);
+
+                const sub = document.createElement('div');
+                sub.style.cssText = 'font-size:11px; font-weight:700; margin-top:4px;';
+                if (justScored) {
+                    sub.style.color = '#34d399';
+                    sub.textContent = `FASTEST SHOT (${(snap.lastWinner.reactionMs / 1000).toFixed(2)}s)`;
+                } else if (p.jammed) {
+                    sub.style.color = '#fb7185';
+                    sub.textContent = 'REVOLVER JAMMED';
+                } else {
+                    sub.style.color = '#94a3b8';
+                    sub.textContent = p.aiTier ? `${p.aiTier} • ${p.elo} ELO` : `${p.elo} ELO`;
+                }
+                card.append(top, sub);
+                sb.appendChild(card);
+            });
+
+            document.getElementById('qdWaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('qdPlayBox').classList.toggle('hidden', snap.state === 'WAITING' || snap.state === 'FINISHED');
+            document.getElementById('qdOverBox').classList.toggle('hidden', snap.state !== 'FINISHED');
+
+            if (snap.state === 'WAITING') {
+                const isHost = snap.hostId === qdSelfId;
+                document.getElementById('qdStartBtn').classList.toggle('hidden', !(isHost && snap.players.length >= 2));
+                document.getElementById('qdWaitTitle').textContent = snap.players.length >= 2
+                    ? `${snap.players.length} Gunslingers Ready — Host can start anytime!`
+                    : 'Waiting for Opponent to Join...';
+            }
+
+            clearInterval(qdTimerInt);
+            if (snap.state === 'READY') {
+                document.getElementById('qdCategory').textContent = `ROUND ${snap.round}`;
+                document.getElementById('qdStatusText').textContent = 'STEADY...';
+                document.getElementById('qdTimerBar').style.width = '100%';
+                document.getElementById('qdQuestionText').textContent = 'Hands on holsters... get ready to fire!';
+                document.getElementById('qdChoices').innerHTML = '';
+            } else if ((snap.state === 'DRAW' || snap.state === 'REVEAL') && snap.question) {
+                const me = (snap.players || []).find(p => p.id === qdSelfId);
+                const myJammed = Boolean(me && me.jammed);
+                document.getElementById('qdCategory').textContent = snap.question.category;
+                document.getElementById('qdQuestionText').textContent = snap.question.question;
+
+                if (snap.state === 'DRAW') {
+                    document.getElementById('qdStatusText').textContent = myJammed ? 'JAMMED!' : 'DRAW!';
+                    const endsAt = Date.now() + (snap.timeRemainingMs || snap.roundMs || 12000);
+                    const total = snap.roundMs || 12000;
+                    const tick = () => {
+                        const rem = Math.max(0, endsAt - Date.now());
+                        document.getElementById('qdTimerBar').style.width = `${(rem / total) * 100}%`;
+                        if (!myJammed) document.getElementById('qdStatusText').textContent = `${(rem / 1000).toFixed(1)}s`;
+                    };
+                    tick();
+                    qdTimerInt = setInterval(tick, 60);
+                } else {
+                    document.getElementById('qdStatusText').textContent = snap.lastRevealReason || 'REVEAL';
+                    document.getElementById('qdTimerBar').style.width = '0%';
+                }
+
+                const choicesEl = document.getElementById('qdChoices');
+                choicesEl.innerHTML = '';
+                (snap.question.choices || []).forEach((label, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'qd-choice-btn';
+                    if (snap.state === 'REVEAL' && snap.lastCorrectIndex === idx) btn.classList.add('correct');
+                    if (myJammed && qdMyWrongIdx === idx) btn.classList.add('wrong');
+                    btn.disabled = snap.state !== 'DRAW' || myJammed;
+                    btn.onclick = () => buzzQdAnswer(idx);
+
+                    const keyPill = document.createElement('span');
+                    keyPill.className = 'qd-key-pill mono';
+                    keyPill.textContent = String(idx + 1);
+                    const txt = document.createElement('span');
+                    txt.textContent = label;
+                    btn.append(keyPill, txt);
+                    choicesEl.appendChild(btn);
+                });
+            }
+
+            if (snap.state === 'FINISHED') {
+                const iWon = Boolean(winner && winner.id === qdSelfId);
+                const hl = document.getElementById('qdOverHeadline');
+                hl.textContent = iWon ? 'FASTEST GUN IN THE WEST!' : 'OUTDRAWN!';
+                hl.style.color = iWon ? '#34d399' : '#fb7185';
+                document.getElementById('qdOverSub').textContent = reason || (winner ? `${winner.name} wins!` : 'Match ended.');
+
+                const eloEl = document.getElementById('qdOverElo');
+                const myChange = eloChanges && eloChanges[qdSelfId];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
+                    eloEl.classList.remove('hidden');
+                } else {
+                    eloEl.classList.add('hidden');
+                }
+            }
+        }
+
+        // Auto-join if opened via ?room=XXXX, ?mode=pass&room=XXXX, or ?mode=quickdraw&room=XXXX invite link
         (function checkInviteRoomParam() {
             try {
                 const params = new URLSearchParams(location.search);
@@ -3367,6 +3967,9 @@
                     if (modeParam === 'pass') {
                         selectGameHubMode('pass');
                         setTimeout(() => startPassGame('private', room), 250);
+                    } else if (modeParam === 'quickdraw') {
+                        selectGameHubMode('quickdraw');
+                        setTimeout(() => startQuickDraw('private', room), 250);
                     } else {
                         setTimeout(() => startDuel('private', room), 250);
                     }
