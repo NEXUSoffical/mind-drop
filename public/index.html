@@ -418,45 +418,82 @@
         body.embed-mode .arena-wrap { margin-bottom: 8px; }
         body.embed-mode #promptText { font-size: 18px !important; margin-bottom: 6px !important; }
 
-        /* MindDrop Multi-Game Hub Mode Cards */
-        .game-hub-grid {
+        /* MindDrop Game Portal Homepage Grid */
+        .portal-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            max-width: 640px;
-            margin: 18px auto 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
         }
-        .mode-card {
-            text-align: left;
-            padding: 14px 16px;
-            border-radius: 16px;
-            background: rgba(28, 13, 6, 0.72);
-            border: 1.5px solid rgba(245, 158, 11, 0.3);
+        .game-tile {
+            display: flex;
+            flex-direction: column;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(24, 11, 5, 0.84);
+            border: 1.5px solid rgba(245, 158, 11, 0.38);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.58);
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
             cursor: pointer;
-            transition: 0.16s;
-            color: #fef3c7;
-            font-family: inherit;
         }
-        .mode-card:hover { border-color: rgba(251, 191, 36, 0.75); transform: translateY(-2px); }
-        .mode-card.active {
-            background: rgba(120, 40, 12, 0.78);
+        .game-tile:hover {
+            transform: translateY(-4px);
             border-color: #fde047;
-            box-shadow: 0 0 0 2px rgba(253, 224, 71, 0.25), 0 10px 28px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 22px 54px rgba(245, 158, 11, 0.25);
         }
-        .mode-card-tag {
+        .game-tile-art {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+            background: linear-gradient(135deg, #451a03, #7f1d1d);
+        }
+        .game-tile-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 8px;
+        }
+        .game-tile-tag {
             display: inline-block;
-            font-size: 9px;
+            align-self: flex-start;
+            font-size: 10px;
             font-weight: 800;
             letter-spacing: 1px;
-            padding: 2px 7px;
+            padding: 3px 9px;
             border-radius: 999px;
-            background: rgba(245, 158, 11, 0.22);
+            background: rgba(245, 158, 11, 0.2);
             color: #fde047;
             border: 1px solid rgba(251, 191, 36, 0.45);
-            margin-bottom: 6px;
         }
-        .mode-card-title { font-size: 15px; font-weight: 800; color: #fffbeb; }
-        .mode-card-desc { font-size: 11.5px; color: #fde68a; margin-top: 4px; line-height: 1.38; opacity: 0.9; }
+        .game-tile-title {
+            font-family: 'Rye', serif;
+            font-size: 20px;
+            color: #fffbeb;
+            line-height: 1.2;
+        }
+        .game-tile-desc {
+            font-size: 13px;
+            color: #fde68a;
+            line-height: 1.45;
+            flex: 1;
+        }
+        .lobby-back-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .lobby-panel {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px;
+            border-radius: 20px;
+            background: rgba(24, 11, 5, 0.82);
+            border: 1.5px solid rgba(245, 158, 11, 0.45);
+            box-shadow: 0 22px 54px rgba(0, 0, 0, 0.65);
+        }
 
         /* Dynamite Pass Arena */
         #viewPass.card {
@@ -554,30 +591,17 @@
     </header>
 
     <main>
-        <!-- HOME SCREEN (MINDDROP MULTIPLAYER QUIZ HUB) -->
+        <!-- HOME PAGE: MINDDROP GAME PORTAL (ALL GAMES) -->
         <section id="viewHome" class="card">
             <div style="text-align:center; margin-bottom:10px;">
-                <span class="tier-badge tier-LEGENDARY">MULTIPLAYER WILD WEST QUIZ HUB • 69 CATEGORIES</span>
+                <span class="tier-badge tier-LEGENDARY">MINDDROP GAMES • POWERED BY BLOXCLOUD</span>
             </div>
-            <h1 class="hero-title">MINDDROP <span class="hero-grad">SHOWDOWN.</span></h1>
+            <h1 class="hero-title">CHOOSE YOUR <span class="hero-grad">GAME.</span></h1>
             <p class="hero-sub">
-                Pick a multiplayer trivia game below. Shared ELO ladder, Top 100 leaderboard, 69+ categories with smart auto-spell, and live BloxCloud matchmaking.
+                Free multiplayer brain &amp; trivia games with one shared ELO ladder, Top 100 leaderboard, 69+ categories, and live friend rooms.
             </p>
 
-            <!-- Game Mode Selector -->
-            <div class="game-hub-grid">
-                <button id="modeCardDuel" type="button" class="mode-card active" onclick="selectGameHubMode('duel')">
-                    <span class="mode-card-tag">1V1 COMBAT</span>
-                    <div class="mode-card-title">High-Noon Rarity Duel</div>
-                    <div class="mode-card-desc">200 HP cowboy standoff. Rarer answers fire heavier revolver shots. Hit the #1 Mythic answer for 100 DMG.</div>
-                </button>
-                <button id="modeCardPass" type="button" class="mode-card" onclick="selectGameHubMode('pass')">
-                    <span class="mode-card-tag">2-8 PLAYERS • NEW</span>
-                    <div class="mode-card-title">Dynamite Pass (15s Hot Potato)</div>
-                    <div class="mode-card-desc">One category, 15 seconds per turn. Name an unused answer to pass the lit dynamite — first player to run out of time explodes.</div>
-                </button>
-            </div>
-
+            <!-- Compact Player Rating Card -->
             <div class="elo-card">
                 <div>
                     <div id="homeRatingModeLabel" style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#94a3b8;">GUEST SESSION RATING</div>
@@ -596,24 +620,27 @@
                 </div>
             </div>
 
-            <div style="max-width:360px; margin:20px auto 0; display:flex; flex-direction:column; gap:10px;">
-                <input id="fighterNameInput" type="text" maxlength="16" placeholder="Enter your gunslinger name...">
-                <button id="btnPlayQuick" class="btn btn-rose" onclick="launchSelectedGame('quick', '')">Quick 1v1 Online Match</button>
-                <button id="btnPlayAi" class="btn btn-cyan" onclick="launchSelectedGame('ai', '')">Instant 1v1 vs AI Fighter</button>
-                <div style="display:flex; gap:8px; margin-top:4px;">
-                    <input id="duelCodeInput" type="text" maxlength="12" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:16px; padding:10px 12px;">
-                    <button class="btn btn-ghost" onclick="launchSelectedGame('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
+            <!-- Big Visual Game Catalog -->
+            <div class="portal-grid">
+                <div class="game-tile" onclick="openGameLobby('duel')">
+                    <img class="game-tile-art" src="/minddrop-poster.jpg?v=1" alt="High-Noon Rarity Showdown">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">1V1 RARITY COMBAT</span>
+                        <div class="game-tile-title">High-Noon Showdown</div>
+                        <div class="game-tile-desc">200 HP Wild West cowboy standoff. Rarer answers fire heavier revolver shots — hit the #1 Mythic answer for 100 DMG.</div>
+                        <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play High-Noon Showdown</button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="dmg-legend">
-                <span><strong style="color:#cbd5e1;">COMMON</strong> 8 DMG</span>
-                <span><strong style="color:#38bdf8;">UNCOMMON</strong> 22 DMG</span>
-                <span><strong style="color:#c084fc;">RARE</strong> 42 DMG</span>
-                <span><strong style="color:#fbbf24;">LEGENDARY</strong> 68 DMG</span>
-                <span><strong style="color:#f43f5e;">#1 MYTHIC</strong> 100 DMG</span>
-                <span><strong style="color:#34d399;">RARER WIN</strong> +10 BONUS</span>
-                <span><strong style="color:#fb7185;">SAME WORD</strong> CLASH BLOCKED</span>
+                <div class="game-tile" onclick="openGameLobby('pass')">
+                    <img class="game-tile-art" src="/dynamite-pass-poster.jpg?v=1" alt="Dynamite Pass 15s Hot Potato">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">2-8 PLAYERS • HOT POTATO</span>
+                        <div class="game-tile-title">Dynamite Pass</div>
+                        <div class="game-tile-desc">One category, 15 seconds on the fuse. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.</div>
+                        <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Dynamite Pass</button>
+                    </div>
+                </div>
             </div>
 
             <!-- Live Global ELO Leaderboard (Top 100 Signed-in Accounts) -->
@@ -644,6 +671,44 @@
                     <table class="lb-table">
                         <tbody id="lbMyFooterBody"></tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- DEDICATED GAME LOBBY (SHOWN AFTER PICKING A GAME FROM THE PORTAL) -->
+        <section id="viewLobby" class="card hidden">
+            <div class="lobby-panel">
+                <div class="lobby-back-row">
+                    <button type="button" class="btn btn-ghost" onclick="leaveDuel()" style="padding:7px 12px; font-size:12px;">&lt;- All Games</button>
+                    <span id="lobbyTag" class="tier-badge tier-LEGENDARY">1V1 RARITY COMBAT</span>
+                </div>
+                <h2 id="lobbyTitle" class="western-font" style="font-size:28px; text-align:center; color:#fffbeb;">High-Noon Showdown</h2>
+                <p id="lobbyDesc" style="text-align:center; font-size:13px; color:#fde68a; margin-top:6px; line-height:1.45;"></p>
+
+                <div style="max-width:360px; margin:20px auto 0; display:flex; flex-direction:column; gap:10px;">
+                    <input id="fighterNameInput" type="text" maxlength="16" placeholder="Enter your gunslinger name...">
+                    <button id="btnPlayQuick" class="btn btn-rose" onclick="launchSelectedGame('quick', '')">Quick 1v1 Online Match</button>
+                    <button id="btnPlayAi" class="btn btn-cyan" onclick="launchSelectedGame('ai', '')">Instant 1v1 vs AI Fighter</button>
+                    <div style="display:flex; gap:8px; margin-top:4px;">
+                        <input id="duelCodeInput" type="text" maxlength="12" placeholder="Room Code (e.g. X9K2)" style="text-transform:uppercase; font-size:16px; padding:10px 12px;">
+                        <button class="btn btn-ghost" onclick="launchSelectedGame('private', document.getElementById('duelCodeInput').value)" style="white-space:nowrap;">Join / Create</button>
+                    </div>
+                </div>
+
+                <div id="lobbyDuelLegend" class="dmg-legend" style="margin-top:18px;">
+                    <span><strong style="color:#cbd5e1;">COMMON</strong> 8 DMG</span>
+                    <span><strong style="color:#38bdf8;">UNCOMMON</strong> 22 DMG</span>
+                    <span><strong style="color:#c084fc;">RARE</strong> 42 DMG</span>
+                    <span><strong style="color:#fbbf24;">LEGENDARY</strong> 68 DMG</span>
+                    <span><strong style="color:#f43f5e;">#1 MYTHIC</strong> 100 DMG</span>
+                    <span><strong style="color:#34d399;">RARER WIN</strong> +10 BONUS</span>
+                    <span><strong style="color:#fb7185;">SAME WORD</strong> CLASH BLOCKED</span>
+                </div>
+                <div id="lobbyPassLegend" class="dmg-legend hidden" style="margin-top:18px;">
+                    <span><strong style="color:#fde047;">15 SECONDS</strong> PER TURN</span>
+                    <span><strong style="color:#38bdf8;">2-8 PLAYERS</strong> OR VS AI</span>
+                    <span><strong style="color:#fb7185;">NO REPEATS</strong> ALLOWED</span>
+                    <span><strong style="color:#34d399;">LAST SURVIVOR</strong> WINS ELO</span>
                 </div>
             </div>
         </section>
@@ -1787,6 +1852,7 @@
             ws = new WebSocket(`${proto}//${location.host}/ws/duel?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
 
             document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewArena').classList.remove('hidden');
             setTimeout(resizeArena, 20);
 
@@ -1868,17 +1934,33 @@
 
         function selectGameHubMode(game) {
             selectedHubGame = game === 'pass' ? 'pass' : 'duel';
-            document.getElementById('modeCardDuel').classList.toggle('active', selectedHubGame === 'duel');
-            document.getElementById('modeCardPass').classList.toggle('active', selectedHubGame === 'pass');
-            document.getElementById('btnPlayQuick').textContent = selectedHubGame === 'pass'
+            const isPass = selectedHubGame === 'pass';
+            document.getElementById('lobbyTag').textContent = isPass ? '2-8 PLAYERS • 15S HOT POTATO' : '1V1 RARITY COMBAT';
+            document.getElementById('lobbyTitle').textContent = isPass ? 'Dynamite Pass' : 'High-Noon Showdown';
+            document.getElementById('lobbyDesc').textContent = isPass
+                ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
+                : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.';
+            document.getElementById('btnPlayQuick').textContent = isPass
                 ? 'Quick Online Dynamite Pass'
                 : 'Quick 1v1 Online Match';
-            document.getElementById('btnPlayAi').textContent = selectedHubGame === 'pass'
+            document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
                 : 'Instant 1v1 vs AI Fighter';
+            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass);
+            document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
+        }
+
+        function openGameLobby(game) {
+            selectGameHubMode(game);
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewLobby').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function launchSelectedGame(subMode, code) {
+            document.getElementById('viewLobby').classList.add('hidden');
             if (selectedHubGame === 'pass') startPassGame(subMode, code);
             else startDuel(subMode, code);
         }
@@ -1899,6 +1981,7 @@
             if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
             loadLeaderboard();
@@ -1978,6 +2061,7 @@
             passWs = new WebSocket(`${proto}//${location.host}/ws/pass?mode=${mode}&code=${encodeURIComponent(cleanCode)}&name=${name}&pid=${pid}&token=${token}&seen=${seen}`);
 
             document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.remove('hidden');
 
