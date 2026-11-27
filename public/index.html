@@ -384,6 +384,7 @@
             .vs-round { font-size: 9px; }
             .vs-sec { font-size: 18px; }
             #arenaCanvas { height: 210px; }
+            #passCanvas { height: 195px; }
             #promptText { font-size: 19px !important; margin-bottom: 10px !important; }
             .suggest-pill { padding: 7px 14px; font-size: 13px; }
             .tab-hint { display: none; }
@@ -810,6 +811,11 @@
                 <div id="passTimerSec" class="mono" style="font-size:28px; font-weight:800; color:#fffbeb;">15.0s</div>
             </div>
             <div class="fuse-bar-track"><div id="passFuseBar" class="fuse-bar-fill"></div></div>
+
+            <!-- Live 60fps Dynamite Throw Stage Canvas -->
+            <div id="passArenaWrap" class="arena-wrap" style="margin-bottom:12px;">
+                <canvas id="passCanvas" style="width:100%; height:260px; display:block;"></canvas>
+            </div>
 
             <!-- Players Holding / Surviving Roster -->
             <div id="passRoster" class="pass-roster"></div>
@@ -1988,8 +1994,349 @@
         }
 
         // -----------------------------------------------------------
-        // 4. DYNAMITE PASS (15s HOT POTATO) WEBSOCKET CLIENT
+        // 4. DYNAMITE PASS (15s HOT POTATO) 60FPS CANVAS & WS CLIENT
         // -----------------------------------------------------------
+        const passCanvas = document.getElementById('passCanvas');
+        const pCtx = passCanvas.getContext('2d');
+        let pcw = 880, pch = 260;
+
+        const passAnim = {
+            players: [],
+            activeId: null,
+            prevActiveId: null,
+            state: 'WAITING',
+            timeLeftFrac: 1,
+            throwArc: null, // { fromX, fromY, toX, toY, t, word }
+            sparks: [],
+            shockwaves: [], // { x, y, r, maxR, life }
+            popups: [], // { x, y, text, color, life }
+        };
+
+        function getPassPlayerPos(players, idx, w, h) {
+            const n = Math.max(1, players.length);
+            if (n === 1) return { x: w * 0.5, y: h * 0.68, dir: 1 };
+            if (n === 2) {
+                return idx === 0
+                    ? { x: w * 0.24, y: h * 0.68, dir: 1 }
+                    : { x: w * 0.76, y: h * 0.68, dir: -1 };
+            }
+            const margin = w * 0.12;
+            const span = w - margin * 2;
+            const x = margin + (idx / (n - 1)) * span;
+            const dir = x < w * 0.5 ? 1 : -1;
+            return { x, y: h * 0.69, dir };
+        }
+
+        function drawDynamiteBundle(c, x, y, rot, scale, now) {
+            c.save();
+            c.translate(x, y);
+            c.rotate(rot);
+            c.scale(scale, scale);
+
+            // 3 Red TNT Sticks bundled together
+            c.fillStyle = '#dc2626';
+            c.strokeStyle = '#7f1d1d';
+            c.lineWidth = 1.5;
+            for (const oy of [-6, 0, 6]) {
+                c.beginPath();
+                c.roundRect ? c.roundRect(-16, oy - 3, 32, 6.5, 2) : c.fillRect(-16, oy - 3, 32, 6.5);
+                c.fill();
+                c.stroke();
+            }
+            // Black binding straps
+            c.fillStyle = '#18181b';
+            c.fillRect(-9, -9.5, 4, 19);
+            c.fillRect(5, -9.5, 4, 19);
+            // Tiny TNT label
+            c.fillStyle = '#fef08a';
+            c.font = '800 6px JetBrains Mono, monospace';
+            c.textAlign = 'center';
+            c.fillText('TNT', 0, 2);
+
+            // Curving Fuse Cord
+            c.strokeStyle = '#d6d3d1';
+            c.lineWidth = 2.2;
+            c.beginPath();
+            c.moveTo(16, 0);
+            c.quadraticCurveTo(24, -8, 28, -12);
+            c.stroke();
+
+            // Blazing Sparking Fuse Tip
+            const flicker = 0.75 + Math.sin(now * 0.04) * 0.35;
+            const g = c.createRadialGradient(28, -12, 1, 28, -12, 12 * flicker);
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(0.4, '#fde047');
+            g.addColorStop(1, 'rgba(234, 88, 12, 0)');
+            c.fillStyle = g;
+            c.beginPath();
+            c.arc(28, -12, 12 * flicker, 0, Math.PI * 2);
+            c.fill();
+            c.restore();
+        }
+
+        function drawPassCowboy(c, x, y, dir, player, isHolding, scale, now) {
+            const isMe = player.id === passSelfId;
+            const coat = isMe ? '#1e3a8a' : (player.isBot ? '#7f1d1d' : '#7c2d12');
+            const bandana = isMe ? '#38bdf8' : '#ef4444';
+            const hat = isMe ? '#78350f' : '#29150e';
+            const nervous = (isHolding && player.alive) ? Math.sin(now * 0.045) * (passAnim.timeLeftFrac < 0.3 ? 3.5 : 1.4) : 0;
+            const breathe = player.alive ? Math.sin(now * 0.005 + x) * 2 : 0;
+
+            c.save();
+            c.translate(x + nervous, y);
+            if (!player.alive) {
+                c.translate(0, 28 * scale);
+                c.rotate(dir * -1.35);
+                c.globalAlpha = 0.45;
+            }
+            c.scale(dir * scale, scale);
+
+            // Ground shadow
+            c.fillStyle = 'rgba(20, 8, 2, 0.45)';
+            c.beginPath(); c.ellipse(0, 48, 30, 8, 0, 0, Math.PI * 2); c.fill();
+
+            // Boots + Legs
+            c.fillStyle = '#2b1408';
+            c.fillRect(-16, 36, 12, 11); c.fillRect(4, 36, 12, 11);
+            c.fillStyle = '#1e293b';
+            c.fillRect(-13, 12, 9, 25); c.fillRect(4, 12, 9, 25);
+
+            // Duster Coat + Vest
+            c.fillStyle = coat;
+            c.beginPath();
+            c.moveTo(-14, -22 + breathe); c.lineTo(13, -22 + breathe);
+            c.lineTo(16, 18 + breathe); c.lineTo(-20, 24 + breathe); c.closePath();
+            c.fill();
+            c.fillStyle = '#451a03';
+            c.fillRect(-12, 6 + breathe, 24, 6);
+            c.fillStyle = '#fbbf24';
+            c.fillRect(-3, 6 + breathe, 6, 6);
+
+            // Head + Bandana
+            c.fillStyle = '#f1c29b';
+            c.beginPath(); c.arc(0, -35 + breathe, 11, 0, Math.PI * 2); c.fill();
+            c.fillStyle = bandana;
+            c.beginPath();
+            c.moveTo(-9, -30 + breathe); c.lineTo(10, -30 + breathe);
+            c.lineTo(2, -19 + breathe); c.lineTo(-8, -23 + breathe); c.closePath();
+            c.fill();
+
+            // Stetson Hat
+            c.fillStyle = hat;
+            c.beginPath(); c.ellipse(1, -43 + breathe, 25, 4.8, 0.04, 0, Math.PI * 2); c.fill();
+            c.beginPath();
+            c.moveTo(-12, -43 + breathe); c.lineTo(-9, -57 + breathe);
+            c.quadraticCurveTo(0, -53 + breathe, 9, -57 + breathe); c.lineTo(12, -43 + breathe); c.closePath();
+            c.fill();
+            c.fillStyle = '#f59e0b';
+            c.fillRect(-11, -46 + breathe, 22, 3);
+
+            // Outstretched hands holding / ready to catch dynamite
+            c.fillStyle = coat;
+            c.fillRect(7, -17 + breathe, 20, 8);
+            c.fillStyle = '#f1c29b';
+            c.beginPath(); c.arc(28, -13 + breathe, 4.5, 0, Math.PI * 2); c.fill();
+            c.restore();
+
+            // Name tag under cowboy
+            c.save();
+            c.font = `800 ${scale < 0.75 ? 10 : 12}px Plus Jakarta Sans, sans-serif`;
+            c.textAlign = 'center';
+            c.fillStyle = '#090402';
+            c.fillText(player.name, x + 1, y + 64 * scale + 1);
+            c.fillStyle = isHolding ? '#fde047' : (isMe ? '#7dd3fc' : '#fef3c7');
+            c.fillText(player.name, x, y + 64 * scale);
+            c.restore();
+        }
+
+        function triggerPassThrow(fromId, toId, word) {
+            const pList = passAnim.players;
+            const fi = pList.findIndex(p => p.id === fromId);
+            const ti = pList.findIndex(p => p.id === toId);
+            if (fi === -1 || ti === -1 || fi === ti) return;
+            const fromPos = getPassPlayerPos(pList, fi, pcw, pch);
+            const toPos = getPassPlayerPos(pList, ti, pcw, pch);
+            passAnim.throwArc = {
+                fromX: fromPos.x + fromPos.dir * 26,
+                fromY: fromPos.y - 16,
+                toX: toPos.x + toPos.dir * 26,
+                toY: toPos.y - 16,
+                t: 0,
+            };
+            if (word) {
+                passAnim.popups.push({
+                    x: fromPos.x,
+                    y: fromPos.y - 68,
+                    text: `${word.toUpperCase()}!`,
+                    color: '#fde047',
+                    life: 1.25,
+                });
+            }
+        }
+
+        function triggerPassExplosion(victimId) {
+            const pList = passAnim.players;
+            const vi = pList.findIndex(p => p.id === victimId);
+            const pos = vi !== -1 ? getPassPlayerPos(pList, vi, pcw, pch) : { x: pcw * 0.5, y: pch * 0.6 };
+            passAnim.shockwaves.push({ x: pos.x, y: pos.y - 12, r: 8, maxR: 120, life: 1 });
+            const colors = ['#ffffff', '#fde047', '#f97316', '#ef4444', '#57534e'];
+            for (let i = 0; i < 65; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const sp = 2 + Math.random() * 9.5;
+                passAnim.sparks.push({
+                    x: pos.x,
+                    y: pos.y - 12,
+                    vx: Math.cos(a) * sp,
+                    vy: Math.sin(a) * sp - 2.5,
+                    r: 2.5 + Math.random() * 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 0.9 + Math.random() * 0.4,
+                });
+            }
+            passAnim.popups.push({ x: pos.x, y: pos.y - 64, text: 'BOOM!', color: '#fb7185', life: 1.8 });
+            const wrap = document.getElementById('passArenaWrap');
+            if (wrap) { wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake'); }
+        }
+
+        let lastPassT = performance.now();
+        function renderPassArena(now) {
+            requestAnimationFrame(renderPassArena);
+            if (document.getElementById('viewPass').classList.contains('hidden')) return;
+            const tw = Math.floor(passCanvas.clientWidth);
+            const th = Math.floor(passCanvas.clientHeight);
+            if (tw > 0 && th > 0 && (tw !== pcw || th !== pch)) {
+                pcw = passCanvas.width = tw;
+                pch = passCanvas.height = th;
+            }
+            const dt = Math.min(0.05, (now - lastPassT) / 1000);
+            lastPassT = now;
+
+            const groundY = pch * 0.74;
+            const sky = pCtx.createLinearGradient(0, 0, 0, groundY);
+            sky.addColorStop(0, '#2a0c18');
+            sky.addColorStop(0.4, '#8c2817');
+            sky.addColorStop(0.75, '#ea580c');
+            sky.addColorStop(1, '#fcd34d');
+            pCtx.fillStyle = sky;
+            pCtx.fillRect(0, 0, pcw, pch);
+
+            // Sun + Mesas
+            pCtx.fillStyle = '#fef08a';
+            pCtx.beginPath(); pCtx.arc(pcw * 0.5, groundY - 36, 30, 0, Math.PI * 2); pCtx.fill();
+            pCtx.fillStyle = '#5c2116';
+            pCtx.beginPath();
+            pCtx.moveTo(0, groundY); pCtx.lineTo(pcw * 0.14, groundY - 38); pCtx.lineTo(pcw * 0.28, groundY - 38);
+            pCtx.lineTo(pcw * 0.35, groundY - 6); pCtx.lineTo(pcw * 0.65, groundY - 6);
+            pCtx.lineTo(pcw * 0.72, groundY - 44); pCtx.lineTo(pcw * 0.88, groundY - 44);
+            pCtx.lineTo(pcw, groundY - 12); pCtx.lineTo(pcw, groundY); pCtx.closePath();
+            pCtx.fill();
+
+            // Frontier dirt ground
+            const dirt = pCtx.createLinearGradient(0, groundY, 0, pch);
+            dirt.addColorStop(0, '#9a4a1c');
+            dirt.addColorStop(0.4, '#6b2e11');
+            dirt.addColorStop(1, '#361508');
+            pCtx.fillStyle = dirt;
+            pCtx.fillRect(0, groundY, pcw, pch - groundY);
+
+            // Draw all cowboys
+            const n = passAnim.players.length;
+            const baseScale = pcw < 520 ? 0.68 : 0.92;
+            const cowScale = n > 4 ? baseScale * 0.78 : baseScale;
+            let holderPos = null;
+            passAnim.players.forEach((p, idx) => {
+                const pos = getPassPlayerPos(passAnim.players, idx, pcw, pch);
+                const isHolding = passAnim.state === 'PLAYING' && passAnim.activeId === p.id && !passAnim.throwArc;
+                if (isHolding) holderPos = pos;
+                drawPassCowboy(pCtx, pos.x, pos.y, pos.dir, p, isHolding, cowScale, now);
+            });
+
+            // Draw Lit Dynamite either flying in a parabolic throw arc OR held in active cowboy's hands!
+            if (passAnim.throwArc) {
+                const tr = passAnim.throwArc;
+                tr.t += dt * 2.4; // ~0.42s crisp arc flight
+                if (tr.t >= 1) {
+                    passAnim.throwArc = null;
+                } else {
+                    const u = tr.t;
+                    const dx = tr.fromX + (tr.toX - tr.fromX) * u;
+                    const arcHeight = Math.min(115, Math.abs(tr.toX - tr.fromX) * 0.28 + 45);
+                    const dy = tr.fromY + (tr.toY - tr.fromY) * u - Math.sin(u * Math.PI) * arcHeight;
+                    const rot = u * Math.PI * 4 * (tr.toX >= tr.fromX ? 1 : -1);
+                    drawDynamiteBundle(pCtx, dx, dy, rot, cowScale * 1.05, now);
+                    // Trailing fuse sparks while flying!
+                    for (let k = 0; k < 2; k++) {
+                        passAnim.sparks.push({
+                            x: dx, y: dy,
+                            vx: (Math.random() - 0.5) * 2.5,
+                            vy: (Math.random() - 0.5) * 2.5 - 0.8,
+                            r: 1.8 + Math.random() * 2.2,
+                            color: Math.random() < 0.5 ? '#fde047' : '#f97316',
+                            life: 0.45,
+                        });
+                    }
+                }
+            } else if (holderPos && passAnim.state === 'PLAYING') {
+                const jitter = Math.sin(now * 0.05) * (passAnim.timeLeftFrac < 0.3 ? 0.25 : 0.08);
+                const hx = holderPos.x + holderPos.dir * 32 * cowScale;
+                const hy = holderPos.y - 16 * cowScale;
+                drawDynamiteBundle(pCtx, hx, hy, jitter, cowScale * 0.95, now);
+                if (Math.random() < 0.55) {
+                    passAnim.sparks.push({
+                        x: hx + 22 * cowScale, y: hy - 10 * cowScale,
+                        vx: (Math.random() - 0.5) * 3, vy: -1.5 - Math.random() * 2.5,
+                        r: 1.6 + Math.random() * 1.8,
+                        color: Math.random() < 0.5 ? '#ffffff' : '#fde047',
+                        life: 0.35,
+                    });
+                }
+            }
+
+            // Shockwaves
+            for (let i = passAnim.shockwaves.length - 1; i >= 0; i--) {
+                const sw = passAnim.shockwaves[i];
+                sw.life -= dt * 1.8;
+                sw.r += (sw.maxR - sw.r) * dt * 6;
+                if (sw.life <= 0) { passAnim.shockwaves.splice(i, 1); continue; }
+                pCtx.save();
+                pCtx.globalAlpha = Math.max(0, sw.life);
+                pCtx.strokeStyle = '#fde047';
+                pCtx.lineWidth = 5 * sw.life;
+                pCtx.beginPath(); pCtx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2); pCtx.stroke();
+                pCtx.restore();
+            }
+
+            // Sparks & Explosion Particles
+            for (let i = passAnim.sparks.length - 1; i >= 0; i--) {
+                const s = passAnim.sparks[i];
+                s.life -= dt * 1.4;
+                if (s.life <= 0) { passAnim.sparks.splice(i, 1); continue; }
+                s.x += s.vx; s.y += s.vy; s.vy += 0.2;
+                pCtx.globalAlpha = Math.max(0, s.life);
+                pCtx.fillStyle = s.color;
+                pCtx.beginPath(); pCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2); pCtx.fill();
+                pCtx.globalAlpha = 1;
+            }
+
+            // Popups
+            for (let i = passAnim.popups.length - 1; i >= 0; i--) {
+                const pop = passAnim.popups[i];
+                pop.life -= dt;
+                if (pop.life <= 0) { passAnim.popups.splice(i, 1); continue; }
+                pop.y -= 26 * dt;
+                pCtx.save();
+                pCtx.globalAlpha = Math.min(1, pop.life);
+                pCtx.font = '800 22px JetBrains Mono, monospace';
+                pCtx.textAlign = 'center';
+                pCtx.fillStyle = '#090402';
+                pCtx.fillText(pop.text, pop.x + 2, pop.y + 2);
+                pCtx.fillStyle = pop.color;
+                pCtx.fillText(pop.text, pop.x, pop.y);
+                pCtx.restore();
+            }
+        }
+        requestAnimationFrame(renderPassArena);
+
         function clearPassSuggestions() {
             passSuggestions = [];
             const row = document.getElementById('passSuggestRow');
@@ -2151,6 +2498,19 @@
             document.getElementById('passShareCode').textContent = snap.code;
             document.getElementById('passStreakBadge').textContent = `PASSES: ${snap.passCount || 0}`;
 
+            // Sync 60fps Dynamite Throw Canvas state + trigger throw / explosion visuals!
+            const prevActive = passAnim.activeId;
+            passAnim.players = snap.players || [];
+            passAnim.state = snap.state;
+            passAnim.activeId = snap.activePlayerId || null;
+
+            if (eventType === 'PASS_TURN' && snap.lastEvent && snap.lastEvent.type === 'PASSED' && prevActive && snap.activePlayerId && prevActive !== snap.activePlayerId) {
+                triggerPassThrow(prevActive, snap.activePlayerId, snap.lastEvent.word);
+            }
+            if ((eventType === 'PASS_ELIMINATED' || eventType === 'PASS_GAME_OVER') && snap.lastEvent && snap.lastEvent.type === 'BOOM') {
+                triggerPassExplosion(snap.lastEvent.victimId);
+            }
+
             // Render player roster with lit dynamite highlight
             const rosterEl = document.getElementById('passRoster');
             rosterEl.innerHTML = '';
@@ -2259,6 +2619,7 @@
                 let lastBeepSec = 4;
                 passTimerInt = setInterval(() => {
                     const leftMs = Math.max(0, endsAt - Date.now());
+                    passAnim.timeLeftFrac = leftMs / 15000;
                     const sec = (leftMs / 1000).toFixed(1);
                     document.getElementById('passTimerSec').textContent = `${sec}s`;
                     document.getElementById('passFuseBar').style.width = `${Math.max(0, (leftMs / 15000) * 100)}%`;
