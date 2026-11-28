@@ -11,12 +11,13 @@ const engine = require('./gameEngine');
 const passEngine = require('./passEngine');
 const quickDrawEngine = require('./quickDrawEngine');
 const bountyHuntEngine = require('./bountyHuntEngine');
+const clashEngine = require('./clashEngine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
 const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
 
-engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players + bountyHuntEngine.getStats().players);
+engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players + bountyHuntEngine.getStats().players + clashEngine.getStats().players);
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -174,6 +175,14 @@ wss.on('connection', (ws, req) => {
             });
         } else if (url.pathname === '/ws/bounty') {
             bountyHuntEngine.joinBountyHunt(ws, {
+                mode: payload.mode,
+                roomCode: payload.code,
+                name: payload.name,
+                profileId: payload.profileId,
+                authUser: authedUser,
+            });
+        } else if (url.pathname === '/ws/clash') {
+            clashEngine.joinClash(ws, {
                 mode: payload.mode,
                 roomCode: payload.code,
                 name: payload.name,

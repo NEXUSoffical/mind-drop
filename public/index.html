@@ -879,6 +879,120 @@
                 touch-action: pan-x pan-y;
             }
         }
+        .cat-filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 18px;
+        }
+        .cat-pill {
+            padding: 8px 15px;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            background: rgba(24, 11, 5, 0.78);
+            border: 1.5px solid rgba(245, 158, 11, 0.35);
+            color: #fde68a;
+            transition: 0.15s;
+        }
+        .cat-pill:hover { border-color: #fde047; color: #fff; }
+        .cat-pill.active {
+            background: linear-gradient(90deg, #b45309, #ea580c);
+            border-color: #fde047;
+            color: #fffbeb;
+            box-shadow: 0 4px 16px rgba(234, 88, 12, 0.42);
+        }
+        .clash-stage-wrap {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid rgba(245, 158, 11, 0.6);
+            background: #2b1408;
+            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.7);
+            position: relative;
+            cursor: crosshair;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #clashCanvas {
+            width: 100%;
+            aspect-ratio: 100 / 150;
+            display: block;
+            touch-action: manipulation;
+        }
+        .clash-elixir-wrap {
+            max-width: 440px;
+            margin: 10px auto 0;
+        }
+        .clash-elixir-track {
+            height: 16px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1.5px solid rgba(192, 132, 252, 0.55);
+            overflow: hidden;
+            position: relative;
+        }
+        .clash-elixir-fill {
+            height: 100%;
+            width: 50%;
+            background: linear-gradient(90deg, #9333ea, #d946ef, #f472b6);
+            transition: width 0.08s linear;
+        }
+        .clash-hand {
+            max-width: 440px;
+            margin: 10px auto 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .clash-card-btn {
+            position: relative;
+            padding: 10px 6px 8px;
+            border-radius: 13px;
+            background: rgba(24, 11, 5, 0.92);
+            border: 2px solid rgba(245, 158, 11, 0.42);
+            color: #fffbeb;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.12s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .clash-card-btn.selected {
+            border-color: #38bdf8;
+            background: rgba(12, 74, 110, 0.65);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+        }
+        .clash-card-btn.unaffordable {
+            opacity: 0.45;
+            filter: grayscale(0.45);
+        }
+        .clash-cost-badge {
+            position: absolute;
+            top: -7px;
+            left: -5px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border: 1.5px solid #fdf4ff;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
             .mode-card { padding: 11px 13px; }
@@ -952,9 +1066,37 @@
                 </div>
             </div>
 
+            <!-- Category Filter Bar -->
+            <div class="cat-filter-bar">
+                <button type="button" class="cat-pill active" data-filter="all" onclick="filterGameCatalog('all')">All Games (5)</button>
+                <button type="button" class="cat-pill" data-filter="strategy" onclick="filterGameCatalog('strategy')">Action &amp; Strategy</button>
+                <button type="button" class="cat-pill" data-filter="party" onclick="filterGameCatalog('party')">Search &amp; Party</button>
+                <button type="button" class="cat-pill" data-filter="trivia" onclick="filterGameCatalog('trivia')">Trivia &amp; Word</button>
+            </div>
+
             <!-- Big Visual Game Catalog -->
             <div class="portal-grid">
-                <div class="game-tile" onclick="openGameLobby('duel')">
+                <div class="game-tile" data-cat="strategy" onclick="openGameLobby('clash')">
+                    <img class="game-tile-art" src="/frontier-clash-poster.jpg?v=1" alt="Frontier Clash Real-Time Strategy">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">NEW • REAL-TIME 1V1 STRATEGY</span>
+                        <div class="game-tile-title">Frontier Clash</div>
+                        <div class="game-tile-desc">Mini Clash Royale in the Wild West. Deploy 8 cowboy troops &amp; TNT spells across twin canyon bridges to destroy enemy fortress towers.</div>
+                        <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Frontier Clash</button>
+                    </div>
+                </div>
+
+                <div class="game-tile" data-cat="party" onclick="openGameLobby('bounty')">
+                    <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">2-8 PLAYERS • 6 SCENES</span>
+                        <div class="game-tile-title">Bounty Hunt</div>
+                        <div class="game-tile-desc">6 packed Wild West scenes hiding 10 target treasures among decoys. Spot and click all 10 hidden items before your rival to win.</div>
+                        <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Bounty Hunt</button>
+                    </div>
+                </div>
+
+                <div class="game-tile" data-cat="trivia" onclick="openGameLobby('duel')">
                     <img class="game-tile-art" src="/high-noon-poster.jpg?v=1" alt="High-Noon Rarity Showdown">
                     <div class="game-tile-body">
                         <span class="game-tile-tag">1V1 RARITY COMBAT</span>
@@ -964,7 +1106,7 @@
                     </div>
                 </div>
 
-                <div class="game-tile" onclick="openGameLobby('pass')">
+                <div class="game-tile" data-cat="party" onclick="openGameLobby('pass')">
                     <img class="game-tile-art" src="/dynamite-pass-poster.jpg?v=1" alt="Dynamite Pass 15s Hot Potato">
                     <div class="game-tile-body">
                         <span class="game-tile-tag">2-8 PLAYERS • HOT POTATO</span>
@@ -974,23 +1116,13 @@
                     </div>
                 </div>
 
-                <div class="game-tile" onclick="openGameLobby('quickdraw')">
+                <div class="game-tile" data-cat="trivia" onclick="openGameLobby('quickdraw')">
                     <img class="game-tile-art" src="/quick-draw-poster.jpg?v=1" alt="Quick-Draw Trivia First-to-Buzz">
                     <div class="game-tile-body">
                         <span class="game-tile-tag">2-8 PLAYERS • FIRST TO 7</span>
                         <div class="game-tile-title">Quick-Draw Trivia</div>
                         <div class="game-tile-desc">Hands on holsters. A trivia question flashes — first gunslinger to fire the right answer scores +1. Wrong shot jams your revolver.</div>
                         <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Quick-Draw Trivia</button>
-                    </div>
-                </div>
-
-                <div class="game-tile" onclick="openGameLobby('bounty')">
-                    <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
-                    <div class="game-tile-body">
-                        <span class="game-tile-tag">2-8 PLAYERS • 6 SCENES</span>
-                        <div class="game-tile-title">Bounty Hunt</div>
-                        <div class="game-tile-desc">6 packed Wild West scenes hiding 10 target treasures among decoys. Spot and click all 10 hidden items before your rival to win.</div>
-                        <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Bounty Hunt</button>
                     </div>
                 </div>
             </div>
@@ -1073,6 +1205,12 @@
                     <span><strong style="color:#38bdf8;">FIRST TO 10/10</strong> WINS</span>
                     <span><strong style="color:#fb7185;">WRONG CLICK</strong> 1.1S PENALTY</span>
                     <span><strong style="color:#34d399;">FRESH SPOTS</strong> EVERY MATCH</span>
+                </div>
+                <div id="lobbyClashLegend" class="dmg-legend hidden" style="margin-top:18px;">
+                    <span><strong style="color:#fde047;">8 WILD WEST CARDS</strong> TROOPS &amp; SPELLS</span>
+                    <span><strong style="color:#38bdf8;">2 BRIDGES</strong> 3 TOWERS PER SIDE</span>
+                    <span><strong style="color:#c084fc;">2X ELIXIR</strong> FINAL 60 SECONDS</span>
+                    <span><strong style="color:#34d399;">DESTROY FORT</strong> INSTANT 3-CROWN WIN</span>
                 </div>
             </div>
         </section>
@@ -1335,6 +1473,71 @@
                     <div id="bhStatusHint" class="mono" style="font-size:11px; font-weight:700; color:#94a3b8;">Click hidden items — watch out for decoys!</div>
                 </div>
                 <div id="bhTargetList" class="bh-targets-grid"></div>
+            </div>
+        </section>
+
+        <!-- MODE 5: FRONTIER CLASH (MINI CLASH ROYALE — REAL-TIME 2-LANE STRATEGY) -->
+        <section id="viewClash" class="card hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; max-width:440px; margin-left:auto; margin-right:auto;">
+                <div>
+                    <span class="tier-badge tier-LEGENDARY">FRONTIER CLASH • 1V1</span>
+                    <span id="clashDoubleBadge" class="elo-pill mono hidden" style="color:#f472b6; border-color:#f472b6;">2X ELIXIR!</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="clashClock" class="mono" style="font-size:16px; font-weight:800; color:#fffbeb;">2:30</span>
+                    <span id="clashRoomTag" class="mono" style="font-size:11px; color:#fde68a;">ROOM ----</span>
+                    <button class="btn btn-ghost" onclick="leaveDuel()" style="padding:5px 9px; font-size:11px;">Exit</button>
+                </div>
+            </div>
+
+            <!-- Match Over Box (shown prominently at top) -->
+            <div id="clashOverBox" class="hidden" style="max-width:440px; margin:0 auto 12px; text-align:center; padding:16px; border-radius:16px; background:rgba(20,9,4,0.95); border:2px solid #fbbf24;">
+                <div id="clashOverHeadline" class="western-font" style="font-size:28px; color:#fde047;">3-CROWN VICTORY!</div>
+                <div id="clashOverSub" style="font-size:13px; color:#fde68a; margin-top:6px; font-weight:700;"></div>
+                <div id="clashOverElo" class="ko-elo-box mono hidden"></div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:12px;">
+                    <button class="btn btn-rose" onclick="sendClashRematch()">Play Again</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+
+            <!-- Waiting Room Box -->
+            <div id="clashWaitingBox" class="hidden" style="max-width:440px; margin:0 auto 12px; text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.78); border:1px solid rgba(245,158,11,0.45);">
+                <div style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Rival Commander...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Room Code: <strong id="clashShareCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="clashCopyBtn" class="btn btn-ghost" onclick="copyClashInviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="startClash('ai', '')" style="padding:8px 14px; font-size:12px;">Battle AI Instead</button>
+                </div>
+            </div>
+
+            <!-- Top Opponent Bar -->
+            <div id="clashPlayArea" class="hidden">
+                <div style="max-width:440px; margin:0 auto 6px; display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:800;">
+                    <span id="clashOppName" style="color:#fb7185;">OPPONENT</span>
+                    <span id="clashScoreLine" class="mono" style="color:#fde047;">CROWNS: 0 - 0</span>
+                    <span id="clashMyName" style="color:#38bdf8;">YOU</span>
+                </div>
+
+                <!-- Live 60fps 2-Lane Battlefield Canvas -->
+                <div class="clash-stage-wrap">
+                    <canvas id="clashCanvas"></canvas>
+                </div>
+
+                <!-- Elixir Bar -->
+                <div class="clash-elixir-wrap">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:800; margin-bottom:4px;">
+                        <span style="color:#e9d5ff;">ELIXIR: <strong id="clashElixirText" class="mono" style="color:#f472b6; font-size:13px;">5.0 / 10</strong></span>
+                        <span id="clashNextCardText" style="color:#fde68a;">Next: ---</span>
+                    </div>
+                    <div class="clash-elixir-track"><div id="clashElixirFill" class="clash-elixir-fill"></div></div>
+                </div>
+
+                <!-- 4-Card Active Hand (Click or Press 1-4, then Tap Arena to Deploy) -->
+                <div id="clashHand" class="clash-hand"></div>
+                <div style="max-width:440px; margin:6px auto 0; text-align:center; font-size:11px; color:#94a3b8;">
+                    Select a card (or keys 1-4) and click your side of the river to deploy. TNT Barrage hits anywhere!
+                </div>
             </div>
         </section>
     </main>
@@ -2143,6 +2346,9 @@
             } else if (inv.game === 'bounty') {
                 selectGameHubMode('bounty');
                 startBountyHunt('private', inv.roomCode);
+            } else if (inv.game === 'clash') {
+                selectGameHubMode('clash');
+                startClash('private', inv.roomCode);
             } else {
                 selectGameHubMode('duel');
                 startDuel('private', inv.roomCode);
@@ -2265,7 +2471,12 @@
                         invBh.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#34d399; color:#6ee7b7;';
                         invBh.textContent = 'Invite Bounty';
                         invBh.onclick = () => inviteFriendToGame(f.id, f.username, 'bounty');
-                        right.append(invDuel, invPass, invQd, invBh);
+                        const invCl = document.createElement('button');
+                        invCl.className = 'btn btn-ghost';
+                        invCl.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#c084fc; color:#e9d5ff;';
+                        invCl.textContent = 'Invite Clash';
+                        invCl.onclick = () => inviteFriendToGame(f.id, f.username, 'clash');
+                        right.append(invDuel, invPass, invQd, invBh, invCl);
                     } else {
                         const off = document.createElement('span');
                         off.style.cssText = 'font-size:11px; color:#64748b; margin-right:4px;';
@@ -2354,6 +2565,9 @@
                 } else if (game === 'bounty') {
                     selectGameHubMode('bounty');
                     startBountyHunt('private', roomCode);
+                } else if (game === 'clash') {
+                    selectGameHubMode('clash');
+                    startClash('private', roomCode);
                 } else {
                     selectGameHubMode('duel');
                     startDuel('private', roomCode);
@@ -2754,34 +2968,56 @@
         let passWs = null, passSelfId = null, passTimerInt = null, passRoomCode = '';
         let passSuggestDebounce = null, passSuggestions = [];
 
+        function filterGameCatalog(cat) {
+            document.querySelectorAll('.cat-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === cat);
+            });
+            document.querySelectorAll('.portal-grid .game-tile').forEach(tile => {
+                const show = cat === 'all' || tile.dataset.cat === cat;
+                tile.classList.toggle('hidden', !show);
+            });
+        }
+
         function selectGameHubMode(game) {
-            selectedHubGame = ['pass', 'quickdraw', 'bounty'].includes(game) ? game : 'duel';
+            selectedHubGame = ['pass', 'quickdraw', 'bounty', 'clash'].includes(game) ? game : 'duel';
             const isPass = selectedHubGame === 'pass';
             const isQd = selectedHubGame === 'quickdraw';
             const isBh = selectedHubGame === 'bounty';
+            const isCl = selectedHubGame === 'clash';
             document.getElementById('lobbyTag').textContent = isPass
                 ? '2-8 PLAYERS • 15S HOT POTATO'
-                : (isQd ? '2-8 PLAYERS • FIRST TO 7' : (isBh ? '2-8 PLAYERS • HIDDEN OBJECTS' : '1V1 RARITY COMBAT'));
+                : (isQd ? '2-8 PLAYERS • FIRST TO 7'
+                    : (isBh ? '2-8 PLAYERS • 6 SCENES'
+                        : (isCl ? 'REAL-TIME 1V1 STRATEGY' : '1V1 RARITY COMBAT')));
             document.getElementById('lobbyTitle').textContent = isPass
                 ? 'Dynamite Pass'
-                : (isQd ? 'Quick-Draw Trivia' : (isBh ? 'Bounty Hunt' : 'High-Noon Showdown'));
+                : (isQd ? 'Quick-Draw Trivia'
+                    : (isBh ? 'Bounty Hunt'
+                        : (isCl ? 'Frontier Clash' : 'High-Noon Showdown')));
             document.getElementById('lobbyDesc').textContent = isPass
                 ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
                 : (isQd
                     ? 'Hands on holsters. A trivia question flashes — first gunslinger to fire the right answer scores +1. Wrong shot jams your revolver for the round.'
                     : (isBh
-                        ? 'A packed Wild West saloon with 10 hidden target items tucked among decoys. First gunslinger to spot and click all 10 items wins!'
-                        : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.'));
+                        ? '6 packed Wild West scenes with 10 hidden target items tucked among decoys. First gunslinger to spot and click all 10 items wins!'
+                        : (isCl
+                            ? 'Mini Clash Royale in the Wild West. Spend regenerating Elixir to deploy 8 cowboy troops & TNT spells across twin canyon bridges and destroy enemy towers.'
+                            : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.')));
             document.getElementById('btnPlayQuick').textContent = isPass
                 ? 'Quick Online Dynamite Pass'
-                : (isQd ? 'Quick Online Quick-Draw' : (isBh ? 'Quick Online Bounty Hunt' : 'Quick 1v1 Online Match'));
+                : (isQd ? 'Quick Online Quick-Draw'
+                    : (isBh ? 'Quick Online Bounty Hunt'
+                        : (isCl ? 'Quick 1v1 Frontier Clash' : 'Quick 1v1 Online Match')));
             document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
-                : (isQd ? 'Instant Quick-Draw vs AI' : (isBh ? 'Instant Bounty Hunt vs AI' : 'Instant 1v1 vs AI Fighter'));
-            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh);
+                : (isQd ? 'Instant Quick-Draw vs AI'
+                    : (isBh ? 'Instant Bounty Hunt vs AI'
+                        : (isCl ? 'Instant Frontier Clash vs AI' : 'Instant 1v1 vs AI Fighter')));
+            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh || isCl);
             document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
             document.getElementById('lobbyQdLegend').classList.toggle('hidden', !isQd);
             document.getElementById('lobbyBhLegend').classList.toggle('hidden', !isBh);
+            document.getElementById('lobbyClashLegend').classList.toggle('hidden', !isCl);
         }
 
         function openGameLobby(game) {
@@ -2791,6 +3027,7 @@
             document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewBounty').classList.add('hidden');
+            document.getElementById('viewClash').classList.add('hidden');
             document.getElementById('viewLobby').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -2800,6 +3037,7 @@
             if (selectedHubGame === 'pass') startPassGame(subMode, code);
             else if (selectedHubGame === 'quickdraw') startQuickDraw(subMode, code);
             else if (selectedHubGame === 'bounty') startBountyHunt(subMode, code);
+            else if (selectedHubGame === 'clash') startClash(subMode, code);
             else startDuel(subMode, code);
         }
 
@@ -2811,6 +3049,7 @@
             passRoomCode = '';
             qdRoomCode = '';
             bhRoomCode = '';
+            clashRoomCode = '';
             clearTimeout(reconnectTimer);
             clearInterval(timerInt);
             clearInterval(passTimerInt);
@@ -2823,10 +3062,12 @@
             if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
             if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
             if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
+            if (clashWs) { clashWs.onclose = null; clashWs.close(); clashWs = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewBounty').classList.add('hidden');
+            document.getElementById('viewClash').classList.add('hidden');
             document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
@@ -4769,7 +5010,463 @@
             }
         }
 
-        // Auto-join if opened via ?room=XXXX, ?mode=pass&room=XXXX, ?mode=quickdraw&room=XXXX, or ?mode=bounty&room=XXXX invite link
+        // ============================================================
+        // MODE 5: FRONTIER CLASH (MINI CLASH ROYALE — 2-LANE STRATEGY)
+        // ============================================================
+        let clashWs = null;
+        let clashSelfId = null;
+        let clashSide = 0;
+        let clashRoomCode = '';
+        let clashCardsMap = {};
+        let clashLastSnap = null;
+        let clashSelectedCard = null;
+        let clashHoverPos = null; // { x, y } in display coords (0..100, 0..160)
+
+        const clashCanvas = document.getElementById('clashCanvas');
+        const clashCtx = clashCanvas ? clashCanvas.getContext('2d') : null;
+        let clw = 420, clh = 630;
+
+        function resizeClashCanvas() {
+            if (!clashCanvas || !clashCtx) return;
+            const rect = clashCanvas.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const nw = Math.max(280, Math.round(rect.width || 420));
+            const nh = Math.max(420, Math.round(rect.height || 630));
+            const tw = Math.round(nw * dpr), th = Math.round(nh * dpr);
+            if (clashCanvas.width !== tw || clashCanvas.height !== th) {
+                clw = nw; clh = nh;
+                clashCanvas.width = tw; clashCanvas.height = th;
+                clashCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+        }
+        window.addEventListener('resize', resizeClashCanvas);
+
+        function clashToScreen(wx, wy) {
+            const dx = clashSide === 1 ? (100 - wx) : wx;
+            const dy = clashSide === 1 ? (160 - wy) : wy;
+            return { sx: (dx / 100) * clw, sy: (dy / 160) * clh };
+        }
+
+        function screenToClashWorld(sx, sy) {
+            const dx = (sx / clw) * 100;
+            const dy = (sy / clh) * 160;
+            return clashSide === 1 ? { x: 100 - dx, y: 160 - dy } : { x: dx, y: dy };
+        }
+
+        function renderClashCanvasFrame() {
+            requestAnimationFrame(renderClashCanvasFrame);
+            if (!clashCtx || document.getElementById('viewClash').classList.contains('hidden')) return;
+            const snap = clashLastSnap;
+            if (!snap || snap.state === 'WAITING') return;
+
+            // 1. Dusty Wild West Canyon Arena Floor
+            const bg = clashCtx.createLinearGradient(0, 0, 0, clh);
+            bg.addColorStop(0, '#5c2b14');
+            bg.addColorStop(0.48, '#7c3f1d');
+            bg.addColorStop(0.52, '#7c3f1d');
+            bg.addColorStop(1, '#592913');
+            clashCtx.fillStyle = bg;
+            clashCtx.fillRect(0, 0, clw, clh);
+
+            // Subtle sandy grid tiles
+            clashCtx.strokeStyle = 'rgba(254, 243, 199, 0.06)';
+            clashCtx.lineWidth = 1;
+            for (let gx = 10; gx < 100; gx += 10) {
+                const x = (gx / 100) * clw;
+                clashCtx.beginPath(); clashCtx.moveTo(x, 0); clashCtx.lineTo(x, clh); clashCtx.stroke();
+            }
+            for (let gy = 10; gy < 160; gy += 10) {
+                const y = (gy / 160) * clh;
+                clashCtx.beginPath(); clashCtx.moveTo(0, y); clashCtx.lineTo(clw, y); clashCtx.stroke();
+            }
+
+            // Twin dusty lane trails
+            clashCtx.fillStyle = 'rgba(217, 119, 6, 0.16)';
+            clashCtx.fillRect(clw * 0.17, clh * 0.12, clw * 0.14, clh * 0.76);
+            clashCtx.fillRect(clw * 0.69, clh * 0.12, clw * 0.14, clh * 0.76);
+
+            // 2. Canyon River across middle (y = 80)
+            const riverY = clh * 0.5;
+            const riverH = clh * 0.075;
+            const rGrad = clashCtx.createLinearGradient(0, riverY - riverH / 2, 0, riverY + riverH / 2);
+            rGrad.addColorStop(0, '#0c4a6e');
+            rGrad.addColorStop(0.5, '#0284c7');
+            rGrad.addColorStop(1, '#075985');
+            clashCtx.fillStyle = rGrad;
+            clashCtx.fillRect(0, riverY - riverH / 2, clw, riverH);
+            clashCtx.strokeStyle = '#38bdf8';
+            clashCtx.lineWidth = 1.2;
+            const waveShift = (performance.now() * 0.03) % 36;
+            for (let wx = -36 + waveShift; wx < clw; wx += 36) {
+                clashCtx.beginPath();
+                clashCtx.moveTo(wx, riverY);
+                clashCtx.lineTo(wx + 16, riverY);
+                clashCtx.stroke();
+            }
+
+            // Twin Wooden Plank Bridges (x = 24 and x = 76)
+            [0.24, 0.76].forEach(bx => {
+                const bw = clw * 0.15;
+                const bh = riverH + 10;
+                clashCtx.fillStyle = '#78350f';
+                clashCtx.strokeStyle = '#451a03';
+                clashCtx.lineWidth = 2;
+                clashCtx.fillRect(clw * bx - bw / 2, riverY - bh / 2, bw, bh);
+                clashCtx.strokeRect(clw * bx - bw / 2, riverY - bh / 2, bw, bh);
+                clashCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
+                for (let py = riverY - bh / 2 + 6; py < riverY + bh / 2; py += 7) {
+                    clashCtx.beginPath();
+                    clashCtx.moveTo(clw * bx - bw / 2 + 2, py);
+                    clashCtx.lineTo(clw * bx + bw / 2 - 2, py);
+                    clashCtx.stroke();
+                }
+            });
+
+            // Deploy Zone highlight when a card is selected
+            if (clashSelectedCard && snap.state === 'PLAYING') {
+                const card = clashCardsMap[clashSelectedCard];
+                if (card) {
+                    clashCtx.save();
+                    if (card.type === 'spell') {
+                        clashCtx.fillStyle = 'rgba(253, 224, 71, 0.08)';
+                        clashCtx.fillRect(0, 0, clw, clh);
+                    } else {
+                        clashCtx.fillStyle = 'rgba(56, 189, 248, 0.11)';
+                        clashCtx.fillRect(0, riverY + riverH / 2, clw, clh - (riverY + riverH / 2));
+                    }
+                    if (clashHoverPos) {
+                        const hx = (clashHoverPos.x / 100) * clw;
+                        const hy = (clashHoverPos.y / 160) * clh;
+                        const rad = card.type === 'spell' ? (card.radius / 100) * clw : 18;
+                        clashCtx.strokeStyle = card.type === 'spell' ? '#fde047' : '#38bdf8';
+                        clashCtx.lineWidth = 2;
+                        clashCtx.setLineDash([5, 4]);
+                        clashCtx.beginPath();
+                        clashCtx.arc(hx, hy, rad, 0, Math.PI * 2);
+                        clashCtx.stroke();
+                    }
+                    clashCtx.restore();
+                }
+            }
+
+            // 3. Draw Fortress & Outpost Towers
+            (snap.towers || []).forEach(t => {
+                const { sx, sy } = clashToScreen(t.x, t.y);
+                const isMine = t.side === clashSide;
+                const sz = t.kind === 'king' ? 24 : 18;
+                clashCtx.save();
+                clashCtx.translate(sx, sy);
+
+                if (t.hp <= 0) {
+                    // Destroyed rubble
+                    clashCtx.fillStyle = 'rgba(28, 12, 6, 0.72)';
+                    clashCtx.beginPath(); clashCtx.arc(0, 0, sz * 0.85, 0, Math.PI * 2); clashCtx.fill();
+                    clashCtx.strokeStyle = '#78350f'; clashCtx.lineWidth = 2; clashCtx.stroke();
+                    clashCtx.restore();
+                    return;
+                }
+
+                // Tower base & roof
+                clashCtx.fillStyle = isMine ? '#0369a1' : '#991b1b';
+                clashCtx.strokeStyle = isMine ? '#7dd3fc' : '#fca5a5';
+                clashCtx.lineWidth = 2.5;
+                clashCtx.beginPath();
+                clashCtx.roundRect(-sz, -sz, sz * 2, sz * 2, 7);
+                clashCtx.fill(); clashCtx.stroke();
+
+                // Inner wooden fort emblem
+                clashCtx.fillStyle = '#451a03';
+                clashCtx.fillRect(-sz * 0.55, -sz * 0.55, sz * 1.1, sz * 1.1);
+                clashCtx.fillStyle = '#fde047';
+                clashCtx.font = `800 ${t.kind === 'king' ? 13 : 10}px "JetBrains Mono", monospace`;
+                clashCtx.textAlign = 'center';
+                clashCtx.textBaseline = 'middle';
+                clashCtx.fillText(t.kind === 'king' ? 'FORT' : 'TWR', 0, 1);
+
+                // HP bar
+                const bw = sz * 2.2;
+                const pct = Math.max(0, t.hp / t.maxHp);
+                clashCtx.fillStyle = 'rgba(0,0,0,0.75)';
+                clashCtx.fillRect(-bw / 2, -sz - 11, bw, 6);
+                clashCtx.fillStyle = isMine ? '#38bdf8' : '#fb7185';
+                clashCtx.fillRect(-bw / 2, -sz - 11, bw * pct, 6);
+                clashCtx.font = '800 9px "JetBrains Mono", monospace';
+                clashCtx.fillStyle = '#fffbeb';
+                clashCtx.fillText(String(t.hp), 0, -sz - 15);
+                clashCtx.restore();
+            });
+
+            // 4. Draw Live Marching Troops
+            (snap.units || []).forEach(u => {
+                const { sx, sy } = clashToScreen(u.x, u.y);
+                const isMine = u.side === clashSide;
+                const r = u.cardId === 'brawler' ? 13 : (u.cardId === 'cannon' || u.cardId === 'mustang' ? 11 : 8.5);
+                clashCtx.save();
+                clashCtx.translate(sx, sy);
+
+                // Shadow
+                clashCtx.fillStyle = 'rgba(0,0,0,0.45)';
+                clashCtx.beginPath(); clashCtx.ellipse(0, r * 0.75, r * 0.9, r * 0.4, 0, 0, Math.PI * 2); clashCtx.fill();
+
+                // Team ring
+                clashCtx.fillStyle = u.color || '#fbbf24';
+                clashCtx.strokeStyle = isMine ? '#38bdf8' : '#fb7185';
+                clashCtx.lineWidth = 2.6;
+                clashCtx.beginPath(); clashCtx.arc(0, 0, r, 0, Math.PI * 2); clashCtx.fill(); clashCtx.stroke();
+
+                // Cowboy hat / icon accent
+                clashCtx.fillStyle = '#1c0c06';
+                clashCtx.fillRect(-r * 0.75, -r * 0.45, r * 1.5, 3);
+                clashCtx.fillRect(-r * 0.45, -r * 0.85, r * 0.9, r * 0.45);
+
+                // Unit HP bar
+                if (u.hp < u.maxHp) {
+                    const uw = r * 2.2;
+                    clashCtx.fillStyle = 'rgba(0,0,0,0.75)';
+                    clashCtx.fillRect(-uw / 2, -r - 7, uw, 4);
+                    clashCtx.fillStyle = isMine ? '#34d399' : '#fb7185';
+                    clashCtx.fillRect(-uw / 2, -r - 7, uw * Math.max(0, u.hp / u.maxHp), 4);
+                }
+                clashCtx.restore();
+            });
+
+            // 5. Draw Projectiles, Spawns & Explosions
+            (snap.effects || []).forEach(ef => {
+                clashCtx.save();
+                if (ef.kind === 'shot') {
+                    const p1 = clashToScreen(ef.x1, ef.y1);
+                    const p2 = clashToScreen(ef.x2, ef.y2);
+                    clashCtx.strokeStyle = ef.color || '#fde047';
+                    clashCtx.lineWidth = 2.8;
+                    clashCtx.beginPath(); clashCtx.moveTo(p1.sx, p1.sy); clashCtx.lineTo(p2.sx, p2.sy); clashCtx.stroke();
+                } else if (ef.kind === 'boom') {
+                    const p = clashToScreen(ef.x, ef.y);
+                    const rad = (ef.r / 100) * clw;
+                    const grad = clashCtx.createRadialGradient(p.sx, p.sy, 2, p.sx, p.sy, rad);
+                    grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+                    grad.addColorStop(0.45, 'rgba(251,146,60,0.75)');
+                    grad.addColorStop(1, 'rgba(220,38,38,0)');
+                    clashCtx.fillStyle = grad;
+                    clashCtx.beginPath(); clashCtx.arc(p.sx, p.sy, rad, 0, Math.PI * 2); clashCtx.fill();
+                } else if (ef.kind === 'spawn') {
+                    const p = clashToScreen(ef.x, ef.y);
+                    clashCtx.strokeStyle = ef.color || '#38bdf8';
+                    clashCtx.lineWidth = 2.5;
+                    clashCtx.beginPath(); clashCtx.arc(p.sx, p.sy, 16, 0, Math.PI * 2); clashCtx.stroke();
+                }
+                clashCtx.restore();
+            });
+        }
+        requestAnimationFrame(renderClashCanvasFrame);
+
+        if (clashCanvas) {
+            clashCanvas.addEventListener('pointermove', (e) => {
+                const rect = clashCanvas.getBoundingClientRect();
+                clashHoverPos = {
+                    x: ((e.clientX - rect.left) / rect.width) * 100,
+                    y: ((e.clientY - rect.top) / rect.height) * 160,
+                };
+            });
+            clashCanvas.addEventListener('pointerleave', () => { clashHoverPos = null; });
+            clashCanvas.addEventListener('pointerdown', (e) => {
+                if (!clashWs || clashWs.readyState !== 1 || !clashLastSnap || clashLastSnap.state !== 'PLAYING') return;
+                if (!clashSelectedCard) {
+                    // Auto-pick first affordable card if none selected
+                    const firstAff = (clashLastSnap.hand || []).find(id => clashCardsMap[id] && clashLastSnap.elixir >= clashCardsMap[id].cost);
+                    if (!firstAff) return;
+                    clashSelectedCard = firstAff;
+                }
+                const rect = clashCanvas.getBoundingClientRect();
+                const sx = e.clientX - rect.left;
+                const sy = e.clientY - rect.top;
+                const world = screenToClashWorld(sx, sy);
+                clashWs.send(JSON.stringify({ type: 'DEPLOY_CARD', cardId: clashSelectedCard, x: world.x, y: world.y }));
+                playSfx(440, 0.08, 'triangle', 0.12);
+                clashSelectedCard = null;
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('viewClash').classList.contains('hidden')) return;
+            if (!clashLastSnap || clashLastSnap.state !== 'PLAYING') return;
+            const idx = { '1': 0, '2': 1, '3': 2, '4': 3 }[e.key];
+            if (idx !== undefined && clashLastSnap.hand && clashLastSnap.hand[idx]) {
+                clashSelectedCard = clashLastSnap.hand[idx];
+                renderClashHand(clashLastSnap);
+            }
+        });
+
+        function startClash(mode, code) {
+            clearFullScreenExplosion();
+            manualLeave = false;
+            clashSelectedCard = null;
+            clashLastSnap = null;
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+            if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
+            if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
+            if (clashWs) { clashWs.onclose = null; clashWs.close(); clashWs = null; }
+
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const cleanCode = encodeURIComponent((code || '').trim().toUpperCase());
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.add('hidden');
+            document.getElementById('viewBounty').classList.add('hidden');
+            document.getElementById('viewClash').classList.remove('hidden');
+            document.getElementById('clashOverBox').classList.add('hidden');
+
+            clashWs = new WebSocket(`${proto}//${location.host}/ws/clash?mode=${mode}&code=${cleanCode}&name=${name}&pid=${pid}&token=${token}`);
+            clashWs.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'CLASH_ERROR') {
+                    alert(msg.message || 'Could not join Frontier Clash room.');
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'CLASH_JOINED') {
+                    clashSelfId = msg.selfId;
+                    clashSide = msg.side || 0;
+                    clashRoomCode = msg.snapshot.code;
+                    clashCardsMap = {};
+                    (msg.cards || []).forEach(c => { clashCardsMap[c.id] = c; });
+                    renderClashUi(msg.snapshot);
+                } else if (msg.type === 'CLASH_START' || msg.type === 'CLASH_STATE') {
+                    if (msg.type === 'CLASH_START') {
+                        clashSelectedCard = null;
+                        document.getElementById('clashOverBox').classList.add('hidden');
+                        playSfx(620, 0.14, 'triangle', 0.14);
+                    }
+                    renderClashUi(msg.snapshot);
+                } else if (msg.type === 'CLASH_GAME_OVER') {
+                    renderClashUi(msg.snapshot, msg.winner, msg.reason, msg.eloChanges);
+                    loadHomeProfile();
+                    loadLeaderboard();
+                }
+            };
+        }
+
+        function sendClashRematch() {
+            if (clashWs && clashWs.readyState === 1) clashWs.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function copyClashInviteLink() {
+            if (!clashRoomCode) return;
+            const url = `${location.origin}/?mode=clash&room=${clashRoomCode}`;
+            navigator.clipboard?.writeText(url).catch(() => {});
+            const btn = document.getElementById('clashCopyBtn');
+            btn.textContent = 'Invite Link Copied!';
+            setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+        }
+
+        function renderClashHand(snap) {
+            const handEl = document.getElementById('clashHand');
+            if (!handEl) return;
+            handEl.innerHTML = '';
+            (snap.hand || []).forEach((cardId, idx) => {
+                const c = clashCardsMap[cardId];
+                if (!c) return;
+                const affordable = (snap.elixir || 0) >= c.cost;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'clash-card-btn'
+                    + (clashSelectedCard === cardId ? ' selected' : '')
+                    + (!affordable ? ' unaffordable' : '');
+                btn.onclick = () => {
+                    clashSelectedCard = clashSelectedCard === cardId ? null : cardId;
+                    renderClashHand(snap);
+                };
+
+                const cost = document.createElement('span');
+                cost.className = 'clash-cost-badge mono';
+                cost.textContent = String(c.cost);
+
+                const dot = document.createElement('div');
+                dot.style.cssText = `width:22px; height:22px; border-radius:50%; background:${c.color}; border:2px solid #fffbeb; margin-top:2px;`;
+
+                const nm = document.createElement('div');
+                nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15;';
+                nm.textContent = c.name;
+
+                const role = document.createElement('div');
+                role.style.cssText = 'font-size:9px; color:#fde68a; font-weight:700;';
+                role.textContent = `[${idx + 1}] ${c.role}`;
+
+                btn.append(cost, dot, nm, role);
+                handEl.appendChild(btn);
+            });
+        }
+
+        function renderClashUi(snap, winner, reason, eloChanges) {
+            clashLastSnap = snap;
+            document.getElementById('clashRoomTag').textContent = `ROOM ${snap.code}`;
+            document.getElementById('clashShareCode').textContent = snap.code;
+            document.getElementById('clashDoubleBadge').classList.toggle('hidden', !snap.doubleElixir);
+
+            const secTotal = Math.ceil((snap.remainingMs || 0) / 1000);
+            const mins = Math.floor(secTotal / 60);
+            const secs = String(secTotal % 60).padStart(2, '0');
+            document.getElementById('clashClock').textContent = `${mins}:${secs}`;
+
+            const me = (snap.players || []).find(p => p.id === clashSelfId);
+            const opp = (snap.players || []).find(p => p.id !== clashSelfId);
+            if (me) document.getElementById('clashMyName').textContent = `${me.name} (YOU)`;
+            if (opp) document.getElementById('clashOppName').textContent = opp.name;
+            document.getElementById('clashScoreLine').textContent = `CROWNS: ${opp ? opp.crowns : 0} - ${me ? me.crowns : 0}`;
+
+            document.getElementById('clashWaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('clashPlayArea').classList.toggle('hidden', snap.state === 'WAITING');
+            document.getElementById('clashOverBox').classList.toggle('hidden', snap.state !== 'FINISHED');
+
+            if (snap.state !== 'WAITING') {
+                requestAnimationFrame(resizeClashCanvas);
+                const elix = snap.elixir || 0;
+                document.getElementById('clashElixirText').textContent = `${elix.toFixed(1)} / 10`;
+                document.getElementById('clashElixirFill').style.width = `${Math.min(100, (elix / 10) * 100)}%`;
+                const nextC = snap.nextCard && clashCardsMap[snap.nextCard];
+                document.getElementById('clashNextCardText').textContent = nextC ? `Next: ${nextC.name} (${nextC.cost})` : '';
+                renderClashHand(snap);
+            }
+
+            if (snap.state === 'FINISHED') {
+                const iWon = Boolean(winner && winner.id === clashSelfId);
+                const isDraw = !winner;
+                const hl = document.getElementById('clashOverHeadline');
+                hl.textContent = isDraw ? 'FRONTIER DRAW!' : (iWon ? 'VICTORY — TOWERS FALLEN!' : 'DEFEAT — FORT BREACHED!');
+                hl.style.color = isDraw ? '#fde047' : (iWon ? '#34d399' : '#fb7185');
+                document.getElementById('clashOverSub').textContent = reason || 'Match complete.';
+                if (iWon) {
+                    playSfx(523, 0.14, 'triangle', 0.16, 0);
+                    playSfx(659, 0.14, 'triangle', 0.16, 0.12);
+                    playSfx(784, 0.25, 'triangle', 0.18, 0.24);
+                } else {
+                    playSfx(240, 0.2, 'sawtooth', 0.14, 0);
+                    playSfx(160, 0.28, 'sawtooth', 0.14, 0.16);
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                const eloEl = document.getElementById('clashOverElo');
+                const myChange = eloChanges && eloChanges[clashSelfId];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
+                    eloEl.classList.remove('hidden');
+                } else {
+                    eloEl.classList.add('hidden');
+                }
+            }
+        }
+
+        // Auto-join if opened via ?room=XXXX or ?mode=...&room=XXXX invite link
         (function checkInviteRoomParam() {
             try {
                 const params = new URLSearchParams(location.search);
@@ -4786,6 +5483,9 @@
                     } else if (modeParam === 'bounty') {
                         selectGameHubMode('bounty');
                         setTimeout(() => startBountyHunt('private', room), 250);
+                    } else if (modeParam === 'clash') {
+                        selectGameHubMode('clash');
+                        setTimeout(() => startClash('private', room), 250);
                     } else {
                         setTimeout(() => startDuel('private', room), 250);
                     }
