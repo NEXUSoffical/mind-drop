@@ -5141,73 +5141,294 @@
             return clashSide === 1 ? { x: 100 - dx, y: 160 - dy } : { x: dx, y: dy };
         }
 
+        // Detailed animated Wild West sprites for all 8 Frontier Clash troops & spells
+        function drawClashUnitSprite(ctx, cardId, isMine, phase = 0, s = 1) {
+            const teamMain = isMine ? '#0284c7' : '#dc2626';
+            const teamLight = isMine ? '#38bdf8' : '#fb7185';
+            const bob = Math.sin(phase) * 1.4;
+            const stride = Math.sin(phase) * 3.2;
+
+            ctx.save();
+            ctx.scale(s, s);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            if (cardId === 'mustang') {
+                // Full Galloping Chestnut Horse + Cowboy Rider!
+                const gallop = Math.sin(phase * 1.4) * 2.2;
+                ctx.translate(0, gallop * 0.5);
+                // Horse legs (front & back galloping)
+                ctx.strokeStyle = '#5c2409'; ctx.lineWidth = 2.6;
+                ctx.beginPath();
+                ctx.moveTo(-7, 4); ctx.lineTo(-9 - stride, 13);
+                ctx.moveTo(-3, 4); ctx.lineTo(-4 + stride, 13);
+                ctx.moveTo(5, 4); ctx.lineTo(7 + stride, 13);
+                ctx.moveTo(8, 4); ctx.lineTo(10 - stride, 12);
+                ctx.stroke();
+                // Flowing tail
+                ctx.strokeStyle = '#1c0c06'; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.moveTo(-11, 0); ctx.quadraticCurveTo(-16, 2 + gallop, -15, 7); ctx.stroke();
+                // Horse body
+                ctx.fillStyle = '#92400e'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.4;
+                ctx.beginPath(); ctx.ellipse(0, 2, 11.5, 6.2, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                // Team saddle blanket
+                ctx.fillStyle = teamMain;
+                ctx.fillRect(-5, -3.5, 9, 6);
+                // Horse neck & head
+                ctx.fillStyle = '#92400e';
+                ctx.beginPath(); ctx.moveTo(7, -1); ctx.lineTo(12, -9); ctx.lineTo(17, -6); ctx.lineTo(15, -2); ctx.lineTo(9, 2); ctx.closePath();
+                ctx.fill(); ctx.stroke();
+                // Rider torso & fluttering bandana
+                ctx.fillStyle = '#29150b'; ctx.fillRect(-4, -10, 7, 8);
+                ctx.fillStyle = teamLight;
+                ctx.beginPath(); ctx.moveTo(-4, -9); ctx.lineTo(-11, -11 + gallop); ctx.lineTo(-9, -6 + gallop); ctx.closePath(); ctx.fill();
+                // Rider head & cowboy hat
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(-0.5, -13, 3.3, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(-7, -16, 13, 2.3);
+                ctx.fillRect(-4, -19.5, 7, 4);
+                // Raised revolver
+                ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(3, -9); ctx.lineTo(9, -13); ctx.stroke();
+            } else if (cardId === 'cannon') {
+                // Heavy Iron & Brass Wheeled Cannon Cart!
+                const roll = phase * 0.8;
+                // Wooden carriage bed
+                ctx.fillStyle = '#78350f'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.5;
+                ctx.fillRect(-11, -2, 22, 8); ctx.strokeRect(-11, -2, 22, 8);
+                // Heavy iron cannon barrel angled forward
+                ctx.save();
+                ctx.translate(0, -4);
+                ctx.rotate(-0.22);
+                ctx.fillStyle = '#334155'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.6;
+                ctx.beginPath(); ctx.roundRect(-10, -5, 22, 9, 4); ctx.fill(); ctx.stroke();
+                // Brass reinforcement bands
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(-5, -5.2, 2.5, 9.4);
+                ctx.fillRect(4, -5.2, 2.5, 9.4);
+                // Muzzle rim
+                ctx.fillStyle = '#1e293b'; ctx.fillRect(10, -6, 3.5, 11);
+                ctx.restore();
+                // Team pennant flag
+                ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1.4;
+                ctx.beginPath(); ctx.moveTo(-8, -2); ctx.lineTo(-8, -14); ctx.stroke();
+                ctx.fillStyle = teamMain;
+                ctx.beginPath(); ctx.moveTo(-8, -14); ctx.lineTo(-1, -11.5); ctx.lineTo(-8, -9); ctx.closePath(); ctx.fill();
+                // Two spoked wooden wagon wheels
+                [-6, 6].forEach(wx => {
+                    ctx.save();
+                    ctx.translate(wx, 7);
+                    ctx.rotate(roll);
+                    ctx.fillStyle = '#451a03'; ctx.strokeStyle = '#b45309'; ctx.lineWidth = 2.2;
+                    ctx.beginPath(); ctx.arc(0, 0, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                    ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1;
+                    for (let k = 0; k < 4; k++) {
+                        const a = (k * Math.PI) / 4;
+                        ctx.beginPath(); ctx.moveTo(-Math.cos(a) * 5, -Math.sin(a) * 5); ctx.lineTo(Math.cos(a) * 5, Math.sin(a) * 5); ctx.stroke();
+                    }
+                    ctx.restore();
+                });
+            } else if (cardId === 'brawler') {
+                // Massive Armored Iron Brawler Tank!
+                ctx.translate(0, bob * 0.6);
+                // Heavy stomping boots
+                ctx.fillStyle = '#1e293b';
+                ctx.fillRect(-7, 6 + stride * 0.4, 5.5, 7);
+                ctx.fillRect(1.5, 6 - stride * 0.4, 5.5, 7);
+                // Huge armored chestplate
+                ctx.fillStyle = '#475569'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.8;
+                ctx.beginPath(); ctx.roundRect(-11, -8, 22, 16, 5); ctx.fill(); ctx.stroke();
+                // Team shoulder pauldrons
+                ctx.fillStyle = teamMain;
+                ctx.beginPath(); ctx.arc(-11, -4, 4.5, 0, Math.PI * 2); ctx.arc(11, -4, 4.5, 0, Math.PI * 2); ctx.fill();
+                // Gold buckle & rivets
+                ctx.fillStyle = '#fbbf24'; ctx.fillRect(-10, 3, 20, 3);
+                ctx.fillStyle = '#fef08a'; ctx.fillRect(-3, 2.5, 6, 4);
+                // Iron helmet & wide brim
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, -11, 4.2, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#334155'; ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.2;
+                ctx.fillRect(-8, -14.5, 16, 3); ctx.fillRect(-5, -18.5, 10, 5); ctx.strokeRect(-5, -18.5, 10, 5);
+            } else if (cardId === 'bomber') {
+                // Prospector Cowboy carrying sparking red TNT bundle!
+                ctx.translate(0, bob);
+                ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2.6;
+                ctx.beginPath(); ctx.moveTo(-3, 4); ctx.lineTo(-4 - stride * 0.6, 12); ctx.moveTo(3, 4); ctx.lineTo(4 + stride * 0.6, 12); ctx.stroke();
+                // Coat & team vest
+                ctx.fillStyle = '#78350f'; ctx.fillRect(-6, -5, 12, 10);
+                ctx.fillStyle = teamMain; ctx.fillRect(-4, -4, 8, 8);
+                // Head & slouch hat
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, -8.5, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#451a03'; ctx.fillRect(-8, -11.5, 16, 2.5); ctx.fillRect(-4.5, -15.5, 9, 4.5);
+                // Raised red TNT bundle with sparkling fuse!
+                ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 1.2;
+                ctx.fillRect(5, -13, 8, 10); ctx.strokeRect(5, -13, 8, 10);
+                ctx.fillStyle = '#1c1917'; ctx.fillRect(5, -9, 8, 2);
+                ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1.4;
+                ctx.beginPath(); ctx.moveTo(9, -13); ctx.quadraticCurveTo(12, -17, 15, -18); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(15, -18, 2.5 + Math.sin(phase * 3) * 0.9, 0, Math.PI * 2); ctx.fill();
+            } else if (cardId === 'sniper') {
+                // Long-coat Frontier Marksman with long Scoped Winchester Rifle!
+                ctx.translate(0, bob * 0.7);
+                ctx.strokeStyle = '#1e1b4b'; ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(-4 - stride * 0.5, 12); ctx.moveTo(3, 5); ctx.lineTo(4 + stride * 0.5, 12); ctx.stroke();
+                // Long trench coat & team scarf
+                ctx.fillStyle = '#312e81'; ctx.fillRect(-6, -6, 12, 12);
+                ctx.fillStyle = teamLight; ctx.fillRect(-5, -6, 10, 3);
+                // Head & hat
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, -9.5, 3.8, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-8.5, -12.5, 17, 2.4); ctx.fillRect(-4.5, -16.5, 9, 4.5);
+                // Long brass-scoped rifle
+                ctx.strokeStyle = '#92400e'; ctx.lineWidth = 2.6;
+                ctx.beginPath(); ctx.moveTo(-3, -2); ctx.lineTo(5, -4); ctx.stroke();
+                ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(4, -4); ctx.lineTo(16, -6); ctx.stroke();
+                ctx.fillStyle = '#fbbf24'; ctx.fillRect(5, -8, 6, 2.3); // scope
+                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(11.5, -6.8, 1.5, 0, Math.PI * 2); ctx.fill(); // lens glint
+            } else if (cardId === 'barrage') {
+                // Flaming Triple TNT Bundle Spell Icon!
+                ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 1.4;
+                [-6, 0, 6].forEach(ox => { ctx.fillRect(ox - 2.6, -7, 5.2, 16); ctx.strokeRect(ox - 2.6, -7, 5.2, 16); });
+                ctx.fillStyle = '#1c1917'; ctx.fillRect(-9, -2, 18, 2.8); ctx.fillRect(-9, 3, 18, 2.8);
+                ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1.8;
+                ctx.beginPath(); ctx.moveTo(0, -7); ctx.quadraticCurveTo(4, -14, 10, -14); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(10, -14, 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(10, -14, 2, 0, Math.PI * 2); ctx.fill();
+            } else if (cardId === 'bandits') {
+                // Agile Masked Outlaw Bandit!
+                ctx.translate(0, bob * 1.1);
+                ctx.strokeStyle = '#29150b'; ctx.lineWidth = 2.2;
+                ctx.beginPath(); ctx.moveTo(-2.5, 4); ctx.lineTo(-4 - stride * 0.8, 11); ctx.moveTo(2.5, 4); ctx.lineTo(4 + stride * 0.8, 11); ctx.stroke();
+                ctx.fillStyle = '#451a03'; ctx.fillRect(-5, -5, 10, 9.5);
+                // Head + team outlaw bandana mask
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, -8, 3.6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = teamMain; ctx.fillRect(-3.6, -7.8, 7.2, 3.2);
+                // Dark outlaw hat
+                ctx.fillStyle = '#1c0c06'; ctx.fillRect(-7.5, -11, 15, 2.2); ctx.fillRect(-4, -14.5, 8, 4);
+                // Glinting dagger/revolver
+                ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(5, -2); ctx.lineTo(10, -6); ctx.stroke();
+            } else {
+                // Classic Wild West Cowboy Gunslinger!
+                ctx.translate(0, bob);
+                ctx.strokeStyle = '#451a03'; ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.moveTo(-3, 5); ctx.lineTo(-4 - stride * 0.6, 12); ctx.moveTo(3, 5); ctx.lineTo(4 + stride * 0.6, 12); ctx.stroke();
+                // Duster coat + team poncho
+                ctx.fillStyle = '#7c2d12'; ctx.fillRect(-6, -5, 12, 11);
+                ctx.fillStyle = teamMain;
+                ctx.beginPath(); ctx.moveTo(-7, -5); ctx.lineTo(7, -5); ctx.lineTo(5, 2); ctx.lineTo(-5, 2); ctx.closePath(); ctx.fill();
+                // Cowboy head & classic hat with gold band
+                ctx.fillStyle = '#fde68a'; ctx.beginPath(); ctx.arc(0, -9, 3.8, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#78350f'; ctx.fillRect(-8.5, -12, 17, 2.4); ctx.fillRect(-4.5, -16, 9, 4.5);
+                ctx.fillStyle = '#fbbf24'; ctx.fillRect(-4.5, -12.6, 9, 1.5);
+                // Extended silver six-shooter revolver!
+                ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2.2;
+                ctx.beginPath(); ctx.moveTo(5, -3); ctx.lineTo(13, -4); ctx.stroke();
+                ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(13.5, -4, 1.3, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawClashArenaProp(ctx, kind, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            if (kind === 'cactus') {
+                ctx.fillStyle = 'rgba(0,0,0,0.32)';
+                ctx.beginPath(); ctx.ellipse(0, 8, 7, 3, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#15803d'; ctx.strokeStyle = '#14532d'; ctx.lineWidth = 1.2;
+                ctx.beginPath(); ctx.roundRect(-3, -8, 6, 16, 3); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.roundRect(-8, -3, 5, 3, 1.5); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.roundRect(3, -5, 5, 3, 1.5); ctx.fill(); ctx.stroke();
+            } else {
+                // Desert boulder
+                ctx.fillStyle = 'rgba(0,0,0,0.28)';
+                ctx.beginPath(); ctx.ellipse(1, 5, 9, 4, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#7c2d12'; ctx.strokeStyle = '#451a03'; ctx.lineWidth = 1.2;
+                ctx.beginPath(); ctx.ellipse(0, 1, 8, 5.5, -0.15, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = 'rgba(251,191,36,0.22)';
+                ctx.beginPath(); ctx.ellipse(-2, -1, 4, 2, -0.2, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
         function renderClashCanvasFrame() {
             requestAnimationFrame(renderClashCanvasFrame);
             if (!clashCtx || document.getElementById('viewClash').classList.contains('hidden')) return;
             const snap = clashLastSnap;
             if (!snap || snap.state === 'WAITING') return;
+            const nowMs = performance.now();
 
-            // 1. Dusty Wild West Canyon Arena Floor
+            // 1. Sunlit Wild West Red-Rock Canyon Floor
             const bg = clashCtx.createLinearGradient(0, 0, 0, clh);
-            bg.addColorStop(0, '#5c2b14');
-            bg.addColorStop(0.48, '#7c3f1d');
-            bg.addColorStop(0.52, '#7c3f1d');
-            bg.addColorStop(1, '#592913');
+            bg.addColorStop(0, '#6b2c12');
+            bg.addColorStop(0.25, '#8f461d');
+            bg.addColorStop(0.5, '#a15423');
+            bg.addColorStop(0.75, '#8f461d');
+            bg.addColorStop(1, '#6b2c12');
             clashCtx.fillStyle = bg;
             clashCtx.fillRect(0, 0, clw, clh);
 
-            // Subtle sandy grid tiles
-            clashCtx.strokeStyle = 'rgba(254, 243, 199, 0.06)';
-            clashCtx.lineWidth = 1;
-            for (let gx = 10; gx < 100; gx += 10) {
-                const x = (gx / 100) * clw;
-                clashCtx.beginPath(); clashCtx.moveTo(x, 0); clashCtx.lineTo(x, clh); clashCtx.stroke();
-            }
-            for (let gy = 10; gy < 160; gy += 10) {
-                const y = (gy / 160) * clh;
-                clashCtx.beginPath(); clashCtx.moveTo(0, y); clashCtx.lineTo(clw, y); clashCtx.stroke();
-            }
+            // Dusty canyon stone lanes leading to both bridges
+            clashCtx.fillStyle = 'rgba(254, 215, 170, 0.16)';
+            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.165, clh * 0.10, clw * 0.15, clh * 0.80, 14); clashCtx.fill();
+            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.685, clh * 0.10, clw * 0.15, clh * 0.80, 14); clashCtx.fill();
+            // Connecting cross-road behind each fort
+            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.22, clh * 0.16, clw * 0.56, clh * 0.06, 10); clashCtx.fill();
+            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.22, clh * 0.78, clw * 0.56, clh * 0.06, 10); clashCtx.fill();
 
-            // Twin dusty lane trails
-            clashCtx.fillStyle = 'rgba(217, 119, 6, 0.16)';
-            clashCtx.fillRect(clw * 0.17, clh * 0.12, clw * 0.14, clh * 0.76);
-            clashCtx.fillRect(clw * 0.69, clh * 0.12, clw * 0.14, clh * 0.76);
+            // Decorative Wild West cacti & boulders along arena edges and center island
+            drawClashArenaProp(clashCtx, 'cactus', clw * 0.07, clh * 0.26);
+            drawClashArenaProp(clashCtx, 'rock', clw * 0.92, clh * 0.28);
+            drawClashArenaProp(clashCtx, 'cactus', clw * 0.93, clh * 0.72);
+            drawClashArenaProp(clashCtx, 'rock', clw * 0.08, clh * 0.74);
+            drawClashArenaProp(clashCtx, 'cactus', clw * 0.50, clh * 0.36);
+            drawClashArenaProp(clashCtx, 'rock', clw * 0.50, clh * 0.64);
 
-            // 2. Canyon River across middle (y = 80)
+            // 2. Canyon River across middle (y = 80) with rocky banks & animated rapids
             const riverY = clh * 0.5;
-            const riverH = clh * 0.075;
+            const riverH = clh * 0.082;
+            clashCtx.fillStyle = '#451a03';
+            clashCtx.fillRect(0, riverY - riverH / 2 - 4, clw, riverH + 8);
             const rGrad = clashCtx.createLinearGradient(0, riverY - riverH / 2, 0, riverY + riverH / 2);
             rGrad.addColorStop(0, '#0c4a6e');
             rGrad.addColorStop(0.5, '#0284c7');
             rGrad.addColorStop(1, '#075985');
             clashCtx.fillStyle = rGrad;
             clashCtx.fillRect(0, riverY - riverH / 2, clw, riverH);
-            clashCtx.strokeStyle = '#38bdf8';
-            clashCtx.lineWidth = 1.2;
-            const waveShift = (performance.now() * 0.03) % 36;
-            for (let wx = -36 + waveShift; wx < clw; wx += 36) {
+            clashCtx.strokeStyle = 'rgba(186, 230, 253, 0.65)';
+            clashCtx.lineWidth = 1.5;
+            const waveShift = (nowMs * 0.035) % 42;
+            for (let wx = -42 + waveShift; wx < clw; wx += 42) {
                 clashCtx.beginPath();
-                clashCtx.moveTo(wx, riverY);
-                clashCtx.lineTo(wx + 16, riverY);
+                clashCtx.moveTo(wx, riverY - 5);
+                clashCtx.lineTo(wx + 18, riverY - 5);
+                clashCtx.moveTo(wx + 12, riverY + 6);
+                clashCtx.lineTo(wx + 28, riverY + 6);
                 clashCtx.stroke();
             }
 
-            // Twin Wooden Plank Bridges (x = 24 and x = 76)
+            // Twin Wooden Plank Bridges with Rope Rails (x = 24 and x = 76)
             [0.24, 0.76].forEach(bx => {
-                const bw = clw * 0.15;
-                const bh = riverH + 10;
-                clashCtx.fillStyle = '#78350f';
+                const bw = clw * 0.165;
+                const bh = riverH + 14;
+                const left = clw * bx - bw / 2;
+                const top = riverY - bh / 2;
+                clashCtx.fillStyle = 'rgba(0,0,0,0.38)';
+                clashCtx.fillRect(left + 3, top + 3, bw, bh);
+                clashCtx.fillStyle = '#92400e';
                 clashCtx.strokeStyle = '#451a03';
                 clashCtx.lineWidth = 2;
-                clashCtx.fillRect(clw * bx - bw / 2, riverY - bh / 2, bw, bh);
-                clashCtx.strokeRect(clw * bx - bw / 2, riverY - bh / 2, bw, bh);
-                clashCtx.strokeStyle = 'rgba(251, 191, 36, 0.35)';
-                for (let py = riverY - bh / 2 + 6; py < riverY + bh / 2; py += 7) {
-                    clashCtx.beginPath();
-                    clashCtx.moveTo(clw * bx - bw / 2 + 2, py);
-                    clashCtx.lineTo(clw * bx + bw / 2 - 2, py);
-                    clashCtx.stroke();
+                clashCtx.fillRect(left, top, bw, bh);
+                clashCtx.strokeRect(left, top, bw, bh);
+                clashCtx.strokeStyle = 'rgba(254, 215, 170, 0.35)';
+                clashCtx.lineWidth = 1.2;
+                for (let py = top + 6; py < top + bh; py += 7) {
+                    clashCtx.beginPath(); clashCtx.moveTo(left + 2, py); clashCtx.lineTo(left + bw - 2, py); clashCtx.stroke();
                 }
+                // Bridge corner posts
+                clashCtx.fillStyle = '#fde68a';
+                [[left, top], [left + bw, top], [left, top + bh], [left + bw, top + bh]].forEach(([px, py]) => {
+                    clashCtx.beginPath(); clashCtx.arc(px, py, 3.2, 0, Math.PI * 2); clashCtx.fill();
+                });
             });
 
             // Deploy Zone highlight when a card is selected
@@ -5216,18 +5437,18 @@
                 if (card) {
                     clashCtx.save();
                     if (card.type === 'spell') {
-                        clashCtx.fillStyle = 'rgba(253, 224, 71, 0.08)';
+                        clashCtx.fillStyle = 'rgba(253, 224, 71, 0.09)';
                         clashCtx.fillRect(0, 0, clw, clh);
                     } else {
-                        clashCtx.fillStyle = 'rgba(56, 189, 248, 0.11)';
-                        clashCtx.fillRect(0, riverY + riverH / 2, clw, clh - (riverY + riverH / 2));
+                        clashCtx.fillStyle = 'rgba(56, 189, 248, 0.12)';
+                        clashCtx.fillRect(0, riverY + riverH / 2 + 4, clw, clh - (riverY + riverH / 2 + 4));
                     }
                     if (clashHoverPos) {
                         const hx = (clashHoverPos.x / 100) * clw;
                         const hy = (clashHoverPos.y / 160) * clh;
-                        const rad = card.type === 'spell' ? (card.radius / 100) * clw : 18;
+                        const rad = card.type === 'spell' ? (card.radius / 100) * clw : 20;
                         clashCtx.strokeStyle = card.type === 'spell' ? '#fde047' : '#38bdf8';
-                        clashCtx.lineWidth = 2;
+                        clashCtx.lineWidth = 2.2;
                         clashCtx.setLineDash([5, 4]);
                         clashCtx.beginPath();
                         clashCtx.arc(hx, hy, rad, 0, Math.PI * 2);
@@ -5237,83 +5458,119 @@
                 }
             }
 
-            // 3. Draw Fortress & Outpost Towers
+            // 3. Draw Detailed Wild West Wooden Fortresses & Outpost Watchtowers
             (snap.towers || []).forEach(t => {
                 const { sx, sy } = clashToScreen(t.x, t.y);
                 const isMine = t.side === clashSide;
-                const sz = t.kind === 'king' ? 24 : 18;
+                const isKing = t.kind === 'king';
+                const sz = isKing ? 26 : 19;
+                const flagWave = Math.sin(nowMs * 0.008 + sx) * 2.5;
                 clashCtx.save();
                 clashCtx.translate(sx, sy);
 
                 if (t.hp <= 0) {
-                    // Destroyed rubble
-                    clashCtx.fillStyle = 'rgba(28, 12, 6, 0.72)';
-                    clashCtx.beginPath(); clashCtx.arc(0, 0, sz * 0.85, 0, Math.PI * 2); clashCtx.fill();
-                    clashCtx.strokeStyle = '#78350f'; clashCtx.lineWidth = 2; clashCtx.stroke();
+                    // Smoldering wooden rubble
+                    clashCtx.fillStyle = 'rgba(28, 12, 6, 0.78)';
+                    clashCtx.beginPath(); clashCtx.ellipse(0, 2, sz * 0.95, sz * 0.7, 0, 0, Math.PI * 2); clashCtx.fill();
+                    clashCtx.strokeStyle = '#78350f'; clashCtx.lineWidth = 2.5;
+                    clashCtx.beginPath();
+                    clashCtx.moveTo(-10, -4); clashCtx.lineTo(10, 6);
+                    clashCtx.moveTo(-8, 7); clashCtx.lineTo(9, -6);
+                    clashCtx.stroke();
                     clashCtx.restore();
                     return;
                 }
 
-                // Tower base & roof
+                // Ground shadow
+                clashCtx.fillStyle = 'rgba(0,0,0,0.42)';
+                clashCtx.beginPath(); clashCtx.ellipse(0, sz * 0.85, sz * 1.15, sz * 0.48, 0, 0, Math.PI * 2); clashCtx.fill();
+
+                // Timber palisade fortress base
+                clashCtx.fillStyle = '#78350f';
+                clashCtx.strokeStyle = '#451a03';
+                clashCtx.lineWidth = 2.2;
+                clashCtx.beginPath(); clashCtx.roundRect(-sz, -sz + 4, sz * 2, sz * 1.75, 6); clashCtx.fill(); clashCtx.stroke();
+
+                // Team-colored battlements & trim
                 clashCtx.fillStyle = isMine ? '#0369a1' : '#991b1b';
                 clashCtx.strokeStyle = isMine ? '#7dd3fc' : '#fca5a5';
-                clashCtx.lineWidth = 2.5;
+                clashCtx.lineWidth = 2;
+                clashCtx.beginPath(); clashCtx.roundRect(-sz * 0.84, -sz * 0.72, sz * 1.68, sz * 1.15, 5); clashCtx.fill(); clashCtx.stroke();
+
+                // Fort center star / watchtower turret guard
+                if (isKing) {
+                    // Gold Sheriff Star crest on Main Saloon Fort
+                    clashCtx.fillStyle = '#fde047';
+                    clashCtx.beginPath();
+                    for (let k = 0; k < 10; k++) {
+                        const r = k % 2 === 0 ? 10 : 4.5;
+                        const a = (k * Math.PI) / 5 - Math.PI / 2;
+                        if (k === 0) clashCtx.moveTo(Math.cos(a) * r, Math.sin(a) * r - 2);
+                        else clashCtx.lineTo(Math.cos(a) * r, Math.sin(a) * r - 2);
+                    }
+                    clashCtx.closePath(); clashCtx.fill();
+                } else {
+                    // Mini cowboy guard hat on top of Outpost Tower
+                    clashCtx.fillStyle = '#fde68a'; clashCtx.beginPath(); clashCtx.arc(0, -2, 4.5, 0, Math.PI * 2); clashCtx.fill();
+                    clashCtx.fillStyle = '#1c0c06'; clashCtx.fillRect(-9, -6, 18, 2.5); clashCtx.fillRect(-5, -10.5, 10, 5);
+                }
+
+                // Fluttering Team Flag on corner mast
+                clashCtx.strokeStyle = '#fde68a'; clashCtx.lineWidth = 1.6;
+                clashCtx.beginPath(); clashCtx.moveTo(sz * 0.72, -sz * 0.5); clashCtx.lineTo(sz * 0.72, -sz - 10); clashCtx.stroke();
+                clashCtx.fillStyle = isMine ? '#38bdf8' : '#ef4444';
                 clashCtx.beginPath();
-                clashCtx.roundRect(-sz, -sz, sz * 2, sz * 2, 7);
-                clashCtx.fill(); clashCtx.stroke();
+                clashCtx.moveTo(sz * 0.72, -sz - 10);
+                clashCtx.lineTo(sz * 0.72 + 12, -sz - 7 + flagWave);
+                clashCtx.lineTo(sz * 0.72, -sz - 3);
+                clashCtx.closePath(); clashCtx.fill();
 
-                // Inner wooden fort emblem
-                clashCtx.fillStyle = '#451a03';
-                clashCtx.fillRect(-sz * 0.55, -sz * 0.55, sz * 1.1, sz * 1.1);
-                clashCtx.fillStyle = '#fde047';
-                clashCtx.font = `800 ${t.kind === 'king' ? 13 : 10}px "JetBrains Mono", monospace`;
-                clashCtx.textAlign = 'center';
-                clashCtx.textBaseline = 'middle';
-                clashCtx.fillText(t.kind === 'king' ? 'FORT' : 'TWR', 0, 1);
-
-                // HP bar
-                const bw = sz * 2.2;
+                // Crisp HP bar
+                const bw = sz * 2.25;
                 const pct = Math.max(0, t.hp / t.maxHp);
-                clashCtx.fillStyle = 'rgba(0,0,0,0.75)';
-                clashCtx.fillRect(-bw / 2, -sz - 11, bw, 6);
+                clashCtx.fillStyle = 'rgba(0,0,0,0.82)';
+                clashCtx.fillRect(-bw / 2, -sz - 14, bw, 6.5);
                 clashCtx.fillStyle = isMine ? '#38bdf8' : '#fb7185';
-                clashCtx.fillRect(-bw / 2, -sz - 11, bw * pct, 6);
-                clashCtx.font = '800 9px "JetBrains Mono", monospace';
+                clashCtx.fillRect(-bw / 2, -sz - 14, bw * pct, 6.5);
+                clashCtx.font = '800 9.5px "JetBrains Mono", monospace';
+                clashCtx.textAlign = 'center';
                 clashCtx.fillStyle = '#fffbeb';
-                clashCtx.fillText(String(t.hp), 0, -sz - 15);
+                clashCtx.fillText(String(t.hp), 0, -sz - 18);
                 clashCtx.restore();
             });
 
-            // 4. Draw Live Marching Troops
-            (snap.units || []).forEach(u => {
+            // 4. Draw Live Animated Wild West Troops (sorted by Y for clean 2.5D depth!)
+            const sortedUnits = (snap.units || []).slice().sort((a, b) => {
+                const sa = clashToScreen(a.x, a.y).sy;
+                const sb = clashToScreen(b.x, b.y).sy;
+                return sa - sb;
+            });
+            sortedUnits.forEach(u => {
                 const { sx, sy } = clashToScreen(u.x, u.y);
                 const isMine = u.side === clashSide;
-                const r = u.cardId === 'brawler' ? 13 : (u.cardId === 'cannon' || u.cardId === 'mustang' ? 11 : 8.5);
+                const scale = u.cardId === 'brawler' ? 1.18 : (u.cardId === 'mustang' || u.cardId === 'cannon' ? 1.12 : 0.98);
+                const phase = nowMs * 0.012 + (u.id || 0) * 1.7;
+
                 clashCtx.save();
                 clashCtx.translate(sx, sy);
 
-                // Shadow
-                clashCtx.fillStyle = 'rgba(0,0,0,0.45)';
-                clashCtx.beginPath(); clashCtx.ellipse(0, r * 0.75, r * 0.9, r * 0.4, 0, 0, Math.PI * 2); clashCtx.fill();
+                // Ground shadow + glowing team ring so Blue vs Red is unmistakable
+                clashCtx.fillStyle = 'rgba(0,0,0,0.42)';
+                clashCtx.beginPath(); clashCtx.ellipse(0, 10 * scale, 11 * scale, 4.5 * scale, 0, 0, Math.PI * 2); clashCtx.fill();
+                clashCtx.strokeStyle = isMine ? 'rgba(56, 189, 248, 0.85)' : 'rgba(251, 113, 133, 0.85)';
+                clashCtx.lineWidth = 2;
+                clashCtx.beginPath(); clashCtx.ellipse(0, 10 * scale, 11.5 * scale, 4.8 * scale, 0, 0, Math.PI * 2); clashCtx.stroke();
 
-                // Team ring
-                clashCtx.fillStyle = u.color || '#fbbf24';
-                clashCtx.strokeStyle = isMine ? '#38bdf8' : '#fb7185';
-                clashCtx.lineWidth = 2.6;
-                clashCtx.beginPath(); clashCtx.arc(0, 0, r, 0, Math.PI * 2); clashCtx.fill(); clashCtx.stroke();
+                // Draw the full illustrated cowboy / horse / cannon / brawler / bomber sprite!
+                drawClashUnitSprite(clashCtx, u.cardId, isMine, phase, scale);
 
-                // Cowboy hat / icon accent
-                clashCtx.fillStyle = '#1c0c06';
-                clashCtx.fillRect(-r * 0.75, -r * 0.45, r * 1.5, 3);
-                clashCtx.fillRect(-r * 0.45, -r * 0.85, r * 0.9, r * 0.45);
-
-                // Unit HP bar
+                // Crisp Unit HP bar
                 if (u.hp < u.maxHp) {
-                    const uw = r * 2.2;
-                    clashCtx.fillStyle = 'rgba(0,0,0,0.75)';
-                    clashCtx.fillRect(-uw / 2, -r - 7, uw, 4);
+                    const uw = 24 * scale;
+                    clashCtx.fillStyle = 'rgba(0,0,0,0.8)';
+                    clashCtx.fillRect(-uw / 2, -21 * scale, uw, 4.2);
                     clashCtx.fillStyle = isMine ? '#34d399' : '#fb7185';
-                    clashCtx.fillRect(-uw / 2, -r - 7, uw * Math.max(0, u.hp / u.maxHp), 4);
+                    clashCtx.fillRect(-uw / 2, -21 * scale, uw * Math.max(0, u.hp / u.maxHp), 4.2);
                 }
                 clashCtx.restore();
             });
@@ -5453,11 +5710,18 @@
             setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
         }
 
-        function renderClashHand(snap) {
+        let clashHandSig = '';
+        function renderClashHand(snap, force = false) {
             const handEl = document.getElementById('clashHand');
             if (!handEl) return;
+            const hand = snap.hand || [];
+            const affMask = hand.map(id => (clashCardsMap[id] && (snap.elixir || 0) >= clashCardsMap[id].cost) ? '1' : '0').join('');
+            const sig = `${hand.join(',')}|${clashSelectedCard || ''}|${affMask}`;
+            if (!force && sig === clashHandSig) return;
+            clashHandSig = sig;
+
             handEl.innerHTML = '';
-            (snap.hand || []).forEach((cardId, idx) => {
+            hand.forEach((cardId, idx) => {
                 const c = clashCardsMap[cardId];
                 if (!c) return;
                 const affordable = (snap.elixir || 0) >= c.cost;
@@ -5468,15 +5732,20 @@
                     + (!affordable ? ' unaffordable' : '');
                 btn.onclick = () => {
                     clashSelectedCard = clashSelectedCard === cardId ? null : cardId;
-                    renderClashHand(snap);
+                    renderClashHand(snap, true);
                 };
 
                 const cost = document.createElement('span');
                 cost.className = 'clash-cost-badge mono';
                 cost.textContent = String(c.cost);
 
-                const dot = document.createElement('div');
-                dot.style.cssText = `width:22px; height:22px; border-radius:50%; background:${c.color}; border:2px solid #fffbeb; margin-top:2px;`;
+                // Crisp mini illustrated character sprite on each card!
+                const iconCanvas = document.createElement('canvas');
+                iconCanvas.width = 72; iconCanvas.height = 60;
+                iconCanvas.style.cssText = 'width:46px; height:38px; display:block; margin-top:2px;';
+                const ictx = iconCanvas.getContext('2d');
+                ictx.translate(36, 36);
+                drawClashUnitSprite(ictx, cardId, true, 0.5, 1.35);
 
                 const nm = document.createElement('div');
                 nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15;';
@@ -5486,7 +5755,7 @@
                 role.style.cssText = 'font-size:9px; color:#fde68a; font-weight:700;';
                 role.textContent = `[${idx + 1}] ${c.role}`;
 
-                btn.append(cost, dot, nm, role);
+                btn.append(cost, iconCanvas, nm, role);
                 handEl.appendChild(btn);
             });
         }
