@@ -946,13 +946,13 @@
         }
         .clash-stage-wrap {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             margin: 0 auto;
-            border-radius: 16px;
+            border-radius: 18px;
             overflow: hidden;
-            border: 2px solid rgba(245, 158, 11, 0.6);
+            border: 3px solid #b45309;
             background: #2b1408;
-            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 54px rgba(0, 0, 0, 0.78), inset 0 0 0 2px rgba(253, 224, 71, 0.35);
             position: relative;
             cursor: crosshair;
             user-select: none;
@@ -964,72 +964,125 @@
             display: block;
             touch-action: manipulation;
         }
-        .clash-elixir-wrap {
-            max-width: 440px;
+        .clash-deck-tray {
+            max-width: 460px;
             margin: 10px auto 0;
+            padding: 10px 10px 12px;
+            border-radius: 18px;
+            background: linear-gradient(180deg, #3b1d0d 0%, #241006 100%);
+            border: 2.5px solid #b45309;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(253, 224, 71, 0.35);
+        }
+        .clash-elixir-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .clash-elixir-drop {
+            width: 34px;
+            height: 34px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            background: linear-gradient(135deg, #f0abfc, #c026d3 55%, #7e22ce);
+            border: 2px solid #fdf4ff;
+            box-shadow: 0 0 16px rgba(217, 70, 239, 0.65);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.65);
         }
         .clash-elixir-track {
-            height: 16px;
+            flex: 1;
+            height: 20px;
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1.5px solid rgba(192, 132, 252, 0.55);
+            background: #14081f;
+            border: 2px solid #a855f7;
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.8);
         }
         .clash-elixir-fill {
             height: 100%;
             width: 50%;
-            background: linear-gradient(90deg, #9333ea, #d946ef, #f472b6);
+            background: linear-gradient(90deg, #9333ea, #d946ef 65%, #f472b6);
+            box-shadow: inset 0 3px 4px rgba(255,255,255,0.35);
             transition: width 0.08s linear;
         }
+        .clash-elixir-pips {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            pointer-events: none;
+        }
+        .clash-elixir-pips span {
+            border-right: 1px solid rgba(15, 5, 25, 0.55);
+        }
+        .clash-elixir-pips span:last-child { border-right: none; }
         .clash-hand {
-            max-width: 440px;
-            margin: 10px auto 0;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
         .clash-card-btn {
             position: relative;
-            padding: 10px 6px 8px;
-            border-radius: 13px;
-            background: rgba(24, 11, 5, 0.92);
-            border: 2px solid rgba(245, 158, 11, 0.42);
+            padding: 6px 5px 7px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #5c2d14 0%, #2a1207 100%);
+            border: 2.5px solid #d97706;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(254, 240, 138, 0.45);
             color: #fffbeb;
             font-family: inherit;
             cursor: pointer;
             text-align: center;
-            transition: 0.12s;
+            transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+        }
+        .clash-card-artbox {
+            width: 100%;
+            height: 48px;
+            border-radius: 9px;
+            background: radial-gradient(circle at 50% 45%, rgba(251, 191, 36, 0.35), rgba(20, 9, 4, 0.92));
+            border: 1px solid rgba(251, 191, 36, 0.32);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
         .clash-card-btn.selected {
             border-color: #38bdf8;
-            background: rgba(12, 74, 110, 0.65);
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+            background: linear-gradient(180deg, #075985 0%, #0c4a6e 100%);
+            transform: translateY(-7px) scale(1.03);
+            box-shadow: 0 10px 22px rgba(56, 189, 248, 0.5);
         }
         .clash-card-btn.unaffordable {
-            opacity: 0.45;
-            filter: grayscale(0.45);
+            opacity: 0.48;
+            filter: grayscale(0.55);
         }
         .clash-cost-badge {
             position: absolute;
-            top: -7px;
-            left: -5px;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            border: 1.5px solid #fdf4ff;
+            top: -8px;
+            left: -6px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            background: linear-gradient(135deg, #f0abfc, #c026d3 55%, #7e22ce);
+            border: 2px solid #fdf4ff;
+            box-shadow: 0 3px 10px rgba(192, 38, 211, 0.65);
             color: #fff;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 2;
         }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
@@ -1578,18 +1631,26 @@
                     <canvas id="clashCanvas"></canvas>
                 </div>
 
-                <!-- Elixir Bar -->
-                <div class="clash-elixir-wrap">
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:800; margin-bottom:4px;">
-                        <span style="color:#e9d5ff;">ELIXIR: <strong id="clashElixirText" class="mono" style="color:#f472b6; font-size:13px;">5.0 / 10</strong></span>
-                        <span id="clashNextCardText" style="color:#fde68a;">Next: ---</span>
+                <!-- Clash Royale Style Wood-and-Gold Deck Tray + 10-Pip Elixir Bar -->
+                <div class="clash-deck-tray">
+                    <div class="clash-elixir-wrap">
+                        <div id="clashElixirDrop" class="clash-elixir-drop mono">5</div>
+                        <div style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; font-weight:800; margin-bottom:4px;">
+                                <span style="color:#f0abfc; letter-spacing:0.8px;">ELIXIR <span id="clashElixirText" class="mono" style="color:#fff;">5.0 / 10</span></span>
+                                <span id="clashNextCardText" style="color:#fde047;">Next: ---</span>
+                            </div>
+                            <div class="clash-elixir-track">
+                                <div id="clashElixirFill" class="clash-elixir-fill"></div>
+                                <div class="clash-elixir-pips"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="clash-elixir-track"><div id="clashElixirFill" class="clash-elixir-fill"></div></div>
-                </div>
 
-                <!-- 4-Card Active Hand (Click or Press 1-4, then Tap Arena to Deploy) -->
-                <div id="clashHand" class="clash-hand"></div>
-                <div style="max-width:440px; margin:6px auto 0; text-align:center; font-size:11px; color:#94a3b8;">
+                    <!-- 4-Card Active Hand (Click or Press 1-4, then Tap Arena to Deploy) -->
+                    <div id="clashHand" class="clash-hand"></div>
+                </div>
+                <div style="max-width:460px; margin:6px auto 0; text-align:center; font-size:11px; color:#94a3b8;">
                     Select a card (or keys 1-4) and click your side of the river to deploy. TNT Barrage hits anywhere!
                 </div>
             </div>
@@ -5112,7 +5173,11 @@
 
         const clashCanvas = document.getElementById('clashCanvas');
         const clashCtx = clashCanvas ? clashCanvas.getContext('2d') : null;
-        let clw = 420, clh = 630;
+        let clw = 460, clh = 690;
+        const clashArenaImg = new Image();
+        let clashArenaLoaded = false;
+        clashArenaImg.onload = () => { clashArenaLoaded = true; };
+        clashArenaImg.src = '/clash-arena-map.jpg?v=1';
 
         function resizeClashCanvas() {
             if (!clashCanvas || !clashCtx) return;
@@ -5357,79 +5422,35 @@
             if (!snap || snap.state === 'WAITING') return;
             const nowMs = performance.now();
 
-            // 1. Sunlit Wild West Red-Rock Canyon Floor
-            const bg = clashCtx.createLinearGradient(0, 0, 0, clh);
-            bg.addColorStop(0, '#6b2c12');
-            bg.addColorStop(0.25, '#8f461d');
-            bg.addColorStop(0.5, '#a15423');
-            bg.addColorStop(0.75, '#8f461d');
-            bg.addColorStop(1, '#6b2c12');
-            clashCtx.fillStyle = bg;
-            clashCtx.fillRect(0, 0, clw, clh);
-
-            // Dusty canyon stone lanes leading to both bridges
-            clashCtx.fillStyle = 'rgba(254, 215, 170, 0.16)';
-            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.165, clh * 0.10, clw * 0.15, clh * 0.80, 14); clashCtx.fill();
-            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.685, clh * 0.10, clw * 0.15, clh * 0.80, 14); clashCtx.fill();
-            // Connecting cross-road behind each fort
-            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.22, clh * 0.16, clw * 0.56, clh * 0.06, 10); clashCtx.fill();
-            clashCtx.beginPath(); clashCtx.roundRect(clw * 0.22, clh * 0.78, clw * 0.56, clh * 0.06, 10); clashCtx.fill();
-
-            // Decorative Wild West cacti & boulders along arena edges and center island
-            drawClashArenaProp(clashCtx, 'cactus', clw * 0.07, clh * 0.26);
-            drawClashArenaProp(clashCtx, 'rock', clw * 0.92, clh * 0.28);
-            drawClashArenaProp(clashCtx, 'cactus', clw * 0.93, clh * 0.72);
-            drawClashArenaProp(clashCtx, 'rock', clw * 0.08, clh * 0.74);
-            drawClashArenaProp(clashCtx, 'cactus', clw * 0.50, clh * 0.36);
-            drawClashArenaProp(clashCtx, 'rock', clw * 0.50, clh * 0.64);
-
-            // 2. Canyon River across middle (y = 80) with rocky banks & animated rapids
-            const riverY = clh * 0.5;
-            const riverH = clh * 0.082;
-            clashCtx.fillStyle = '#451a03';
-            clashCtx.fillRect(0, riverY - riverH / 2 - 4, clw, riverH + 8);
-            const rGrad = clashCtx.createLinearGradient(0, riverY - riverH / 2, 0, riverY + riverH / 2);
-            rGrad.addColorStop(0, '#0c4a6e');
-            rGrad.addColorStop(0.5, '#0284c7');
-            rGrad.addColorStop(1, '#075985');
-            clashCtx.fillStyle = rGrad;
-            clashCtx.fillRect(0, riverY - riverH / 2, clw, riverH);
-            clashCtx.strokeStyle = 'rgba(186, 230, 253, 0.65)';
-            clashCtx.lineWidth = 1.5;
-            const waveShift = (nowMs * 0.035) % 42;
-            for (let wx = -42 + waveShift; wx < clw; wx += 42) {
-                clashCtx.beginPath();
-                clashCtx.moveTo(wx, riverY - 5);
-                clashCtx.lineTo(wx + 18, riverY - 5);
-                clashCtx.moveTo(wx + 12, riverY + 6);
-                clashCtx.lineTo(wx + 28, riverY + 6);
-                clashCtx.stroke();
+            // 1. Illustrated 2.5D Clash Royale Wild West Canyon Arena Map!
+            if (clashArenaLoaded) {
+                clashCtx.drawImage(clashArenaImg, 0, 0, clw, clh);
+            } else {
+                const bg = clashCtx.createLinearGradient(0, 0, 0, clh);
+                bg.addColorStop(0, '#6b2c12');
+                bg.addColorStop(0.5, '#a15423');
+                bg.addColorStop(1, '#6b2c12');
+                clashCtx.fillStyle = bg;
+                clashCtx.fillRect(0, 0, clw, clh);
             }
 
-            // Twin Wooden Plank Bridges with Rope Rails (x = 24 and x = 76)
-            [0.24, 0.76].forEach(bx => {
-                const bw = clw * 0.165;
-                const bh = riverH + 14;
-                const left = clw * bx - bw / 2;
-                const top = riverY - bh / 2;
-                clashCtx.fillStyle = 'rgba(0,0,0,0.38)';
-                clashCtx.fillRect(left + 3, top + 3, bw, bh);
-                clashCtx.fillStyle = '#92400e';
-                clashCtx.strokeStyle = '#451a03';
-                clashCtx.lineWidth = 2;
-                clashCtx.fillRect(left, top, bw, bh);
-                clashCtx.strokeRect(left, top, bw, bh);
-                clashCtx.strokeStyle = 'rgba(254, 215, 170, 0.35)';
-                clashCtx.lineWidth = 1.2;
-                for (let py = top + 6; py < top + bh; py += 7) {
-                    clashCtx.beginPath(); clashCtx.moveTo(left + 2, py); clashCtx.lineTo(left + bw - 2, py); clashCtx.stroke();
-                }
-                // Bridge corner posts
-                clashCtx.fillStyle = '#fde68a';
-                [[left, top], [left + bw, top], [left, top + bh], [left + bw, top + bh]].forEach(([px, py]) => {
-                    clashCtx.beginPath(); clashCtx.arc(px, py, 3.2, 0, Math.PI * 2); clashCtx.fill();
-                });
-            });
+            const riverY = clh * 0.5;
+            const riverH = clh * 0.082;
+
+            // Subtle animated water shimmer right across the painted canyon river
+            clashCtx.save();
+            clashCtx.strokeStyle = 'rgba(224, 242, 254, 0.45)';
+            clashCtx.lineWidth = 1.6;
+            const waveShift = (nowMs * 0.032) % 48;
+            for (let wx = -48 + waveShift; wx < clw; wx += 48) {
+                clashCtx.beginPath();
+                clashCtx.moveTo(wx, riverY - 4);
+                clashCtx.lineTo(wx + 16, riverY - 4);
+                clashCtx.moveTo(wx + 14, riverY + 5);
+                clashCtx.lineTo(wx + 28, riverY + 5);
+                clashCtx.stroke();
+            }
+            clashCtx.restore();
 
             // Deploy Zone highlight when a card is selected
             if (clashSelectedCard && snap.state === 'PLAYING') {
@@ -5548,29 +5569,29 @@
             sortedUnits.forEach(u => {
                 const { sx, sy } = clashToScreen(u.x, u.y);
                 const isMine = u.side === clashSide;
-                const scale = u.cardId === 'brawler' ? 1.18 : (u.cardId === 'mustang' || u.cardId === 'cannon' ? 1.12 : 0.98);
+                const scale = u.cardId === 'brawler' ? 1.42 : (u.cardId === 'mustang' || u.cardId === 'cannon' ? 1.36 : 1.22);
                 const phase = nowMs * 0.012 + (u.id || 0) * 1.7;
 
                 clashCtx.save();
                 clashCtx.translate(sx, sy);
 
-                // Ground shadow + glowing team ring so Blue vs Red is unmistakable
-                clashCtx.fillStyle = 'rgba(0,0,0,0.42)';
-                clashCtx.beginPath(); clashCtx.ellipse(0, 10 * scale, 11 * scale, 4.5 * scale, 0, 0, Math.PI * 2); clashCtx.fill();
-                clashCtx.strokeStyle = isMine ? 'rgba(56, 189, 248, 0.85)' : 'rgba(251, 113, 133, 0.85)';
-                clashCtx.lineWidth = 2;
-                clashCtx.beginPath(); clashCtx.ellipse(0, 10 * scale, 11.5 * scale, 4.8 * scale, 0, 0, Math.PI * 2); clashCtx.stroke();
+                // Ground shadow + glowing team ring so Blue vs Red pops over the painted canyon arena
+                clashCtx.fillStyle = 'rgba(0,0,0,0.48)';
+                clashCtx.beginPath(); clashCtx.ellipse(0, 11 * scale, 11.5 * scale, 4.8 * scale, 0, 0, Math.PI * 2); clashCtx.fill();
+                clashCtx.strokeStyle = isMine ? '#38bdf8' : '#fb7185';
+                clashCtx.lineWidth = 2.4;
+                clashCtx.beginPath(); clashCtx.ellipse(0, 11 * scale, 12 * scale, 5 * scale, 0, 0, Math.PI * 2); clashCtx.stroke();
 
                 // Draw the full illustrated cowboy / horse / cannon / brawler / bomber sprite!
                 drawClashUnitSprite(clashCtx, u.cardId, isMine, phase, scale);
 
-                // Crisp Unit HP bar
+                // Crisp Clash-Royale-style Unit HP bar
                 if (u.hp < u.maxHp) {
-                    const uw = 24 * scale;
-                    clashCtx.fillStyle = 'rgba(0,0,0,0.8)';
-                    clashCtx.fillRect(-uw / 2, -21 * scale, uw, 4.2);
-                    clashCtx.fillStyle = isMine ? '#34d399' : '#fb7185';
-                    clashCtx.fillRect(-uw / 2, -21 * scale, uw * Math.max(0, u.hp / u.maxHp), 4.2);
+                    const uw = 26 * scale;
+                    clashCtx.fillStyle = 'rgba(0,0,0,0.85)';
+                    clashCtx.fillRect(-uw / 2, -22 * scale, uw, 4.8);
+                    clashCtx.fillStyle = isMine ? '#38bdf8' : '#ef4444';
+                    clashCtx.fillRect(-uw / 2 + 1, -22 * scale + 1, (uw - 2) * Math.max(0, u.hp / u.maxHp), 2.8);
                 }
                 clashCtx.restore();
             });
@@ -5739,23 +5760,26 @@
                 cost.className = 'clash-cost-badge mono';
                 cost.textContent = String(c.cost);
 
-                // Crisp mini illustrated character sprite on each card!
+                // Crisp mini illustrated character sprite inside a glossy spotlight card frame!
+                const artBox = document.createElement('div');
+                artBox.className = 'clash-card-artbox';
                 const iconCanvas = document.createElement('canvas');
-                iconCanvas.width = 72; iconCanvas.height = 60;
-                iconCanvas.style.cssText = 'width:46px; height:38px; display:block; margin-top:2px;';
+                iconCanvas.width = 84; iconCanvas.height = 68;
+                iconCanvas.style.cssText = 'width:56px; height:44px; display:block;';
                 const ictx = iconCanvas.getContext('2d');
-                ictx.translate(36, 36);
-                drawClashUnitSprite(ictx, cardId, true, 0.5, 1.35);
+                ictx.translate(42, 40);
+                drawClashUnitSprite(ictx, cardId, true, 0.5, 1.55);
+                artBox.appendChild(iconCanvas);
 
                 const nm = document.createElement('div');
-                nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15;';
+                nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:2px;';
                 nm.textContent = c.name;
 
                 const role = document.createElement('div');
                 role.style.cssText = 'font-size:9px; color:#fde68a; font-weight:700;';
                 role.textContent = `[${idx + 1}] ${c.role}`;
 
-                btn.append(cost, iconCanvas, nm, role);
+                btn.append(cost, artBox, nm, role);
                 handEl.appendChild(btn);
             });
         }
@@ -5784,6 +5808,8 @@
             if (snap.state !== 'WAITING') {
                 requestAnimationFrame(resizeClashCanvas);
                 const elix = snap.elixir || 0;
+                const dropEl = document.getElementById('clashElixirDrop');
+                if (dropEl) dropEl.textContent = String(Math.floor(elix));
                 document.getElementById('clashElixirText').textContent = `${elix.toFixed(1)} / 10`;
                 document.getElementById('clashElixirFill').style.width = `${Math.min(100, (elix / 10) * 100)}%`;
                 const nextC = snap.nextCard && clashCardsMap[snap.nextCard];
