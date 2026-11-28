@@ -1872,8 +1872,8 @@
         <section id="viewRush100" class="card hidden">
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; max-width:500px; margin-left:auto; margin-right:auto;">
                 <div>
-                    <span class="tier-badge tier-LEGENDARY">GOLD RUSH 100 • 10X10</span>
-                    <span id="r100TurnBadge" class="elo-pill mono">TURN 0 / 70</span>
+                    <span class="tier-badge tier-LEGENDARY">GOLD RUSH 100 • 3 MIN</span>
+                    <span id="r100Clock" class="elo-pill mono" style="font-size:13px; color:#fffbeb; border-color:#fbbf24;">3:00</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span id="r100RoomTag" class="mono" style="font-size:11px; color:#fde68a;">ROOM ----</span>
@@ -3503,6 +3503,7 @@
             clearInterval(timerInt);
             clearInterval(passTimerInt);
             clearInterval(qdTimerInt);
+            clearInterval(r100ClockInt);
             clearTimeout(suggestDebounce);
             clearTimeout(passSuggestDebounce);
             clearSuggestions();
@@ -6407,6 +6408,20 @@
         let r100HighlightUntil = 0;
         let r100HighlightCells = [];
         let r100BlastFX = []; // { r, c, color, life }
+        let r100ClockInt = null;
+        let r100MatchEndsAt = 0;
+
+        function updateR100ClockUi() {
+            const el = document.getElementById('r100Clock');
+            if (!el) return;
+            const rem = Math.max(0, r100MatchEndsAt - Date.now());
+            const totalSec = Math.ceil(rem / 1000);
+            const m = Math.floor(totalSec / 60);
+            const s = String(totalSec % 60).padStart(2, '0');
+            el.textContent = `${m}:${s}`;
+            el.style.color = totalSec <= 30 ? '#fb7185' : '#fffbeb';
+            el.style.borderColor = totalSec <= 30 ? '#fb7185' : '#fbbf24';
+        }
 
         let myR100Loadout = (() => {
             try {
@@ -6970,7 +6985,18 @@
             r100LastSnap = snap;
             document.getElementById('r100RoomTag').textContent = `ROOM ${snap.code}`;
             document.getElementById('r100ShareCode').textContent = snap.code;
-            document.getElementById('r100TurnBadge').textContent = `TURN ${snap.turnsPlayed || 0} / ${snap.maxTurns || 70}`;
+            clearInterval(r100ClockInt);
+            if (snap.state === 'PLAYING') {
+                r100MatchEndsAt = Date.now() + (snap.matchRemainingMs || 0);
+                updateR100ClockUi();
+                r100ClockInt = setInterval(updateR100ClockUi, 250);
+            } else if (snap.state === 'FINISHED') {
+                r100MatchEndsAt = 0;
+                updateR100ClockUi();
+            } else {
+                const el = document.getElementById('r100Clock');
+                if (el) { el.textContent = '3:00'; el.style.color = '#fffbeb'; el.style.borderColor = '#fbbf24'; }
+            }
 
             document.getElementById('r100WaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
             document.getElementById('r100PlayArea').classList.toggle('hidden', snap.state === 'WAITING');

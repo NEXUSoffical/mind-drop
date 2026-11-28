@@ -10,7 +10,7 @@ const eloStore = require('./eloStore');
 
 const ROWS = 10;
 const COLS = 10;
-const MAX_TURNS = 70; // 35 turns per player (or ends earlier if all 100 holes fill!)
+const MATCH_MS = 180000; // 3-minute match timer — most tiles on the board when time ends wins!
 const TURN_MS = 20000;
 
 const POWERUPS = [
@@ -191,8 +191,10 @@ class Rush100Engine {
             dropsLeftThisTurn: 1,
             usedPowerupThisTurn: false,
             turnEndsAt: 0,
+            matchEndsAt: 0,
             lastEvent: null,
             timer: null,
+            matchTimer: null,
             botTimer: null,
         };
         this.rooms.set(code, room);
@@ -286,7 +288,7 @@ class Rush100Engine {
             room.players = room.players.filter(p => p.id !== playerId);
             const humansLeft = room.players.filter(p => !p.isBot).length;
             if (humansLeft === 0) {
-                this._clearTimers(room);
+                this._clearAllTimers(room);
                 this.rooms.delete(room.code);
                 return;
             }
@@ -301,8 +303,13 @@ class Rush100Engine {
         if (room.botTimer) { clearTimeout(room.botTimer); room.botTimer = null; }
     }
 
-    _startMatch(room) {
+    _clearAllTimers(room) {
         this._clearTimers(room);
+        if (room.matchTimer) { clearTimeout(room.matchTimer); room.matchTimer = null; }
+    }
+
+    _startMatch(room) {
+        this._clearAllTimers(room);
         room.state = 'PLAYING';
         room.board = createEmptyBoard();
         room.scoredLines = new Set();
@@ -310,7 +317,8 @@ class Rush100Engine {
         room.turnsPlayed = 0;
         room.dropsLeftThisTurn = 1;
         room.usedPowerupThisTurn = false;
-        room.lastEvent = { type: 'START', text: 'Battle started! Connect 4 to charge Power-Ups!' };
+        room.matchEndsAt = Date.now() + MATCH_MS;
+        room.lastEvent = { type: 'START', text: '3:00 on the clock! Connect 4, 5, 6, or 7 to charge Power-Ups!' };
 
         room.players.forEach((p, idx) => {
             p.side = idx;
@@ -322,14 +330,20 @@ class Rush100Engine {
         const hasBot = room.players.some(p => p.isBot);
         bloxCloud.recordMatchFormed(hasBot ? 'rush100_ai' : 'rush100_1v1', room.players);
 
+        room.matchTimer = setTimeout(() => {
+            if (room.state === 'PLAYING') {
+                this._finishByBoardCount(room, true);
+            }
+        }, MATCH_MS + 100);
+
         this._beginTurn(room);
     }
 
     _beginTurn(room) {
         this._clearTimers(room);
         const counts = countChips(room.board);
-        if (counts.total >= ROWS * COLS || room.turnsPlayed >= MAX_TURNS) {
-            this._finishByBoardCount(room);
+        if (counts.total >= ROWS * COLS || Date.now() >= room.matchEndsAt) {
+            this._finishByBoardCount(room, Date.now() >= room.matchEndsAt);
             return;
         }
 
@@ -671,22 +685,23 @@ class Rush100Engine {
         this._dropChip(room, bot, chosenCol);
     }
 
-    _finishByBoardCount(room) {
+    _finishByBoardCount(room, timedOut = false) {
         const { c0, c1 } = countChips(room.board);
+        const prefix = timedOut ? "Time's up! " : 'Board full! ';
         let winner = null;
-        let reason = `Tie game! Both players hold ${c0} tiles on the 100-slot board.`;
+        let reason = `${prefix}Tie game! Both players hold ${c0} tiles on the 100-slot board.`;
         if (c0 > c1) {
             winner = room.players[0];
-            reason = `${winner.name} dominated the board ${c0} to ${c1}!`;
+            reason = `${prefix}${winner.name} wins with ${c0} tiles to ${c1}!`;
         } else if (c1 > c0) {
             winner = room.players[1];
-            reason = `${winner.name} dominated the board ${c1} to ${c0}!`;
+            reason = `${prefix}${winner.name} wins with ${c1} tiles to ${c0}!`;
         }
         this._finishMatch(room, winner, reason);
     }
 
     _finishMatch(room, winner, reason) {
-        this._clearTimers(room);
+        this._clearAllTimers(room);
         room.state = 'FINISHED';
         const eloChanges = {};
 
@@ -740,7 +755,7 @@ class Rush100Engine {
             side: viewer.side,
             turnSide: room.turnSide,
             turnsPlayed: room.turnsPlayed,
-            maxTurns: MAX_TURNS,
+            matchRemainingMs: room.state === 'PLAYING' ? Math.max(0, room.matchEndsAt - Date.now()) : 0,
             dropsLeftThisTurn: room.dropsLeftThisTurn,
             usedPowerupThisTurn: room.usedPowerupThisTurn,
             timeRemainingMs: room.state === 'PLAYING' ? Math.max(0, room.turnEndsAt - Date.now()) : 0,
