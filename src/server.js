@@ -59,6 +59,10 @@ app.get('/api/live-counts', (req, res) => {
     res.json({ totalPlaying, games });
 });
 
+app.get('/api/clash/cards', (req, res) => {
+    res.json({ cards: clashEngine.getCards() });
+});
+
 app.post('/api/auth/register', (req, res) => {
     const { username, password, guestPid } = req.body || {};
     const out = authStore.register(username, password);
@@ -194,12 +198,15 @@ wss.on('connection', (ws, req) => {
                 authUser: authedUser,
             });
         } else if (url.pathname === '/ws/clash') {
+            const deckRaw = url.searchParams.get('deck') || '';
+            const deck = deckRaw ? deckRaw.split(',').map(s => s.trim()).filter(Boolean) : null;
             clashEngine.joinClash(ws, {
                 mode: payload.mode,
                 roomCode: payload.code,
                 name: payload.name,
                 profileId: payload.profileId,
                 authUser: authedUser,
+                deck,
             });
         } else {
             engine.joinOrCreateDuel(payload);
