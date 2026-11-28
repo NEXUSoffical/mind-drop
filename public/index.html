@@ -539,22 +539,30 @@
             justify-content: center;
         }
         .r100-pow-btn {
-            padding: 9px 13px;
-            border-radius: 12px;
-            background: linear-gradient(180deg, #5c2d14, #2b1207);
+            min-width: 112px;
+            padding: 7px 8px 8px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #5c2d14 0%, #2a1207 100%);
             border: 2px solid #f59e0b;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(254, 240, 138, 0.38);
             color: #fffbeb;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
             cursor: pointer;
-            transition: 0.12s;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: transform 0.13s, box-shadow 0.13s, border-color 0.13s;
         }
-        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-2px); }
+        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-3px); }
+        .r100-pow-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .r100-pow-btn.armed {
             border-color: #38bdf8;
             background: linear-gradient(180deg, #0369a1, #0c4a6e);
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+            transform: translateY(-4px);
+            box-shadow: 0 0 22px rgba(56, 189, 248, 0.6);
         }
         @media (max-width: 640px) {
             header { padding: 10px 14px; }
@@ -1147,22 +1155,44 @@
         }
         .deck-card-tile {
             position: relative;
-            padding: 7px 6px;
-            border-radius: 12px;
-            background: rgba(34, 15, 7, 0.92);
-            border: 1.5px solid rgba(245, 158, 11, 0.35);
+            padding: 8px 6px 9px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #4b230f 0%, #241006 100%);
+            border: 2px solid rgba(217, 119, 6, 0.55);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(254, 240, 138, 0.3);
             color: #fffbeb;
             cursor: pointer;
             text-align: center;
             font-family: inherit;
-            transition: 0.12s;
+            transition: transform 0.14s, border-color 0.14s, box-shadow 0.14s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
         }
-        .deck-card-tile:hover { border-color: #fde047; transform: translateY(-2px); }
-        .deck-card-tile.in-deck { border-color: #34d399; background: rgba(6, 78, 59, 0.45); }
+        .deck-card-tile:hover {
+            border-color: #fde047;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(245, 158, 11, 0.28);
+        }
+        .deck-card-tile.in-deck {
+            border-color: #34d399;
+            background: linear-gradient(180deg, #065f46 0%, #064e3b 100%);
+            box-shadow: 0 6px 18px rgba(52, 211, 153, 0.28), inset 0 1px 0 rgba(167, 243, 208, 0.4);
+        }
+        .deck-card-empty {
+            min-height: 98px;
+            border-radius: 14px;
+            border: 2px dashed rgba(245, 158, 11, 0.35);
+            background: rgba(20, 9, 4, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            letter-spacing: 0.6px;
+        }
         .r100-board-wrap {
             width: 100%;
             max-width: 500px;
@@ -1191,22 +1221,30 @@
             justify-content: center;
         }
         .r100-pow-btn {
-            padding: 9px 13px;
-            border-radius: 12px;
-            background: linear-gradient(180deg, #5c2d14, #2b1207);
+            min-width: 112px;
+            padding: 7px 8px 8px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #5c2d14 0%, #2a1207 100%);
             border: 2px solid #f59e0b;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(254, 240, 138, 0.38);
             color: #fffbeb;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 800;
             cursor: pointer;
-            transition: 0.12s;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: transform 0.13s, box-shadow 0.13s, border-color 0.13s;
         }
-        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-2px); }
+        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-3px); }
+        .r100-pow-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .r100-pow-btn.armed {
             border-color: #38bdf8;
             background: linear-gradient(180deg, #0369a1, #0c4a6e);
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+            transform: translateY(-4px);
+            box-shadow: 0 0 22px rgba(56, 189, 248, 0.6);
         }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
@@ -1484,11 +1522,13 @@
                 <div id="rush100LoadoutBuilder" class="deck-builder-box hidden">
                     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                         <div>
-                            <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#fde047;">YOUR POWER-UP DECK (<span id="r100LoadoutCount" class="mono">4 / 4</span>)</div>
+                            <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#fde047;">YOUR ACTIVE POWER-UP DECK (<span id="r100LoadoutCount" class="mono">4 / 4</span>)</div>
                             <div style="font-size:11px; color:#fde68a; margin-top:2px;">Every 4-in-a-row charges the next Power-Up in your deck</div>
                         </div>
                     </div>
                     <div id="r100LoadoutWarn" class="hidden" style="font-size:11px; font-weight:800; color:#fb7185; margin-top:6px;"></div>
+                    <div id="r100ActiveDeckGrid" class="deck-grid"></div>
+                    <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 8 WILD WEST POWER-UPS (CLICK TO SWAP)</div>
                     <div id="r100LoadoutGrid" class="deck-grid"></div>
                 </div>
             </div>
@@ -6414,30 +6454,123 @@
             renderR100LoadoutBuilder();
         }
 
+        // 8 crisp illustrated Wild West Power-Up icons for Gold Rush 100 (Deck Builder + In-Game Cards)
+        function drawR100PowerupIcon(ctx, id, s = 1) {
+            ctx.save();
+            ctx.scale(s, s);
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            if (id === 'dynamite') {
+                ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 1.5;
+                [-5.5, 0, 5.5].forEach(ox => { ctx.fillRect(ox - 2.4, -7, 4.8, 16); ctx.strokeRect(ox - 2.4, -7, 4.8, 16); });
+                ctx.fillStyle = '#1c1917'; ctx.fillRect(-8.5, -2, 17, 2.5); ctx.fillRect(-8.5, 3, 17, 2.5);
+                ctx.strokeStyle = '#fde68a'; ctx.lineWidth = 1.8;
+                ctx.beginPath(); ctx.moveTo(0, -7); ctx.quadraticCurveTo(4, -14, 10, -14); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(10, -14, 4, 0, Math.PI * 2); ctx.fill();
+            } else if (id === 'column_nuke') {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.28)'; ctx.fillRect(-6, -15, 12, 30);
+                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 3.2;
+                ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(-4, -3); ctx.lineTo(3, 1); ctx.lineTo(-1, 15); ctx.stroke();
+                ctx.strokeStyle = '#e0f2fe'; ctx.lineWidth = 1.4; ctx.stroke();
+            } else if (id === 'row_sweep') {
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.28)'; ctx.fillRect(-16, -6, 32, 12);
+                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(14, 0); ctx.stroke();
+                ctx.fillStyle = '#fde047';
+                ctx.beginPath(); ctx.moveTo(16, 0); ctx.lineTo(7, -7); ctx.lineTo(9, 0); ctx.lineTo(7, 7); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(-7, -7); ctx.lineTo(-9, 0); ctx.lineTo(-7, 7); ctx.closePath(); ctx.fill();
+            } else if (id === 'convert') {
+                ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#fecdd3'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.arc(-6, 4, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#bae6fd';
+                ctx.beginPath(); ctx.arc(6, -4, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.arc(0, 0, 13, -0.4, 1.3); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 13, 2.7, 4.4); ctx.stroke();
+            } else if (id === 'double_drop') {
+                ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#7dd3fc'; ctx.lineWidth = 1.8;
+                ctx.beginPath(); ctx.arc(-6, -4, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.arc(6, 4, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#34d399'; ctx.font = '800 11px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center'; ctx.fillText('x2', 7, -6);
+            } else if (id === 'boulder') {
+                const sg = ctx.createRadialGradient(-3, -3, 1, 0, 0, 13);
+                sg.addColorStop(0, '#f1f5f9'); sg.addColorStop(0.6, '#64748b'); sg.addColorStop(1, '#1e293b');
+                ctx.fillStyle = sg; ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.moveTo(0, -6); ctx.lineTo(0, 6); ctx.stroke();
+            } else if (id === 'quake') {
+                ctx.strokeStyle = '#fb923c'; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.arc(0, 2, 13, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 2, 8.5, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+                ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.6;
+                ctx.beginPath(); ctx.moveTo(-13, 8); ctx.lineTo(-5, 2); ctx.lineTo(1, 9); ctx.lineTo(7, 1); ctx.lineTo(13, 8); ctx.stroke();
+            } else {
+                // magnet
+                ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 5;
+                ctx.beginPath(); ctx.arc(0, -2, 9.5, Math.PI, 0, false); ctx.lineTo(9.5, 8); ctx.moveTo(-9.5, -2); ctx.lineTo(-9.5, 8); ctx.stroke();
+                ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-12, 5, 5, 5); ctx.fillRect(7, 5, 5, 5);
+                ctx.strokeStyle = '#fde047'; ctx.lineWidth = 1.6;
+                ctx.beginPath(); ctx.arc(0, 11, 5, 0.2, Math.PI - 0.2); ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function buildR100DeckTile(p, inDeck) {
+            const tile = document.createElement('button');
+            tile.type = 'button';
+            tile.className = 'deck-card-tile' + (inDeck ? ' in-deck' : '');
+            tile.title = p.desc;
+            tile.onclick = () => toggleR100Loadout(p.id);
+
+            const artBox = document.createElement('div');
+            artBox.className = 'clash-card-artbox';
+            artBox.style.height = '44px';
+            const cv = document.createElement('canvas');
+            cv.width = 76; cv.height = 60;
+            cv.style.cssText = 'width:48px; height:38px; display:block;';
+            const ctx = cv.getContext('2d');
+            ctx.translate(38, 30);
+            drawR100PowerupIcon(ctx, p.id, 1.28);
+            artBox.appendChild(cv);
+
+            const nm = document.createElement('div');
+            nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:1px;';
+            nm.textContent = p.name;
+
+            const ds = document.createElement('div');
+            ds.style.cssText = 'font-size:9px; color:#fde68a; line-height:1.2;';
+            ds.textContent = p.target === 'instant' ? 'Instant Cast' : (p.target === 'col' ? 'Target Column' : (p.target === 'row' ? 'Target Row' : 'Target Area'));
+
+            tile.append(artBox, nm, ds);
+            return tile;
+        }
+
         function renderR100LoadoutBuilder() {
+            const activeGrid = document.getElementById('r100ActiveDeckGrid');
             const grid = document.getElementById('r100LoadoutGrid');
-            if (!grid) return;
+            if (!grid || !activeGrid) return;
+            activeGrid.innerHTML = '';
             grid.innerHTML = '';
             const set = new Set(myR100Loadout);
             document.getElementById('r100LoadoutCount').textContent = `${myR100Loadout.length} / 4`;
 
-            r100AllPowerups.forEach(p => {
-                const inDeck = set.has(p.id);
-                const tile = document.createElement('button');
-                tile.type = 'button';
-                tile.className = 'deck-card-tile' + (inDeck ? ' in-deck' : '');
-                tile.onclick = () => toggleR100Loadout(p.id);
+            for (let i = 0; i < 4; i++) {
+                const pid = myR100Loadout[i];
+                const p = pid && r100PowerupMap[pid];
+                if (p) {
+                    activeGrid.appendChild(buildR100DeckTile(p, true));
+                } else {
+                    const empty = document.createElement('div');
+                    empty.className = 'deck-card-empty';
+                    empty.textContent = 'PICK CARD';
+                    activeGrid.appendChild(empty);
+                }
+            }
 
-                const dot = document.createElement('div');
-                dot.style.cssText = `width:26px; height:26px; border-radius:50%; background:${p.color}; border:2px solid #fffbeb; margin-top:2px; box-shadow:0 0 10px ${p.color}66;`;
-                const nm = document.createElement('div');
-                nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:2px;';
-                nm.textContent = p.name;
-                const ds = document.createElement('div');
-                ds.style.cssText = 'font-size:9px; color:#fde68a; line-height:1.2;';
-                ds.textContent = p.desc;
-                tile.append(dot, nm, ds);
-                grid.appendChild(tile);
+            r100AllPowerups.forEach(p => {
+                grid.appendChild(buildR100DeckTile(p, set.has(p.id)));
             });
         }
 
@@ -6460,26 +6593,90 @@
         }
         window.addEventListener('resize', resizeR100Canvas);
 
+        let r100DropAnim = null; // { r, c, side, steel, y, vy }
+
+        function drawR100Coin(ctx, cx, cy, rad, isMine, steel) {
+            const cg = ctx.createRadialGradient(cx - rad * 0.3, cy - rad * 0.3, 1, cx, cy, rad);
+            if (steel) {
+                cg.addColorStop(0, '#f8fafc');
+                cg.addColorStop(0.55, isMine ? '#38bdf8' : '#f87171');
+                cg.addColorStop(1, '#1e293b');
+            } else if (isMine) {
+                cg.addColorStop(0, '#bae6fd');
+                cg.addColorStop(0.55, '#0284c7');
+                cg.addColorStop(1, '#082f49');
+            } else {
+                cg.addColorStop(0, '#fecdd3');
+                cg.addColorStop(0.55, '#dc2626');
+                cg.addColorStop(1, '#450a0a');
+            }
+            ctx.fillStyle = cg;
+            ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill();
+
+            // Outer beveled coin rim
+            ctx.lineWidth = steel ? 3 : 1.8;
+            ctx.strokeStyle = steel ? '#e2e8f0' : (isMine ? '#7dd3fc' : '#fca5a5');
+            ctx.stroke();
+
+            // Inner engraved Wild West emblem
+            ctx.save();
+            ctx.translate(cx, cy);
+            if (steel) {
+                ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.8;
+                ctx.beginPath(); ctx.moveTo(-rad * 0.45, 0); ctx.lineTo(rad * 0.45, 0); ctx.moveTo(0, -rad * 0.45); ctx.lineTo(0, rad * 0.45); ctx.stroke();
+            } else if (isMine) {
+                // Engraved Gold Sheriff Star
+                ctx.fillStyle = 'rgba(254, 240, 138, 0.85)';
+                ctx.beginPath();
+                for (let k = 0; k < 10; k++) {
+                    const rr = k % 2 === 0 ? rad * 0.48 : rad * 0.22;
+                    const a = (k * Math.PI) / 5 - Math.PI / 2;
+                    if (k === 0) ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+                    else ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+                }
+                ctx.closePath(); ctx.fill();
+            } else {
+                // Engraved Outlaw Diamond Emblem
+                ctx.fillStyle = 'rgba(69, 10, 10, 0.55)';
+                ctx.beginPath();
+                ctx.moveTo(0, -rad * 0.46); ctx.lineTo(rad * 0.42, 0); ctx.lineTo(0, rad * 0.46); ctx.lineTo(-rad * 0.42, 0);
+                ctx.closePath(); ctx.fill();
+            }
+            ctx.restore();
+        }
+
         function renderR100CanvasFrame() {
             requestAnimationFrame(renderR100CanvasFrame);
             if (!r100Ctx || document.getElementById('viewRush100').classList.contains('hidden')) return;
             const snap = r100LastSnap;
             if (!snap || snap.state === 'WAITING') return;
 
-            const pad = 10;
+            const pad = 14;
             const cell = (r100sz - pad * 2) / 10;
             const board = snap.board || [];
             const myTurn = snap.state === 'PLAYING' && snap.turnSide === r100Side;
 
-            // Rich wooden saloon Connect-4 board
+            // Rich mahogany saloon wood board with subtle plank seams
             const grad = r100Ctx.createLinearGradient(0, 0, 0, r100sz);
-            grad.addColorStop(0, '#78350f');
-            grad.addColorStop(0.5, '#5c280b');
-            grad.addColorStop(1, '#451a03');
+            grad.addColorStop(0, '#854014');
+            grad.addColorStop(0.5, '#662d0c');
+            grad.addColorStop(1, '#471c05');
             r100Ctx.fillStyle = grad;
             r100Ctx.fillRect(0, 0, r100sz, r100sz);
 
-            // Hover targeting overlay (column drop OR armed power-up blast/row/col preview!)
+            // Wood plank grain lines & brass corner rivets
+            r100Ctx.strokeStyle = 'rgba(28, 10, 3, 0.25)';
+            r100Ctx.lineWidth = 1;
+            for (let i = 1; i < 10; i++) {
+                const y = pad + i * cell;
+                r100Ctx.beginPath(); r100Ctx.moveTo(0, y); r100Ctx.lineTo(r100sz, y); r100Ctx.stroke();
+            }
+            r100Ctx.fillStyle = '#fbbf24';
+            [[7, 7], [r100sz - 7, 7], [7, r100sz - 7], [r100sz - 7, r100sz - 7]].forEach(([rx, ry]) => {
+                r100Ctx.beginPath(); r100Ctx.arc(rx, ry, 3.2, 0, Math.PI * 2); r100Ctx.fill();
+            });
+
+            // Hover targeting overlay (column drop + preview coin OR armed power-up reticle!)
             if (myTurn && r100HoverCell) {
                 const { r: hr, c: hc } = r100HoverCell;
                 const armed = r100ArmedPowerup ? r100PowerupMap[r100ArmedPowerup] : null;
@@ -6487,11 +6684,14 @@
                 if (!armed || armed.target === 'col') {
                     r100Ctx.fillStyle = armed ? 'rgba(56, 189, 248, 0.22)' : 'rgba(253, 224, 71, 0.14)';
                     r100Ctx.fillRect(pad + hc * cell, pad, cell, cell * 10);
+                    // Preview coin hovering at top of column
+                    r100Ctx.globalAlpha = 0.72;
+                    drawR100Coin(r100Ctx, pad + hc * cell + cell * 0.5, pad + cell * 0.5, cell * 0.36, true, r100ArmedPowerup === 'boulder');
                 } else if (armed.target === 'row') {
-                    r100Ctx.fillStyle = 'rgba(245, 158, 11, 0.24)';
+                    r100Ctx.fillStyle = 'rgba(245, 158, 11, 0.26)';
                     r100Ctx.fillRect(pad, pad + hr * cell, cell * 10, cell);
                 } else if (armed.target === 'cell') {
-                    r100Ctx.fillStyle = r100ArmedPowerup === 'dynamite' ? 'rgba(239, 68, 68, 0.28)' : 'rgba(192, 132, 252, 0.28)';
+                    r100Ctx.fillStyle = r100ArmedPowerup === 'dynamite' ? 'rgba(239, 68, 68, 0.30)' : 'rgba(192, 132, 252, 0.30)';
                     const cStart = Math.max(0, hc - 1), cEnd = Math.min(9, hc + 1);
                     const rStart = Math.max(0, hr - 1), rEnd = Math.min(9, hr + 1);
                     r100Ctx.fillRect(pad + cStart * cell, pad + rStart * cell, (cEnd - cStart + 1) * cell, (rEnd - rStart + 1) * cell);
@@ -6499,62 +6699,73 @@
                 r100Ctx.restore();
             }
 
+            // Step falling drop animation
+            if (r100DropAnim) {
+                const targetY = pad + r100DropAnim.r * cell + cell * 0.5;
+                r100DropAnim.vy += 2.6;
+                r100DropAnim.y += r100DropAnim.vy;
+                if (r100DropAnim.y >= targetY) {
+                    r100DropAnim.y = targetY;
+                    if (Math.abs(r100DropAnim.vy) > 5) {
+                        r100DropAnim.vy = -r100DropAnim.vy * 0.28;
+                    } else {
+                        r100DropAnim = null;
+                    }
+                }
+            }
+
             const highlightSet = new Set(Date.now() < r100HighlightUntil ? r100HighlightCells.map(([rr, cc]) => `${rr}_${cc}`) : []);
 
-            // Draw all 100 holes & coins!
+            // Draw all 100 carved holes & engraved coins
             for (let r = 0; r < 10; r++) {
                 for (let c = 0; c < 10; c++) {
                     const cx = pad + c * cell + cell * 0.5;
                     const cy = pad + r * cell + cell * 0.5;
                     const rad = cell * 0.39;
 
-                    // Carved hole recess
-                    r100Ctx.fillStyle = '#180903';
-                    r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 1.5, 0, Math.PI * 2); r100Ctx.fill();
+                    // Beveled hole socket
+                    r100Ctx.fillStyle = '#140702';
+                    r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 1.8, 0, Math.PI * 2); r100Ctx.fill();
+                    r100Ctx.strokeStyle = 'rgba(251, 191, 36, 0.16)';
+                    r100Ctx.lineWidth = 1;
+                    r100Ctx.stroke();
 
                     const slot = board[r] && board[r][c];
-                    if (slot) {
-                        const isMine = slot.owner === r100Side;
-                        const cg = r100Ctx.createRadialGradient(cx - rad * 0.3, cy - rad * 0.3, 1, cx, cy, rad);
-                        if (isMine) {
-                            cg.addColorStop(0, '#7dd3fc');
-                            cg.addColorStop(0.65, '#0284c7');
-                            cg.addColorStop(1, '#0c4a6e');
-                        } else {
-                            cg.addColorStop(0, '#fda4af');
-                            cg.addColorStop(0.65, '#dc2626');
-                            cg.addColorStop(1, '#7f1d1d');
-                        }
-                        r100Ctx.fillStyle = cg;
-                        r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad, 0, Math.PI * 2); r100Ctx.fill();
-
-                        // Rim & Steel Lock ring
-                        r100Ctx.lineWidth = slot.steel ? 3 : 1.5;
-                        r100Ctx.strokeStyle = slot.steel ? '#e2e8f0' : (isMine ? '#bae6fd' : '#fecdd3');
-                        r100Ctx.stroke();
-
+                    const isFallingHere = r100DropAnim && r100DropAnim.r === r && r100DropAnim.c === c;
+                    if (slot && !isFallingHere) {
+                        drawR100Coin(r100Ctx, cx, cy, rad, slot.owner === r100Side, Boolean(slot.steel));
                         if (highlightSet.has(`${r}_${c}`)) {
-                            r100Ctx.lineWidth = 3;
+                            r100Ctx.lineWidth = 3.2;
                             r100Ctx.strokeStyle = '#fde047';
-                            r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 2.5, 0, Math.PI * 2); r100Ctx.stroke();
+                            r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 2.6, 0, Math.PI * 2); r100Ctx.stroke();
                         }
                     }
                 }
             }
 
+            // Draw currently falling chip with smooth bounce
+            if (r100DropAnim) {
+                const cx = pad + r100DropAnim.c * cell + cell * 0.5;
+                drawR100Coin(r100Ctx, cx, r100DropAnim.y, cell * 0.39, r100DropAnim.side === r100Side, Boolean(r100DropAnim.steel));
+            }
+
             // Explosion / Convert FX bursts
             for (let i = r100BlastFX.length - 1; i >= 0; i--) {
                 const fx = r100BlastFX[i];
-                fx.life -= 0.035;
+                fx.life -= 0.032;
                 if (fx.life <= 0) { r100BlastFX.splice(i, 1); continue; }
                 const cx = pad + fx.c * cell + cell * 0.5;
                 const cy = pad + fx.r * cell + cell * 0.5;
                 r100Ctx.save();
                 r100Ctx.globalAlpha = Math.max(0, fx.life);
-                r100Ctx.strokeStyle = fx.color || '#fde047';
-                r100Ctx.lineWidth = 3;
+                r100Ctx.fillStyle = fx.color || '#fde047';
                 r100Ctx.beginPath();
-                r100Ctx.arc(cx, cy, cell * (0.3 + (1 - fx.life) * 0.7), 0, Math.PI * 2);
+                r100Ctx.arc(cx, cy, cell * 0.45 * fx.life, 0, Math.PI * 2);
+                r100Ctx.fill();
+                r100Ctx.strokeStyle = '#fffbeb';
+                r100Ctx.lineWidth = 2.6;
+                r100Ctx.beginPath();
+                r100Ctx.arc(cx, cy, cell * (0.3 + (1 - fx.life) * 0.8), 0, Math.PI * 2);
                 r100Ctx.stroke();
                 r100Ctx.restore();
             }
@@ -6640,6 +6851,9 @@
                     renderR100Ui(msg.snapshot);
                 } else if (msg.type === 'R100_UPDATE') {
                     const evObj = msg.snapshot.lastEvent;
+                    if (evObj && (evObj.type === 'DROP' || evObj.type === 'FOUR_POWERUP') && Number.isInteger(evObj.row) && Number.isInteger(evObj.col)) {
+                        r100DropAnim = { r: evObj.row, c: evObj.col, side: evObj.side, steel: Boolean(evObj.steel), y: 12, vy: 2 };
+                    }
                     if (evObj && evObj.highlightCells && evObj.highlightCells.length > 0) {
                         r100HighlightCells = evObj.highlightCells;
                         r100HighlightUntil = Date.now() + 2400;
@@ -6722,7 +6936,22 @@
                         btn.style.borderColor = r100ArmedPowerup === pid ? '#38bdf8' : p.color;
                         btn.disabled = !myTurn || snap.usedPowerupThisTurn;
                         btn.title = p.desc;
-                        btn.textContent = r100ArmedPowerup === pid ? `CLICK BOARD: ${p.name}` : p.name;
+
+                        const artBox = document.createElement('div');
+                        artBox.className = 'clash-card-artbox';
+                        artBox.style.height = '40px';
+                        const cv = document.createElement('canvas');
+                        cv.width = 72; cv.height = 56;
+                        cv.style.cssText = 'width:46px; height:36px; display:block;';
+                        const pctx = cv.getContext('2d');
+                        pctx.translate(36, 28);
+                        drawR100PowerupIcon(pctx, p.id, 1.18);
+                        artBox.appendChild(cv);
+
+                        const lbl = document.createElement('span');
+                        lbl.textContent = r100ArmedPowerup === pid ? 'CLICK BOARD!' : p.name;
+                        btn.append(artBox, lbl);
+
                         btn.onclick = () => {
                             if (p.target === 'instant') {
                                 r100ArmedPowerup = null;
