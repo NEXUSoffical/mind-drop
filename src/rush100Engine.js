@@ -14,18 +14,29 @@ const MAX_TURNS = 70; // 35 turns per player (or ends earlier if all 100 holes f
 const TURN_MS = 20000;
 
 const POWERUPS = [
-    // TIER 4 (4-in-a-Row)
+    // TIER 4 (4-in-a-Row — 4 Tactical Powers)
     { id: 'double_drop', tier: 4, name: 'Double Drop', target: 'instant', color: '#34d399', desc: '4-in-a-Row: Drop 2 chips on this turn instead of 1.' },
     { id: 'boulder', tier: 4, name: 'Steel Chip', target: 'col', color: '#94a3b8', desc: '4-in-a-Row: Drop an indestructible Steel Chip.' },
-    // TIER 5 (5-in-a-Row)
+    { id: 'sniper_shot', tier: 4, name: 'Sniper Shot', target: 'cell', color: '#f43f5e', desc: '4-in-a-Row: Snipe and destroy any 1 enemy chip on the board.' },
+    { id: 'pickpocket', tier: 4, name: 'Pickpocket', target: 'cell', color: '#a855f7', desc: '4-in-a-Row: Flip any 1 enemy chip anywhere to your color.' },
+
+    // TIER 5 (5-in-a-Row — 4 Mid-Game Control Powers)
     { id: 'dynamite', tier: 5, name: 'Dynamite 3x3', target: 'cell', color: '#ef4444', desc: '5-in-a-Row: Blast all enemy chips in a 3x3 area.' },
     { id: 'convert', tier: 5, name: 'Outlaw Convert', target: 'cell', color: '#c084fc', desc: '5-in-a-Row: Flip an enemy chip + up to 2 adjacent.' },
-    // TIER 6 (6-in-a-Row)
-    { id: 'column_nuke', tier: 6, name: 'Railgun Column', target: 'col', color: '#38bdf8', desc: '6-in-a-Row: Vaporize every enemy chip in a full 10-tall column.' },
-    { id: 'row_sweep', tier: 6, name: 'Gold Row Sweep', target: 'row', color: '#f59e0b', desc: '6-in-a-Row: Destroy every enemy chip across a full 10-wide row.' },
-    // TIER 7 (7-in-a-Row — ULTIMATE)
+    { id: 'triple_drop', tier: 5, name: 'Triple Drop', target: 'instant', color: '#10b981', desc: '5-in-a-Row: Drop 3 chips in a single turn!' },
+    { id: 'twin_steel', tier: 5, name: 'Fortify Pair', target: 'col', color: '#cbd5e1', desc: '5-in-a-Row: Drop 2 stacked indestructible Steel Chips.' },
+
+    // TIER 6 (6-in-a-Row — 4 Heavy Lane & Area Powers)
+    { id: 'column_nuke', tier: 6, name: 'Railgun Column', target: 'col', color: '#38bdf8', desc: '6-in-a-Row: Vaporize every enemy chip in a 10-tall column.' },
+    { id: 'row_sweep', tier: 6, name: 'Gold Row Sweep', target: 'row', color: '#f59e0b', desc: '6-in-a-Row: Destroy every enemy chip across a 10-wide row.' },
+    { id: 'cross_blast', tier: 6, name: 'Crosshair Blast', target: 'cell', color: '#f97316', desc: '6-in-a-Row: Blast a giant 5x5 + cross of enemy chips.' },
+    { id: 'vortex_flip', tier: 6, name: 'Vortex Flip 3x3', target: 'cell', color: '#d946ef', desc: '6-in-a-Row: Convert up to 4 enemy chips inside a 3x3 zone.' },
+
+    // TIER 7 (7-in-a-Row — 4 ULTIMATE Superweapons)
     { id: 'quake', tier: 7, name: 'Mega Blast 5x5', target: 'cell', color: '#fb923c', desc: '7-in-a-Row ULTIMATE: Colossal 5x5 blast wiping enemy territory!' },
     { id: 'magnet', tier: 7, name: 'Grand Heist', target: 'instant', color: '#fde047', desc: '7-in-a-Row ULTIMATE: Flip 6 random enemy chips to your color!' },
+    { id: 'rail_barrage', tier: 7, name: 'Triple Railgun', target: 'col', color: '#0ea5e9', desc: '7-in-a-Row ULTIMATE: Vaporize enemy chips across 3 full columns!' },
+    { id: 'gold_rain', tier: 7, name: 'Gold Rush Rain', target: 'instant', color: '#facc15', desc: '7-in-a-Row ULTIMATE: Rain 4 of your chips across open columns!' },
 ];
 
 const DEFAULT_LOADOUT = ['double_drop', 'dynamite', 'column_nuke', 'quake'];
@@ -428,6 +439,9 @@ class Rush100Engine {
         if (powerupId === 'double_drop') {
             room.dropsLeftThisTurn += 1;
             msg = `${player.name} activated Double Drop (2 chips this turn)!`;
+        } else if (powerupId === 'triple_drop') {
+            room.dropsLeftThisTurn += 2;
+            msg = `${player.name} activated TRIPLE DROP (3 chips this turn)!`;
         } else if (powerupId === 'boulder') {
             const col = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 4));
             const r = findDropRow(room.board, col);
@@ -436,6 +450,36 @@ class Rush100Engine {
             room.usedPowerupThisTurn = true;
             this._dropChip(room, player, col, true);
             return true;
+        } else if (powerupId === 'twin_steel') {
+            const col = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 4));
+            let dropped = 0;
+            for (let k = 0; k < 2; k++) {
+                const r = findDropRow(room.board, col);
+                if (r !== -1) {
+                    room.board[r][col] = { owner: player.side, steel: true };
+                    affected.push([r, col]);
+                    dropped++;
+                }
+            }
+            if (dropped === 0) return false;
+            msg = `${player.name} dropped ${dropped} indestructible Steel Chips in Column ${col + 1}!`;
+        } else if (powerupId === 'sniper_shot') {
+            const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
+            if (room.board[r0][c0] && room.board[r0][c0].owner === oppSide && !room.board[r0][c0].steel) {
+                room.board[r0][c0] = null;
+                affected.push([r0, c0]);
+                applyGravity(room.board);
+            }
+            msg = `${player.name} sniped an enemy chip at Row ${r0 + 1}, Col ${c0 + 1}!`;
+        } else if (powerupId === 'pickpocket') {
+            const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
+            if (room.board[r0][c0] && room.board[r0][c0].owner === oppSide && !room.board[r0][c0].steel) {
+                room.board[r0][c0].owner = player.side;
+                affected.push([r0, c0]);
+            }
+            msg = `${player.name} pickpocketed an enemy chip!`;
         } else if (powerupId === 'dynamite') {
             const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
             const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
@@ -449,6 +493,35 @@ class Rush100Engine {
             }
             applyGravity(room.board);
             msg = `${player.name} blasted ${affected.length} enemy chips with Dynamite 3x3!`;
+        } else if (powerupId === 'cross_blast') {
+            const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
+            for (let d = -2; d <= 2; d++) {
+                const pts = d === 0 ? [[r0, c0]] : [[r0 + d, c0], [r0, c0 + d]];
+                for (const [r, c] of pts) {
+                    if (r >= 0 && r < ROWS && c >= 0 && c < COLS && room.board[r][c] && room.board[r][c].owner === oppSide && !room.board[r][c].steel) {
+                        room.board[r][c] = null;
+                        affected.push([r, c]);
+                    }
+                }
+            }
+            applyGravity(room.board);
+            msg = `${player.name} fired Crosshair Blast — wiped ${affected.length} enemy chips!`;
+        } else if (powerupId === 'vortex_flip') {
+            const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
+            let flipped = 0;
+            for (let r = r0 - 1; r <= r0 + 1; r++) {
+                for (let c = c0 - 1; c <= c0 + 1; c++) {
+                    if (flipped >= 4) break;
+                    if (r >= 0 && r < ROWS && c >= 0 && c < COLS && room.board[r][c] && room.board[r][c].owner === oppSide && !room.board[r][c].steel) {
+                        room.board[r][c].owner = player.side;
+                        affected.push([r, c]);
+                        flipped++;
+                    }
+                }
+            }
+            msg = `${player.name} unleashed Vortex Flip — converted ${flipped} enemy chips!`;
         } else if (powerupId === 'column_nuke') {
             const col = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 4));
             for (let r = 0; r < ROWS; r++) {
@@ -459,6 +532,33 @@ class Rush100Engine {
             }
             applyGravity(room.board);
             msg = `${player.name} cleared ${affected.length} enemy chips in Column ${col + 1}!`;
+        } else if (powerupId === 'rail_barrage') {
+            // Tier 7 ULTIMATE: Triple Railgun (3 full columns!)
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 4));
+            for (let c = Math.max(0, c0 - 1); c <= Math.min(COLS - 1, c0 + 1); c++) {
+                for (let r = 0; r < ROWS; r++) {
+                    if (room.board[r][c] && room.board[r][c].owner === oppSide && !room.board[r][c].steel) {
+                        room.board[r][c] = null;
+                        affected.push([r, c]);
+                    }
+                }
+            }
+            applyGravity(room.board);
+            msg = `${player.name} fired TRIPLE RAILGUN — obliterated ${affected.length} enemy chips across 3 columns!`;
+        } else if (powerupId === 'gold_rain') {
+            // Tier 7 ULTIMATE: Gold Rush Rain — drops 4 of your chips into random open columns!
+            let rained = 0;
+            for (let k = 0; k < 4; k++) {
+                const openCols = [];
+                for (let c = 0; c < COLS; c++) if (findDropRow(room.board, c) !== -1) openCols.push(c);
+                if (openCols.length === 0) break;
+                const col = openCols[Math.floor(Math.random() * openCols.length)];
+                const r = findDropRow(room.board, col);
+                room.board[r][col] = { owner: player.side, steel: false };
+                affected.push([r, col]);
+                rained++;
+            }
+            msg = `${player.name} summoned GOLD RUSH RAIN — dropped ${rained} bonus chips!`;
         } else if (powerupId === 'row_sweep') {
             const row = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : ROWS - 1));
             for (let c = 0; c < COLS; c++) {

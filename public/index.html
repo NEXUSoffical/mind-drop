@@ -1528,8 +1528,8 @@
                     </div>
                     <div id="r100LoadoutWarn" class="hidden" style="font-size:11px; font-weight:800; color:#fb7185; margin-top:6px;"></div>
                     <div id="r100ActiveDeckGrid" class="deck-grid"></div>
-                    <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 8 TIERED POWER-UPS (HIGHER NUMBER = MORE POWERFUL)</div>
-                    <div id="r100LoadoutGrid" class="deck-grid"></div>
+                    <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 16 TIERED POWER-UPS (4 CHOICES PER TIER — CLICK TO SWAP)</div>
+                    <div id="r100LoadoutGrid" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;"></div>
                 </div>
             </div>
         </section>
@@ -6450,7 +6450,45 @@
             ctx.scale(s, s);
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
-            if (id === 'dynamite') {
+            if (id === 'sniper_shot') {
+                ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 2.2;
+                ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(-5, 0); ctx.moveTo(5, 0); ctx.lineTo(15, 0); ctx.moveTo(0, -15); ctx.lineTo(0, -5); ctx.moveTo(0, 5); ctx.lineTo(0, 15); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(0, 0, 2.8, 0, Math.PI * 2); ctx.fill();
+            } else if (id === 'pickpocket') {
+                ctx.fillStyle = '#a855f7'; ctx.strokeStyle = '#f3e8ff'; ctx.lineWidth = 1.6;
+                ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.font = '800 12px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('1', 0, 4);
+            } else if (id === 'triple_drop') {
+                ctx.fillStyle = '#10b981'; ctx.strokeStyle = '#a7f3d0'; ctx.lineWidth = 1.6;
+                [[-7, 4], [0, -5], [7, 4]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); });
+                ctx.fillStyle = '#fde047'; ctx.font = '800 10px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('x3', 0, 14);
+            } else if (id === 'twin_steel') {
+                [-5, 5].forEach(oy => {
+                    ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#f8fafc'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.arc(0, oy, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                });
+            } else if (id === 'cross_blast') {
+                ctx.fillStyle = 'rgba(249, 115, 22, 0.35)';
+                ctx.fillRect(-14, -4.5, 28, 9); ctx.fillRect(-4.5, -14, 9, 28);
+                ctx.strokeStyle = '#fb923c'; ctx.lineWidth = 2.6;
+                ctx.beginPath(); ctx.moveTo(-14, 0); ctx.lineTo(14, 0); ctx.moveTo(0, -14); ctx.lineTo(0, 14); ctx.stroke();
+                ctx.fillStyle = '#fde047'; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+            } else if (id === 'vortex_flip') {
+                ctx.strokeStyle = '#d946ef'; ctx.lineWidth = 2.4;
+                ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 1.5); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, 7, Math.PI, Math.PI * 2.5); ctx.stroke();
+                ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI * 2); ctx.fill();
+            } else if (id === 'rail_barrage') {
+                [-8, 0, 8].forEach(ox => {
+                    ctx.fillStyle = 'rgba(14, 165, 233, 0.3)'; ctx.fillRect(ox - 2.8, -14, 5.6, 28);
+                    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(ox, -14); ctx.lineTo(ox, 14); ctx.stroke();
+                });
+            } else if (id === 'gold_rain') {
+                ctx.fillStyle = '#facc15'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.4;
+                [[-8, -7], [0, -1], [8, -7], [0, 8]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); });
+            } else if (id === 'dynamite') {
                 ctx.fillStyle = '#dc2626'; ctx.strokeStyle = '#450a0a'; ctx.lineWidth = 1.5;
                 [-5.5, 0, 5.5].forEach(ox => { ctx.fillRect(ox - 2.4, -7, 4.8, 16); ctx.strokeRect(ox - 2.4, -7, 4.8, 16); });
                 ctx.fillStyle = '#1c1917'; ctx.fillRect(-8.5, -2, 17, 2.5); ctx.fillRect(-8.5, 3, 17, 2.5);
@@ -6558,8 +6596,16 @@
                 }
             }
 
-            r100AllPowerups.forEach(p => {
-                grid.appendChild(buildR100DeckTile(p, set.has(p.id)));
+            [4, 5, 6, 7].forEach(tier => {
+                const tierLabel = document.createElement('div');
+                tierLabel.style.cssText = 'font-size:10px; font-weight:800; letter-spacing:1px; color:#fde047; margin-top:4px;';
+                tierLabel.textContent = tier === 7 ? 'TIER 7 — 7-IN-A-ROW ULTIMATES' : `TIER ${tier} — ${tier}-IN-A-ROW POWER-UPS`;
+                const rowGrid = document.createElement('div');
+                rowGrid.className = 'deck-grid';
+                r100AllPowerups.filter(p => p.tier === tier).forEach(p => {
+                    rowGrid.appendChild(buildR100DeckTile(p, set.has(p.id)));
+                });
+                grid.append(tierLabel, rowGrid);
             });
         }
 
@@ -6671,20 +6717,33 @@
                 const armed = r100ArmedPowerup ? r100PowerupMap[r100ArmedPowerup] : null;
                 r100Ctx.save();
                 if (!armed || armed.target === 'col') {
-                    r100Ctx.fillStyle = armed ? 'rgba(56, 189, 248, 0.22)' : 'rgba(253, 224, 71, 0.14)';
-                    r100Ctx.fillRect(pad + hc * cell, pad, cell, cell * 10);
-                    // Preview coin hovering at top of column
+                    if (r100ArmedPowerup === 'rail_barrage') {
+                        const cStart = Math.max(0, hc - 1), cEnd = Math.min(9, hc + 1);
+                        r100Ctx.fillStyle = 'rgba(14, 165, 233, 0.28)';
+                        r100Ctx.fillRect(pad + cStart * cell, pad, (cEnd - cStart + 1) * cell, cell * 10);
+                    } else {
+                        r100Ctx.fillStyle = armed ? 'rgba(56, 189, 248, 0.22)' : 'rgba(253, 224, 71, 0.14)';
+                        r100Ctx.fillRect(pad + hc * cell, pad, cell, cell * 10);
+                    }
                     r100Ctx.globalAlpha = 0.72;
-                    drawR100Coin(r100Ctx, pad + hc * cell + cell * 0.5, pad + cell * 0.5, cell * 0.36, true, r100ArmedPowerup === 'boulder');
+                    drawR100Coin(r100Ctx, pad + hc * cell + cell * 0.5, pad + cell * 0.5, cell * 0.36, true, r100ArmedPowerup === 'boulder' || r100ArmedPowerup === 'twin_steel');
                 } else if (armed.target === 'row') {
                     r100Ctx.fillStyle = 'rgba(245, 158, 11, 0.26)';
                     r100Ctx.fillRect(pad, pad + hr * cell, cell * 10, cell);
                 } else if (armed.target === 'cell') {
-                    const radCells = r100ArmedPowerup === 'quake' ? 2 : 1;
-                    r100Ctx.fillStyle = r100ArmedPowerup === 'convert' ? 'rgba(192, 132, 252, 0.30)' : 'rgba(239, 68, 68, 0.30)';
-                    const cStart = Math.max(0, hc - radCells), cEnd = Math.min(9, hc + radCells);
-                    const rStart = Math.max(0, hr - radCells), rEnd = Math.min(9, hr + radCells);
-                    r100Ctx.fillRect(pad + cStart * cell, pad + rStart * cell, (cEnd - cStart + 1) * cell, (rEnd - rStart + 1) * cell);
+                    if (r100ArmedPowerup === 'cross_blast') {
+                        r100Ctx.fillStyle = 'rgba(249, 115, 22, 0.32)';
+                        const cStart = Math.max(0, hc - 2), cEnd = Math.min(9, hc + 2);
+                        const rStart = Math.max(0, hr - 2), rEnd = Math.min(9, hr + 2);
+                        r100Ctx.fillRect(pad + cStart * cell, pad + hr * cell, (cEnd - cStart + 1) * cell, cell);
+                        r100Ctx.fillRect(pad + hc * cell, pad + rStart * cell, cell, (rEnd - rStart + 1) * cell);
+                    } else {
+                        const radCells = r100ArmedPowerup === 'quake' ? 2 : ((r100ArmedPowerup === 'sniper_shot' || r100ArmedPowerup === 'pickpocket') ? 0 : 1);
+                        r100Ctx.fillStyle = ['convert', 'vortex_flip', 'pickpocket'].includes(r100ArmedPowerup) ? 'rgba(192, 132, 252, 0.30)' : 'rgba(239, 68, 68, 0.30)';
+                        const cStart = Math.max(0, hc - radCells), cEnd = Math.min(9, hc + radCells);
+                        const rStart = Math.max(0, hr - radCells), rEnd = Math.min(9, hr + radCells);
+                        r100Ctx.fillRect(pad + cStart * cell, pad + rStart * cell, (cEnd - cStart + 1) * cell, (rEnd - rStart + 1) * cell);
+                    }
                 }
                 r100Ctx.restore();
             }
