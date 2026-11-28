@@ -6545,6 +6545,46 @@
             ctx.restore();
         }
 
+        // 16 unique painted Wild West Power-Up card artworks (4 high-res 2x2 sheets, 1 unique illustration per Power-Up)
+        const R100_ART_MAP = {
+            // Tier 4
+            double_drop: { img: '/r100-tier4.jpg?v=1', pos: '0% 0%' },
+            boulder:     { img: '/r100-tier4.jpg?v=1', pos: '100% 0%' },
+            sniper_shot: { img: '/r100-tier4.jpg?v=1', pos: '0% 100%' },
+            pickpocket:  { img: '/r100-tier4.jpg?v=1', pos: '100% 100%' },
+            // Tier 5
+            dynamite:    { img: '/r100-tier5.jpg?v=1', pos: '0% 0%' },
+            convert:     { img: '/r100-tier5.jpg?v=1', pos: '100% 0%' },
+            triple_drop: { img: '/r100-tier5.jpg?v=1', pos: '0% 100%' },
+            twin_steel:  { img: '/r100-tier5.jpg?v=1', pos: '100% 100%' },
+            // Tier 6
+            column_nuke: { img: '/r100-tier6.jpg?v=1', pos: '0% 0%' },
+            row_sweep:   { img: '/r100-tier6.jpg?v=1', pos: '100% 0%' },
+            cross_blast: { img: '/r100-tier6.jpg?v=1', pos: '0% 100%' },
+            vortex_flip: { img: '/r100-tier6.jpg?v=1', pos: '100% 100%' },
+            // Tier 7 ULTIMATES
+            quake:        { img: '/r100-tier7.jpg?v=1', pos: '0% 0%' },
+            magnet:       { img: '/r100-tier7.jpg?v=1', pos: '100% 0%' },
+            rail_barrage: { img: '/r100-tier7.jpg?v=1', pos: '0% 100%' },
+            gold_rain:    { img: '/r100-tier7.jpg?v=1', pos: '100% 100%' },
+        };
+
+        function createR100ArtThumb(powerupId, heightPx = 68) {
+            const art = R100_ART_MAP[powerupId];
+            const box = document.createElement('div');
+            box.className = 'clash-card-artbox';
+            box.style.height = `${heightPx}px`;
+            box.style.width = '100%';
+            if (art) {
+                box.style.backgroundImage = `url('${art.img}')`;
+                box.style.backgroundSize = '200% 200%';
+                box.style.backgroundPosition = art.pos;
+                box.style.backgroundRepeat = 'no-repeat';
+                box.style.boxShadow = 'inset 0 0 14px rgba(0,0,0,0.45)';
+            }
+            return box;
+        }
+
         function buildR100DeckTile(p, inDeck) {
             const tile = document.createElement('button');
             tile.type = 'button';
@@ -6557,19 +6597,10 @@
             tierBadge.style.cssText = 'width:24px; height:24px; font-size:12px; top:-6px; left:-5px;';
             tierBadge.textContent = String(p.tier || 4);
 
-            const artBox = document.createElement('div');
-            artBox.className = 'clash-card-artbox';
-            artBox.style.height = '44px';
-            const cv = document.createElement('canvas');
-            cv.width = 76; cv.height = 60;
-            cv.style.cssText = 'width:48px; height:38px; display:block;';
-            const ctx = cv.getContext('2d');
-            ctx.translate(38, 30);
-            drawR100PowerupIcon(ctx, p.id, 1.28);
-            artBox.appendChild(cv);
+            const artBox = createR100ArtThumb(p.id, 68);
 
             const nm = document.createElement('div');
-            nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:1px;';
+            nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:2px;';
             nm.textContent = p.name;
 
             const ds = document.createElement('div');
@@ -6992,16 +7023,8 @@
                         tBadge.style.cssText = 'width:22px; height:22px; font-size:11px; top:-6px; left:-5px;';
                         tBadge.textContent = String(p.tier || 4);
 
-                        const artBox = document.createElement('div');
-                        artBox.className = 'clash-card-artbox';
-                        artBox.style.height = '40px';
-                        const cv = document.createElement('canvas');
-                        cv.width = 72; cv.height = 56;
-                        cv.style.cssText = 'width:46px; height:36px; display:block;';
-                        const pctx = cv.getContext('2d');
-                        pctx.translate(36, 28);
-                        drawR100PowerupIcon(pctx, p.id, 1.18);
-                        artBox.appendChild(cv);
+                        const artBox = createR100ArtThumb(p.id, 54);
+                        artBox.style.minWidth = '88px';
 
                         const lbl = document.createElement('span');
                         lbl.textContent = r100ArmedPowerup === pid ? 'CLICK BOARD!' : p.name;
