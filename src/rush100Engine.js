@@ -14,17 +14,21 @@ const MAX_TURNS = 70; // 35 turns per player (or ends earlier if all 100 holes f
 const TURN_MS = 20000;
 
 const POWERUPS = [
-    { id: 'dynamite', name: 'Dynamite 3x3', target: 'cell', color: '#ef4444', desc: 'Click any cell to blow up all enemy chips in a 3x3 blast.' },
-    { id: 'column_nuke', name: 'Railgun Column', target: 'col', color: '#38bdf8', desc: 'Click any column to vaporize every enemy chip in that column.' },
-    { id: 'row_sweep', name: 'Gold Row Sweep', target: 'row', color: '#f59e0b', desc: 'Click any row to destroy every enemy chip across all 10 slots.' },
-    { id: 'convert', name: 'Outlaw Convert', target: 'cell', color: '#c084fc', desc: 'Click an enemy chip to flip it + up to 2 adjacent enemy chips to your color.' },
-    { id: 'double_drop', name: 'Double Drop', target: 'instant', color: '#34d399', desc: 'Drop 2 chips on this turn instead of 1.' },
-    { id: 'boulder', name: 'Steel Chip', target: 'col', color: '#94a3b8', desc: 'Drop an indestructible Steel Chip that cannot be blown up or converted.' },
-    { id: 'quake', name: 'Canyon Quake', target: 'instant', color: '#fb923c', desc: 'Shakes the board and destroys 4 random enemy chips.' },
-    { id: 'magnet', name: 'Vortex Magnet', target: 'instant', color: '#fde047', desc: 'Converts the topmost enemy chip in 3 different columns to your color.' },
+    // TIER 4 (4-in-a-Row)
+    { id: 'double_drop', tier: 4, name: 'Double Drop', target: 'instant', color: '#34d399', desc: '4-in-a-Row: Drop 2 chips on this turn instead of 1.' },
+    { id: 'boulder', tier: 4, name: 'Steel Chip', target: 'col', color: '#94a3b8', desc: '4-in-a-Row: Drop an indestructible Steel Chip.' },
+    // TIER 5 (5-in-a-Row)
+    { id: 'dynamite', tier: 5, name: 'Dynamite 3x3', target: 'cell', color: '#ef4444', desc: '5-in-a-Row: Blast all enemy chips in a 3x3 area.' },
+    { id: 'convert', tier: 5, name: 'Outlaw Convert', target: 'cell', color: '#c084fc', desc: '5-in-a-Row: Flip an enemy chip + up to 2 adjacent.' },
+    // TIER 6 (6-in-a-Row)
+    { id: 'column_nuke', tier: 6, name: 'Railgun Column', target: 'col', color: '#38bdf8', desc: '6-in-a-Row: Vaporize every enemy chip in a full 10-tall column.' },
+    { id: 'row_sweep', tier: 6, name: 'Gold Row Sweep', target: 'row', color: '#f59e0b', desc: '6-in-a-Row: Destroy every enemy chip across a full 10-wide row.' },
+    // TIER 7 (7-in-a-Row — ULTIMATE)
+    { id: 'quake', tier: 7, name: 'Mega Blast 5x5', target: 'cell', color: '#fb923c', desc: '7-in-a-Row ULTIMATE: Colossal 5x5 blast wiping enemy territory!' },
+    { id: 'magnet', tier: 7, name: 'Grand Heist', target: 'instant', color: '#fde047', desc: '7-in-a-Row ULTIMATE: Flip 6 random enemy chips to your color!' },
 ];
 
-const DEFAULT_LOADOUT = ['dynamite', 'column_nuke', 'convert', 'double_drop'];
+const DEFAULT_LOADOUT = ['double_drop', 'dynamite', 'column_nuke', 'quake'];
 const POWERUP_MAP = new Map(POWERUPS.map(p => [p.id, p]));
 
 function makeCode() {
@@ -41,18 +45,15 @@ function shuffle(arr) {
 }
 
 function sanitizeLoadout(raw) {
-    if (!Array.isArray(raw)) return DEFAULT_LOADOUT.slice();
-    const out = [];
-    for (const id of raw) {
-        const clean = String(id || '').trim();
-        if (POWERUP_MAP.has(clean) && !out.includes(clean)) out.push(clean);
-        if (out.length === 4) break;
+    // Guarantees exactly 1 Power-Up for each tier: 4, 5, 6, and 7!
+    const byTier = { 4: 'double_drop', 5: 'dynamite', 6: 'column_nuke', 7: 'quake' };
+    if (Array.isArray(raw)) {
+        for (const id of raw) {
+            const p = POWERUP_MAP.get(String(id || '').trim());
+            if (p && byTier[p.tier]) byTier[p.tier] = p.id;
+        }
     }
-    for (const fb of DEFAULT_LOADOUT) {
-        if (out.length === 4) break;
-        if (!out.includes(fb)) out.push(fb);
-    }
-    return out;
+    return [byTier[4], byTier[5], byTier[6], byTier[7]];
 }
 
 function createEmptyBoard() {
@@ -81,25 +82,29 @@ function findDropRow(board, col) {
     return -1;
 }
 
-function findFourLines(board, side) {
+function findTierLines(board, side) {
+    // Finds all maximal contiguous lines of length >= 4 in all 4 directions, tagged with tier = min(7, length)
     const lines = [];
     const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
             if (!board[r][c] || board[r][c].owner !== side) continue;
             for (const [dr, dc] of dirs) {
-                const cells = [[r, c]];
-                let ok = true;
-                for (let k = 1; k < 4; k++) {
-                    const nr = r + dr * k, nc = c + dc * k;
-                    if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || !board[nr][nc] || board[nr][nc].owner !== side) {
-                        ok = false; break;
-                    }
-                    cells.push([nr, nc]);
+                // Only start from the beginning of a contiguous run in this direction
+                const pr = r - dr, pc = c - dc;
+                if (pr >= 0 && pr < ROWS && pc >= 0 && pc < COLS && board[pr][pc] && board[pr][pc].owner === side) {
+                    continue;
                 }
-                if (ok) {
-                    const key = `${side}:${cells.map(([rr, cc]) => `${rr}_${cc}`).join('|')}`;
-                    lines.push({ key, cells });
+                const cells = [];
+                let nr = r, nc = c;
+                while (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] && board[nr][nc].owner === side) {
+                    cells.push([nr, nc]);
+                    nr += dr; nc += dc;
+                }
+                if (cells.length >= 4) {
+                    const tier = Math.min(7, cells.length);
+                    const key = `${side}:T${tier}:${cells.map(([rr, cc]) => `${rr}_${cc}`).join('|')}`;
+                    lines.push({ key, tier, cells });
                 }
             }
         }
@@ -139,7 +144,10 @@ class Rush100Engine {
 
     _buildAiPlayer(humanElo) {
         const tier = eloStore.getAiTierForElo(humanElo);
-        const loadout = shuffle(POWERUPS.map(p => p.id)).slice(0, 4);
+        const aiLoadout = [4, 5, 6, 7].map(tier => {
+            const opts = POWERUPS.filter(p => p.tier === tier);
+            return opts[Math.floor(Math.random() * opts.length)].id;
+        });
         return {
             id: 'bot_' + crypto.randomBytes(3).toString('hex'),
             profileKey: 'bot',
@@ -152,7 +160,7 @@ class Rush100Engine {
             rank: eloStore.getRankForElo(tier.botElo),
             aiTier: tier.label,
             aiSkill: tier.skill,
-            loadout,
+            loadout: aiLoadout,
             loadoutIdx: 0,
             earnedPowerups: [],
             foursCount: 0,
@@ -338,28 +346,28 @@ class Rush100Engine {
     }
 
     _awardNewFours(room, player) {
-        const lines = findFourLines(room.board, player.side);
-        let newLines = [];
+        const lines = findTierLines(room.board, player.side);
+        const awarded = []; // { tier, powerupId, cells }
         for (const ln of lines) {
             if (!room.scoredLines.has(ln.key)) {
                 room.scoredLines.add(ln.key);
-                newLines.push(ln.cells);
                 player.foursCount++;
-                if (player.earnedPowerups.length < 3) {
-                    const nextPow = player.loadout[player.loadoutIdx % player.loadout.length];
-                    player.loadoutIdx++;
-                    player.earnedPowerups.push(nextPow);
+                // Pick the exact card in player's 4-slot deck matching this tier (4, 5, 6, or 7)!
+                const tierIdx = Math.max(0, Math.min(3, ln.tier - 4));
+                const powId = player.loadout[tierIdx] || DEFAULT_LOADOUT[tierIdx];
+                if (player.earnedPowerups.length < 4) {
+                    player.earnedPowerups.push(powId);
                 }
+                awarded.push({ tier: ln.tier, powerupId: powId, cells: ln.cells });
             }
         }
-        return newLines;
+        return awarded;
     }
 
     _pruneBrokenLines(room) {
-        // If a cell in a previously scored line was destroyed/converted, allow future 4-in-a-rows there!
         const stillValid = new Set();
         for (const side of [0, 1]) {
-            for (const ln of findFourLines(room.board, side)) {
+            for (const ln of findTierLines(room.board, side)) {
                 if (room.scoredLines.has(ln.key)) stillValid.add(ln.key);
             }
         }
@@ -370,17 +378,19 @@ class Rush100Engine {
         const row = findDropRow(room.board, col);
         if (row === -1) return false;
         room.board[row][col] = { owner: player.side, steel: Boolean(isSteel) };
-        const newFours = this._awardNewFours(room, player);
+        const awarded = this._awardNewFours(room, player);
+        const bestAward = awarded.sort((a, b) => b.tier - a.tier)[0] || null;
+        const bestPowName = bestAward && POWERUP_MAP.get(bestAward.powerupId) ? POWERUP_MAP.get(bestAward.powerupId).name : 'Power-Up';
 
         room.lastEvent = {
-            type: newFours.length > 0 ? 'FOUR_POWERUP' : 'DROP',
+            type: bestAward ? 'FOUR_POWERUP' : 'DROP',
             side: player.side,
             row,
             col,
             steel: Boolean(isSteel),
-            highlightCells: newFours.flat(),
-            text: newFours.length > 0
-                ? `${player.name} connected 4-in-a-row! Power-Up charged!`
+            highlightCells: awarded.flatMap(a => a.cells),
+            text: bestAward
+                ? `${player.name} hit a ${bestAward.tier}-IN-A-ROW! Charged ${bestPowName} (Tier ${bestAward.tier})!`
                 : `${player.name} dropped in column ${col + 1}.`,
         };
 
@@ -474,50 +484,47 @@ class Rush100Engine {
             }
             msg = `${player.name} converted ${flipped} enemy chips!`;
         } else if (powerupId === 'quake') {
+            // Tier 7 ULTIMATE: Mega Blast 5x5!
+            const r0 = Math.max(0, Math.min(ROWS - 1, Number.isInteger(targetRow) ? targetRow : 5));
+            const c0 = Math.max(0, Math.min(COLS - 1, Number.isInteger(targetCol) ? targetCol : 5));
+            for (let r = r0 - 2; r <= r0 + 2; r++) {
+                for (let c = c0 - 2; c <= c0 + 2; c++) {
+                    if (r >= 0 && r < ROWS && c >= 0 && c < COLS && room.board[r][c] && room.board[r][c].owner === oppSide && !room.board[r][c].steel) {
+                        room.board[r][c] = null;
+                        affected.push([r, c]);
+                    }
+                }
+            }
+            applyGravity(room.board);
+            msg = `${player.name} detonated MEGA BLAST 5x5 — wiped ${affected.length} enemy chips!`;
+        } else if (powerupId === 'magnet') {
+            // Tier 7 ULTIMATE: Grand Heist — flips up to 6 enemy chips across the board!
             const enemies = [];
             for (let r = 0; r < ROWS; r++) {
                 for (let c = 0; c < COLS; c++) {
                     if (room.board[r][c] && room.board[r][c].owner === oppSide && !room.board[r][c].steel) enemies.push([r, c]);
                 }
             }
-            const picks = shuffle(enemies).slice(0, 4);
+            const picks = shuffle(enemies).slice(0, 6);
             for (const [r, c] of picks) {
-                room.board[r][c] = null;
+                room.board[r][c].owner = player.side;
                 affected.push([r, c]);
             }
-            applyGravity(room.board);
-            msg = `${player.name} shook the canyon and destroyed ${affected.length} enemy chips!`;
-        } else if (powerupId === 'magnet') {
-            const cols = shuffle(Array.from({ length: COLS }, (_, i) => i));
-            let flipped = 0;
-            for (const c of cols) {
-                if (flipped >= 3) break;
-                for (let r = 0; r < ROWS; r++) {
-                    if (room.board[r][c]) {
-                        if (room.board[r][c].owner === oppSide && !room.board[r][c].steel) {
-                            room.board[r][c].owner = player.side;
-                            affected.push([r, c]);
-                            flipped++;
-                        }
-                        break;
-                    }
-                }
-            }
-            msg = `${player.name} magnetized ${flipped} enemy chips!`;
+            msg = `${player.name} pulled off GRAND HEIST — flipped ${affected.length} enemy chips!`;
         }
 
         player.earnedPowerups.splice(idx, 1);
         room.usedPowerupThisTurn = true;
         this._pruneBrokenLines(room);
-        const chainFours = this._awardNewFours(room, player);
+        const chainAwarded = this._awardNewFours(room, player);
 
         room.lastEvent = {
             type: 'POWERUP',
             powerupId,
             side: player.side,
             affected,
-            highlightCells: chainFours.flat(),
-            text: chainFours.length > 0 ? `${msg} CHAIN 4-IN-A-ROW!` : msg,
+            highlightCells: chainAwarded.flatMap(a => a.cells),
+            text: chainAwarded.length > 0 ? `${msg} CHAIN COMBO!` : msg,
         };
 
         this._broadcastSnapshots(room, 'R100_UPDATE');
@@ -551,7 +558,7 @@ class Rush100Engine {
             for (const c of openCols) {
                 const r = findDropRow(room.board, c);
                 room.board[r][c] = { owner: testSide, steel: false };
-                const lines = findFourLines(room.board, testSide).filter(l => !room.scoredLines.has(l.key));
+                const lines = findTierLines(room.board, testSide).filter(l => !room.scoredLines.has(l.key));
                 room.board[r][c] = null;
                 if (lines.length > 0) { chosenCol = c; break; }
             }

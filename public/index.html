@@ -1513,22 +1513,22 @@
 
                 <div id="lobbyR100Legend" class="dmg-legend hidden" style="margin-top:18px;">
                     <span><strong style="color:#fde047;">100-HOLE BOARD</strong> 10X10 GRID</span>
-                    <span><strong style="color:#38bdf8;">4-IN-A-ROW</strong> SPAWNS POWER-UP</span>
-                    <span><strong style="color:#fb7185;">8 POWER-UPS</strong> PICK 4 FOR YOUR DECK</span>
-                    <span><strong style="color:#34d399;">MOST TILES</strong> WINS THE BOARD</span>
+                    <span><strong style="color:#34d399;">4-IN-A-ROW</strong> TIER 4 CARD</span>
+                    <span><strong style="color:#fb7185;">5 &amp; 6 IN A ROW</strong> STRONGER BLASTS</span>
+                    <span><strong style="color:#fde047;">7-IN-A-ROW</strong> ULTIMATE SUPERWEAPON</span>
                 </div>
 
                 <!-- Custom 4-Power-Up Loadout Deck Builder (Gold Rush 100 Only) -->
                 <div id="rush100LoadoutBuilder" class="deck-builder-box hidden">
                     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                         <div>
-                            <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#fde047;">YOUR ACTIVE POWER-UP DECK (<span id="r100LoadoutCount" class="mono">4 / 4</span>)</div>
-                            <div style="font-size:11px; color:#fde68a; margin-top:2px;">Every 4-in-a-row charges the next Power-Up in your deck</div>
+                            <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#fde047;">YOUR TIERED POWER-UP DECK (4 • 5 • 6 • 7)</div>
+                            <div style="font-size:11px; color:#fde68a; margin-top:2px;">Connect 4, 5, 6, or 7 in a row to spawn that tier's Power-Up! Click below to swap each tier.</div>
                         </div>
                     </div>
                     <div id="r100LoadoutWarn" class="hidden" style="font-size:11px; font-weight:800; color:#fb7185; margin-top:6px;"></div>
                     <div id="r100ActiveDeckGrid" class="deck-grid"></div>
-                    <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 8 WILD WEST POWER-UPS (CLICK TO SWAP)</div>
+                    <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 8 TIERED POWER-UPS (HIGHER NUMBER = MORE POWERFUL)</div>
                     <div id="r100LoadoutGrid" class="deck-grid"></div>
                 </div>
             </div>
@@ -6410,14 +6410,14 @@
 
         let myR100Loadout = (() => {
             try {
-                const saved = JSON.parse(localStorage.getItem('minddrop_r100_loadout') || 'null');
-                if (Array.isArray(saved) && saved.length > 0) return saved.slice(0, 4);
+                const saved = JSON.parse(localStorage.getItem('minddrop_r100_loadout_v2') || 'null');
+                if (Array.isArray(saved) && saved.length === 4) return saved;
             } catch {}
-            return ['dynamite', 'column_nuke', 'convert', 'double_drop'];
+            return ['double_drop', 'dynamite', 'column_nuke', 'quake'];
         })();
 
         function saveR100Loadout() {
-            try { localStorage.setItem('minddrop_r100_loadout', JSON.stringify(myR100Loadout)); } catch {}
+            try { localStorage.setItem('minddrop_r100_loadout_v2', JSON.stringify(myR100Loadout)); } catch {}
         }
 
         async function loadR100LoadoutBuilder() {
@@ -6435,20 +6435,10 @@
         }
 
         function toggleR100Loadout(id) {
-            const idx = myR100Loadout.indexOf(id);
-            const warn = document.getElementById('r100LoadoutWarn');
-            if (idx !== -1) {
-                myR100Loadout.splice(idx, 1);
-                warn.classList.add('hidden');
-            } else {
-                if (myR100Loadout.length >= 4) {
-                    warn.textContent = 'Deck full (4/4) — click an active green Power-Up to swap it out.';
-                    warn.classList.remove('hidden');
-                    return;
-                }
-                myR100Loadout.push(id);
-                warn.classList.add('hidden');
-            }
+            const p = r100PowerupMap[id];
+            if (!p) return;
+            const slotIdx = Math.max(0, Math.min(3, (p.tier || 4) - 4));
+            myR100Loadout[slotIdx] = p.id;
             saveR100Loadout();
             playSfx(540, 0.06, 'sine', 0.09);
             renderR100LoadoutBuilder();
@@ -6524,6 +6514,11 @@
             tile.title = p.desc;
             tile.onclick = () => toggleR100Loadout(p.id);
 
+            const tierBadge = document.createElement('span');
+            tierBadge.className = 'clash-cost-badge mono';
+            tierBadge.style.cssText = 'width:24px; height:24px; font-size:12px; top:-6px; left:-5px;';
+            tierBadge.textContent = String(p.tier || 4);
+
             const artBox = document.createElement('div');
             artBox.className = 'clash-card-artbox';
             artBox.style.height = '44px';
@@ -6541,9 +6536,9 @@
 
             const ds = document.createElement('div');
             ds.style.cssText = 'font-size:9px; color:#fde68a; line-height:1.2;';
-            ds.textContent = p.target === 'instant' ? 'Instant Cast' : (p.target === 'col' ? 'Target Column' : (p.target === 'row' ? 'Target Row' : 'Target Area'));
+            ds.textContent = `${p.tier || 4} in a Row`;
 
-            tile.append(artBox, nm, ds);
+            tile.append(tierBadge, artBox, nm, ds);
             return tile;
         }
 
@@ -6554,18 +6549,12 @@
             activeGrid.innerHTML = '';
             grid.innerHTML = '';
             const set = new Set(myR100Loadout);
-            document.getElementById('r100LoadoutCount').textContent = `${myR100Loadout.length} / 4`;
 
             for (let i = 0; i < 4; i++) {
                 const pid = myR100Loadout[i];
                 const p = pid && r100PowerupMap[pid];
                 if (p) {
                     activeGrid.appendChild(buildR100DeckTile(p, true));
-                } else {
-                    const empty = document.createElement('div');
-                    empty.className = 'deck-card-empty';
-                    empty.textContent = 'PICK CARD';
-                    activeGrid.appendChild(empty);
                 }
             }
 
@@ -6691,9 +6680,10 @@
                     r100Ctx.fillStyle = 'rgba(245, 158, 11, 0.26)';
                     r100Ctx.fillRect(pad, pad + hr * cell, cell * 10, cell);
                 } else if (armed.target === 'cell') {
-                    r100Ctx.fillStyle = r100ArmedPowerup === 'dynamite' ? 'rgba(239, 68, 68, 0.30)' : 'rgba(192, 132, 252, 0.30)';
-                    const cStart = Math.max(0, hc - 1), cEnd = Math.min(9, hc + 1);
-                    const rStart = Math.max(0, hr - 1), rEnd = Math.min(9, hr + 1);
+                    const radCells = r100ArmedPowerup === 'quake' ? 2 : 1;
+                    r100Ctx.fillStyle = r100ArmedPowerup === 'convert' ? 'rgba(192, 132, 252, 0.30)' : 'rgba(239, 68, 68, 0.30)';
+                    const cStart = Math.max(0, hc - radCells), cEnd = Math.min(9, hc + radCells);
+                    const rStart = Math.max(0, hr - radCells), rEnd = Math.min(9, hr + radCells);
                     r100Ctx.fillRect(pad + cStart * cell, pad + rStart * cell, (cEnd - cStart + 1) * cell, (rEnd - rStart + 1) * cell);
                 }
                 r100Ctx.restore();
@@ -6933,9 +6923,15 @@
                         const btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'r100-pow-btn' + (r100ArmedPowerup === pid ? ' armed' : '');
+                        btn.style.position = 'relative';
                         btn.style.borderColor = r100ArmedPowerup === pid ? '#38bdf8' : p.color;
                         btn.disabled = !myTurn || snap.usedPowerupThisTurn;
                         btn.title = p.desc;
+
+                        const tBadge = document.createElement('span');
+                        tBadge.className = 'clash-cost-badge mono';
+                        tBadge.style.cssText = 'width:22px; height:22px; font-size:11px; top:-6px; left:-5px;';
+                        tBadge.textContent = String(p.tier || 4);
 
                         const artBox = document.createElement('div');
                         artBox.className = 'clash-card-artbox';
@@ -6950,7 +6946,7 @@
 
                         const lbl = document.createElement('span');
                         lbl.textContent = r100ArmedPowerup === pid ? 'CLICK BOARD!' : p.name;
-                        btn.append(artBox, lbl);
+                        btn.append(tBadge, artBox, lbl);
 
                         btn.onclick = () => {
                             if (p.target === 'instant') {
