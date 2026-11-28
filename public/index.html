@@ -511,6 +511,51 @@
         footer a { color: #fbbf24; text-decoration: none; font-weight: 700; }
 
         /* Mobile / Phone Responsive Layout */
+        .r100-board-wrap {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 3px solid #b45309;
+            background: #2b1408;
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72), inset 0 0 0 2px rgba(253, 224, 71, 0.35);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #r100Canvas {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: block;
+            touch-action: manipulation;
+        }
+        .r100-pow-bar {
+            max-width: 500px;
+            margin: 10px auto 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .r100-pow-btn {
+            padding: 9px 13px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #5c2d14, #2b1207);
+            border: 2px solid #f59e0b;
+            color: #fffbeb;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.12s;
+        }
+        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-2px); }
+        .r100-pow-btn.armed {
+            border-color: #38bdf8;
+            background: linear-gradient(180deg, #0369a1, #0c4a6e);
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+        }
         @media (max-width: 640px) {
             header { padding: 10px 14px; }
             .logo { font-size: 17px; gap: 8px; }
@@ -1118,6 +1163,51 @@
         }
         .deck-card-tile:hover { border-color: #fde047; transform: translateY(-2px); }
         .deck-card-tile.in-deck { border-color: #34d399; background: rgba(6, 78, 59, 0.45); }
+        .r100-board-wrap {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 3px solid #b45309;
+            background: #2b1408;
+            box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72), inset 0 0 0 2px rgba(253, 224, 71, 0.35);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #r100Canvas {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            display: block;
+            touch-action: manipulation;
+        }
+        .r100-pow-bar {
+            max-width: 500px;
+            margin: 10px auto 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .r100-pow-btn {
+            padding: 9px 13px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #5c2d14, #2b1207);
+            border: 2px solid #f59e0b;
+            color: #fffbeb;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.12s;
+        }
+        .r100-pow-btn:hover:not(:disabled) { border-color: #fde047; transform: translateY(-2px); }
+        .r100-pow-btn.armed {
+            border-color: #38bdf8;
+            background: linear-gradient(180deg, #0369a1, #0c4a6e);
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+        }
         @media (max-width: 640px) {
             .game-hub-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
             .mode-card { padding: 11px 13px; }
@@ -1193,7 +1283,7 @@
 
             <!-- Category Filter Bar -->
             <div class="cat-filter-bar">
-                <button type="button" class="cat-pill active" data-filter="all" onclick="filterGameCatalog('all')">All Games (5)</button>
+                <button type="button" class="cat-pill active" data-filter="all" onclick="filterGameCatalog('all')">All Games (6)</button>
                 <button type="button" class="cat-pill" data-filter="strategy" onclick="filterGameCatalog('strategy')">Action &amp; Strategy</button>
                 <button type="button" class="cat-pill" data-filter="party" onclick="filterGameCatalog('party')">Search &amp; Party</button>
                 <button type="button" class="cat-pill" data-filter="trivia" onclick="filterGameCatalog('trivia')">Trivia &amp; Word</button>
@@ -1202,6 +1292,19 @@
 
             <!-- Big Visual Game Catalog -->
             <div class="portal-grid">
+                <div class="game-tile" data-cat="strategy" onclick="openGameLobby('rush100')">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/gold-rush-100-poster.jpg?v=1" alt="Gold Rush 100 Power-Up Connect-4">
+                        <span class="live-count-pill mono" data-live-game="rush100"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
+                    <div class="game-tile-body">
+                        <span class="game-tile-tag">NEW • 100-HOLE POWER-UP BOARD</span>
+                        <div class="game-tile-title">Gold Rush 100</div>
+                        <div class="game-tile-desc">Massive 10x10 Connect-4 territory war. Pick a 4-Power-Up deck, connect 4-in-a-row to unleash blasts &amp; flips, and control the most tiles to win.</div>
+                        <button type="button" class="btn btn-cyan" style="margin-top:6px; width:100%;">Play Gold Rush 100</button>
+                    </div>
+                </div>
+
                 <div class="game-tile" data-cat="strategy" onclick="openGameLobby('clash')">
                     <div class="game-tile-art-wrap">
                         <img class="game-tile-art" src="/canyon-wars-poster.jpg?v=1" alt="Canyon Wars Real-Time Strategy">
@@ -1368,6 +1471,25 @@
 
                     <div style="font-size:11px; font-weight:800; letter-spacing:1px; color:#94a3b8; margin-top:14px;">ALL 16 FRONTIER CARDS (HIGHER POWDER = STRONGER)</div>
                     <div id="deckCollectionGrid" class="deck-grid"></div>
+                </div>
+
+                <div id="lobbyR100Legend" class="dmg-legend hidden" style="margin-top:18px;">
+                    <span><strong style="color:#fde047;">100-HOLE BOARD</strong> 10X10 GRID</span>
+                    <span><strong style="color:#38bdf8;">4-IN-A-ROW</strong> SPAWNS POWER-UP</span>
+                    <span><strong style="color:#fb7185;">8 POWER-UPS</strong> PICK 4 FOR YOUR DECK</span>
+                    <span><strong style="color:#34d399;">MOST TILES</strong> WINS THE BOARD</span>
+                </div>
+
+                <!-- Custom 4-Power-Up Loadout Deck Builder (Gold Rush 100 Only) -->
+                <div id="rush100LoadoutBuilder" class="deck-builder-box hidden">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                        <div>
+                            <div style="font-size:12px; font-weight:800; letter-spacing:1px; color:#fde047;">YOUR POWER-UP DECK (<span id="r100LoadoutCount" class="mono">4 / 4</span>)</div>
+                            <div style="font-size:11px; color:#fde68a; margin-top:2px;">Every 4-in-a-row charges the next Power-Up in your deck</div>
+                        </div>
+                    </div>
+                    <div id="r100LoadoutWarn" class="hidden" style="font-size:11px; font-weight:800; color:#fb7185; margin-top:6px;"></div>
+                    <div id="r100LoadoutGrid" class="deck-grid"></div>
                 </div>
             </div>
         </section>
@@ -1702,6 +1824,69 @@
                 </div>
                 <div style="max-width:460px; margin:6px auto 0; text-align:center; font-size:11px; color:#94a3b8;">
                     Select a card (or keys 1-4) and click your side of the river to deploy. TNT Barrage hits anywhere!
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 6: GOLD RUSH 100 (10X10 = 100-HOLE POWER-UP CONNECT-4) -->
+        <section id="viewRush100" class="card hidden">
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; max-width:500px; margin-left:auto; margin-right:auto;">
+                <div>
+                    <span class="tier-badge tier-LEGENDARY">GOLD RUSH 100 • 10X10</span>
+                    <span id="r100TurnBadge" class="elo-pill mono">TURN 0 / 70</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span id="r100RoomTag" class="mono" style="font-size:11px; color:#fde68a;">ROOM ----</span>
+                    <button class="btn btn-ghost" onclick="leaveDuel()" style="padding:5px 9px; font-size:11px;">Exit</button>
+                </div>
+            </div>
+
+            <!-- Match Over Box (top of screen) -->
+            <div id="r100OverBox" class="hidden" style="max-width:500px; margin:0 auto 12px; text-align:center; padding:16px; border-radius:16px; background:rgba(20,9,4,0.95); border:2px solid #fbbf24;">
+                <div id="r100OverHeadline" class="western-font" style="font-size:28px; color:#fde047;">BOARD DOMINATED!</div>
+                <div id="r100OverSub" style="font-size:13px; color:#fde68a; margin-top:6px; font-weight:700;"></div>
+                <div id="r100OverElo" class="ko-elo-box mono hidden"></div>
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:12px;">
+                    <button class="btn btn-rose" onclick="sendR100Rematch()">Play Again</button>
+                    <button class="btn btn-ghost" onclick="leaveDuel()">Main Menu</button>
+                </div>
+            </div>
+
+            <!-- Waiting Room Box -->
+            <div id="r100WaitingBox" class="hidden" style="max-width:500px; margin:0 auto 12px; text-align:center; padding:14px; border-radius:14px; background:rgba(45,22,10,0.78); border:1px solid rgba(245,158,11,0.45);">
+                <div style="font-size:14px; font-weight:800; color:#fde68a;">Waiting for Challenger...</div>
+                <div style="font-size:12px; color:#fed7aa; margin-top:4px;">Room Code: <strong id="r100ShareCode" class="mono" style="color:#fff; font-size:16px; letter-spacing:2px;">----</strong></div>
+                <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                    <button id="r100CopyBtn" class="btn btn-ghost" onclick="copyR100InviteLink()" style="padding:8px 14px; font-size:12px;">Copy Invite Link</button>
+                    <button class="btn btn-cyan" onclick="startRush100('ai', '')" style="padding:8px 14px; font-size:12px;">Play vs AI Instead</button>
+                </div>
+            </div>
+
+            <!-- Active 100-Hole Board Area -->
+            <div id="r100PlayArea" class="hidden">
+                <!-- Live Territory Score & Turn Status -->
+                <div style="max-width:500px; margin:0 auto 8px; padding:10px 12px; border-radius:14px; background:rgba(20,9,4,0.85); border:1px solid rgba(245,158,11,0.35);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; font-weight:800;">
+                        <span id="r100BlueScore" style="color:#38bdf8;">YOU: 0</span>
+                        <span id="r100TurnStatus" style="color:#fde047;">YOUR TURN!</span>
+                        <span id="r100RedScore" style="color:#fb7185;">RIVAL: 0</span>
+                    </div>
+                    <div style="height:8px; border-radius:999px; background:#140804; overflow:hidden; display:flex; margin-top:6px;">
+                        <div id="r100BlueBar" style="height:100%; width:0%; background:#38bdf8; transition:width 0.25s;"></div>
+                        <div id="r100RedBar" style="height:100%; width:0%; background:#ef4444; margin-left:auto; transition:width 0.25s;"></div>
+                    </div>
+                    <div id="r100EventFeed" style="font-size:11px; color:#fde68a; text-align:center; margin-top:6px;">Connect 4-in-a-row to charge Power-Ups!</div>
+                </div>
+
+                <!-- Interactive 10x10 Wooden Connect-4 Board -->
+                <div class="r100-board-wrap">
+                    <canvas id="r100Canvas"></canvas>
+                </div>
+
+                <!-- Earned Power-Up Deck Bar -->
+                <div style="max-width:500px; margin:10px auto 0; text-align:center;">
+                    <div style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#fde047;">CHARGED POWER-UPS (EARNED FROM 4-IN-A-ROWS)</div>
+                    <div id="r100PowerupBar" class="r100-pow-bar"></div>
                 </div>
             </div>
         </section>
@@ -2514,6 +2699,9 @@
             } else if (inv.game === 'clash') {
                 selectGameHubMode('clash');
                 startClash('private', inv.roomCode);
+            } else if (inv.game === 'rush100') {
+                selectGameHubMode('rush100');
+                startRush100('private', inv.roomCode);
             } else {
                 selectGameHubMode('duel');
                 startDuel('private', inv.roomCode);
@@ -2641,7 +2829,12 @@
                         invCl.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#c084fc; color:#e9d5ff;';
                         invCl.textContent = 'Invite Canyon Wars';
                         invCl.onclick = () => inviteFriendToGame(f.id, f.username, 'clash');
-                        right.append(invDuel, invPass, invQd, invBh, invCl);
+                        const invR100 = document.createElement('button');
+                        invR100.className = 'btn btn-ghost';
+                        invR100.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#38bdf8; color:#bae6fd;';
+                        invR100.textContent = 'Invite Gold Rush';
+                        invR100.onclick = () => inviteFriendToGame(f.id, f.username, 'rush100');
+                        right.append(invDuel, invPass, invQd, invBh, invCl, invR100);
                     } else {
                         const off = document.createElement('span');
                         off.style.cssText = 'font-size:11px; color:#64748b; margin-right:4px;';
@@ -2733,6 +2926,9 @@
                 } else if (game === 'clash') {
                     selectGameHubMode('clash');
                     startClash('private', roomCode);
+                } else if (game === 'rush100') {
+                    selectGameHubMode('rush100');
+                    startRush100('private', roomCode);
                 } else {
                     selectGameHubMode('duel');
                     startDuel('private', roomCode);
@@ -3177,21 +3373,24 @@
         }
 
         function selectGameHubMode(game) {
-            selectedHubGame = ['pass', 'quickdraw', 'bounty', 'clash'].includes(game) ? game : 'duel';
+            selectedHubGame = ['pass', 'quickdraw', 'bounty', 'clash', 'rush100'].includes(game) ? game : 'duel';
             const isPass = selectedHubGame === 'pass';
             const isQd = selectedHubGame === 'quickdraw';
             const isBh = selectedHubGame === 'bounty';
             const isCl = selectedHubGame === 'clash';
+            const isR100 = selectedHubGame === 'rush100';
             document.getElementById('lobbyTag').textContent = isPass
                 ? '2-8 PLAYERS • 15S HOT POTATO'
                 : (isQd ? '2-8 PLAYERS • FIRST TO 7'
                     : (isBh ? '2-8 PLAYERS • 6 SCENES'
-                        : (isCl ? 'REAL-TIME 1V1 STRATEGY' : '1V1 RARITY COMBAT')));
+                        : (isCl ? 'REAL-TIME 1V1 STRATEGY'
+                            : (isR100 ? '100-HOLE POWER-UP CONNECT-4' : '1V1 RARITY COMBAT'))));
             document.getElementById('lobbyTitle').textContent = isPass
                 ? 'Dynamite Pass'
                 : (isQd ? 'Quick-Draw Trivia'
                     : (isBh ? 'Bounty Hunt'
-                        : (isCl ? 'Canyon Wars' : 'High-Noon Showdown')));
+                        : (isCl ? 'Canyon Wars'
+                            : (isR100 ? 'Gold Rush 100' : 'High-Noon Showdown'))));
             document.getElementById('lobbyDesc').textContent = isPass
                 ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
                 : (isQd
@@ -3200,24 +3399,31 @@
                         ? '6 packed Wild West scenes with 10 hidden target items tucked among decoys. First gunslinger to spot and click all 10 items wins!'
                         : (isCl
                             ? 'Build your 8-card Wild West battle deck from 16 unique troops & spells. Spend regenerating Gunpowder to march across twin canyon bridges and destroy enemy forts.'
-                            : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.')));
+                            : (isR100
+                                ? 'Massive 10x10 (100-hole) Connect-4 territory war! Pick 4 Power-Ups below — every 4-in-a-row charges a Power-Up to blast or flip enemy chips. Most tiles wins!'
+                                : 'Both cowboys start at 200 HP. Every round draws a topic from 69+ categories — rarer answers fire heavier revolver shots.'))));
             document.getElementById('btnPlayQuick').textContent = isPass
                 ? 'Quick Online Dynamite Pass'
                 : (isQd ? 'Quick Online Quick-Draw'
                     : (isBh ? 'Quick Online Bounty Hunt'
-                        : (isCl ? 'Quick 1v1 Canyon Wars' : 'Quick 1v1 Online Match')));
+                        : (isCl ? 'Quick 1v1 Canyon Wars'
+                            : (isR100 ? 'Quick 1v1 Gold Rush 100' : 'Quick 1v1 Online Match'))));
             document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
                 : (isQd ? 'Instant Quick-Draw vs AI'
                     : (isBh ? 'Instant Bounty Hunt vs AI'
-                        : (isCl ? 'Instant Canyon Wars vs AI' : 'Instant 1v1 vs AI Fighter')));
-            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh || isCl);
+                        : (isCl ? 'Instant Canyon Wars vs AI'
+                            : (isR100 ? 'Instant Gold Rush 100 vs AI' : 'Instant 1v1 vs AI Fighter'))));
+            document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh || isCl || isR100);
             document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
             document.getElementById('lobbyQdLegend').classList.toggle('hidden', !isQd);
             document.getElementById('lobbyBhLegend').classList.toggle('hidden', !isBh);
             document.getElementById('lobbyClashLegend').classList.toggle('hidden', !isCl);
             document.getElementById('clashDeckBuilder').classList.toggle('hidden', !isCl);
+            document.getElementById('lobbyR100Legend').classList.toggle('hidden', !isR100);
+            document.getElementById('rush100LoadoutBuilder').classList.toggle('hidden', !isR100);
             if (isCl) loadClashDeckBuilder();
+            if (isR100) loadR100LoadoutBuilder();
         }
 
         function openGameLobby(game) {
@@ -3228,6 +3434,7 @@
             document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewBounty').classList.add('hidden');
             document.getElementById('viewClash').classList.add('hidden');
+            document.getElementById('viewRush100').classList.add('hidden');
             document.getElementById('viewLobby').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -3238,6 +3445,7 @@
             else if (selectedHubGame === 'quickdraw') startQuickDraw(subMode, code);
             else if (selectedHubGame === 'bounty') startBountyHunt(subMode, code);
             else if (selectedHubGame === 'clash') startClash(subMode, code);
+            else if (selectedHubGame === 'rush100') startRush100(subMode, code);
             else startDuel(subMode, code);
         }
 
@@ -3250,6 +3458,7 @@
             qdRoomCode = '';
             bhRoomCode = '';
             clashRoomCode = '';
+            r100RoomCode = '';
             clearTimeout(reconnectTimer);
             clearInterval(timerInt);
             clearInterval(passTimerInt);
@@ -3263,11 +3472,13 @@
             if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
             if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
             if (clashWs) { clashWs.onclose = null; clashWs.close(); clashWs = null; }
+            if (r100Ws) { r100Ws.onclose = null; r100Ws.close(); r100Ws = null; }
             document.getElementById('viewArena').classList.add('hidden');
             document.getElementById('viewPass').classList.add('hidden');
             document.getElementById('viewQuickDraw').classList.add('hidden');
             document.getElementById('viewBounty').classList.add('hidden');
             document.getElementById('viewClash').classList.add('hidden');
+            document.getElementById('viewRush100').classList.add('hidden');
             document.getElementById('viewLobby').classList.add('hidden');
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
@@ -6141,6 +6352,424 @@
             }
         }
 
+        // ============================================================
+        // MODE 6: GOLD RUSH 100 (10X10 = 100-HOLE POWER-UP CONNECT-4)
+        // ============================================================
+        let r100Ws = null;
+        let r100SelfId = null;
+        let r100Side = 0;
+        let r100RoomCode = '';
+        let r100LastSnap = null;
+        let r100AllPowerups = [];
+        let r100PowerupMap = {};
+        let r100ArmedPowerup = null;
+        let r100HoverCell = null; // { r, c }
+        let r100HighlightUntil = 0;
+        let r100HighlightCells = [];
+        let r100BlastFX = []; // { r, c, color, life }
+
+        let myR100Loadout = (() => {
+            try {
+                const saved = JSON.parse(localStorage.getItem('minddrop_r100_loadout') || 'null');
+                if (Array.isArray(saved) && saved.length > 0) return saved.slice(0, 4);
+            } catch {}
+            return ['dynamite', 'column_nuke', 'convert', 'double_drop'];
+        })();
+
+        function saveR100Loadout() {
+            try { localStorage.setItem('minddrop_r100_loadout', JSON.stringify(myR100Loadout)); } catch {}
+        }
+
+        async function loadR100LoadoutBuilder() {
+            if (r100AllPowerups.length === 0) {
+                try {
+                    const res = await fetch('/api/rush100/powerups');
+                    if (res.ok) {
+                        const data = await res.json();
+                        r100AllPowerups = Array.isArray(data.powerups) ? data.powerups : [];
+                        r100AllPowerups.forEach(p => { r100PowerupMap[p.id] = p; });
+                    }
+                } catch {}
+            }
+            renderR100LoadoutBuilder();
+        }
+
+        function toggleR100Loadout(id) {
+            const idx = myR100Loadout.indexOf(id);
+            const warn = document.getElementById('r100LoadoutWarn');
+            if (idx !== -1) {
+                myR100Loadout.splice(idx, 1);
+                warn.classList.add('hidden');
+            } else {
+                if (myR100Loadout.length >= 4) {
+                    warn.textContent = 'Deck full (4/4) — click an active green Power-Up to swap it out.';
+                    warn.classList.remove('hidden');
+                    return;
+                }
+                myR100Loadout.push(id);
+                warn.classList.add('hidden');
+            }
+            saveR100Loadout();
+            playSfx(540, 0.06, 'sine', 0.09);
+            renderR100LoadoutBuilder();
+        }
+
+        function renderR100LoadoutBuilder() {
+            const grid = document.getElementById('r100LoadoutGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const set = new Set(myR100Loadout);
+            document.getElementById('r100LoadoutCount').textContent = `${myR100Loadout.length} / 4`;
+
+            r100AllPowerups.forEach(p => {
+                const inDeck = set.has(p.id);
+                const tile = document.createElement('button');
+                tile.type = 'button';
+                tile.className = 'deck-card-tile' + (inDeck ? ' in-deck' : '');
+                tile.onclick = () => toggleR100Loadout(p.id);
+
+                const dot = document.createElement('div');
+                dot.style.cssText = `width:26px; height:26px; border-radius:50%; background:${p.color}; border:2px solid #fffbeb; margin-top:2px; box-shadow:0 0 10px ${p.color}66;`;
+                const nm = document.createElement('div');
+                nm.style.cssText = 'font-size:11px; font-weight:800; line-height:1.15; margin-top:2px;';
+                nm.textContent = p.name;
+                const ds = document.createElement('div');
+                ds.style.cssText = 'font-size:9px; color:#fde68a; line-height:1.2;';
+                ds.textContent = p.desc;
+                tile.append(dot, nm, ds);
+                grid.appendChild(tile);
+            });
+        }
+
+        const r100Canvas = document.getElementById('r100Canvas');
+        const r100Ctx = r100Canvas ? r100Canvas.getContext('2d') : null;
+        let r100sz = 500;
+
+        function resizeR100Canvas() {
+            if (!r100Canvas || !r100Ctx) return;
+            const rect = r100Canvas.getBoundingClientRect();
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const sz = Math.max(280, Math.round(rect.width || 500));
+            const tsz = Math.round(sz * dpr);
+            if (r100Canvas.width !== tsz || r100Canvas.height !== tsz) {
+                r100sz = sz;
+                r100Canvas.width = tsz;
+                r100Canvas.height = tsz;
+                r100Ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+        }
+        window.addEventListener('resize', resizeR100Canvas);
+
+        function renderR100CanvasFrame() {
+            requestAnimationFrame(renderR100CanvasFrame);
+            if (!r100Ctx || document.getElementById('viewRush100').classList.contains('hidden')) return;
+            const snap = r100LastSnap;
+            if (!snap || snap.state === 'WAITING') return;
+
+            const pad = 10;
+            const cell = (r100sz - pad * 2) / 10;
+            const board = snap.board || [];
+            const myTurn = snap.state === 'PLAYING' && snap.turnSide === r100Side;
+
+            // Rich wooden saloon Connect-4 board
+            const grad = r100Ctx.createLinearGradient(0, 0, 0, r100sz);
+            grad.addColorStop(0, '#78350f');
+            grad.addColorStop(0.5, '#5c280b');
+            grad.addColorStop(1, '#451a03');
+            r100Ctx.fillStyle = grad;
+            r100Ctx.fillRect(0, 0, r100sz, r100sz);
+
+            // Hover targeting overlay (column drop OR armed power-up blast/row/col preview!)
+            if (myTurn && r100HoverCell) {
+                const { r: hr, c: hc } = r100HoverCell;
+                const armed = r100ArmedPowerup ? r100PowerupMap[r100ArmedPowerup] : null;
+                r100Ctx.save();
+                if (!armed || armed.target === 'col') {
+                    r100Ctx.fillStyle = armed ? 'rgba(56, 189, 248, 0.22)' : 'rgba(253, 224, 71, 0.14)';
+                    r100Ctx.fillRect(pad + hc * cell, pad, cell, cell * 10);
+                } else if (armed.target === 'row') {
+                    r100Ctx.fillStyle = 'rgba(245, 158, 11, 0.24)';
+                    r100Ctx.fillRect(pad, pad + hr * cell, cell * 10, cell);
+                } else if (armed.target === 'cell') {
+                    r100Ctx.fillStyle = r100ArmedPowerup === 'dynamite' ? 'rgba(239, 68, 68, 0.28)' : 'rgba(192, 132, 252, 0.28)';
+                    const cStart = Math.max(0, hc - 1), cEnd = Math.min(9, hc + 1);
+                    const rStart = Math.max(0, hr - 1), rEnd = Math.min(9, hr + 1);
+                    r100Ctx.fillRect(pad + cStart * cell, pad + rStart * cell, (cEnd - cStart + 1) * cell, (rEnd - rStart + 1) * cell);
+                }
+                r100Ctx.restore();
+            }
+
+            const highlightSet = new Set(Date.now() < r100HighlightUntil ? r100HighlightCells.map(([rr, cc]) => `${rr}_${cc}`) : []);
+
+            // Draw all 100 holes & coins!
+            for (let r = 0; r < 10; r++) {
+                for (let c = 0; c < 10; c++) {
+                    const cx = pad + c * cell + cell * 0.5;
+                    const cy = pad + r * cell + cell * 0.5;
+                    const rad = cell * 0.39;
+
+                    // Carved hole recess
+                    r100Ctx.fillStyle = '#180903';
+                    r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 1.5, 0, Math.PI * 2); r100Ctx.fill();
+
+                    const slot = board[r] && board[r][c];
+                    if (slot) {
+                        const isMine = slot.owner === r100Side;
+                        const cg = r100Ctx.createRadialGradient(cx - rad * 0.3, cy - rad * 0.3, 1, cx, cy, rad);
+                        if (isMine) {
+                            cg.addColorStop(0, '#7dd3fc');
+                            cg.addColorStop(0.65, '#0284c7');
+                            cg.addColorStop(1, '#0c4a6e');
+                        } else {
+                            cg.addColorStop(0, '#fda4af');
+                            cg.addColorStop(0.65, '#dc2626');
+                            cg.addColorStop(1, '#7f1d1d');
+                        }
+                        r100Ctx.fillStyle = cg;
+                        r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad, 0, Math.PI * 2); r100Ctx.fill();
+
+                        // Rim & Steel Lock ring
+                        r100Ctx.lineWidth = slot.steel ? 3 : 1.5;
+                        r100Ctx.strokeStyle = slot.steel ? '#e2e8f0' : (isMine ? '#bae6fd' : '#fecdd3');
+                        r100Ctx.stroke();
+
+                        if (highlightSet.has(`${r}_${c}`)) {
+                            r100Ctx.lineWidth = 3;
+                            r100Ctx.strokeStyle = '#fde047';
+                            r100Ctx.beginPath(); r100Ctx.arc(cx, cy, rad + 2.5, 0, Math.PI * 2); r100Ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            // Explosion / Convert FX bursts
+            for (let i = r100BlastFX.length - 1; i >= 0; i--) {
+                const fx = r100BlastFX[i];
+                fx.life -= 0.035;
+                if (fx.life <= 0) { r100BlastFX.splice(i, 1); continue; }
+                const cx = pad + fx.c * cell + cell * 0.5;
+                const cy = pad + fx.r * cell + cell * 0.5;
+                r100Ctx.save();
+                r100Ctx.globalAlpha = Math.max(0, fx.life);
+                r100Ctx.strokeStyle = fx.color || '#fde047';
+                r100Ctx.lineWidth = 3;
+                r100Ctx.beginPath();
+                r100Ctx.arc(cx, cy, cell * (0.3 + (1 - fx.life) * 0.7), 0, Math.PI * 2);
+                r100Ctx.stroke();
+                r100Ctx.restore();
+            }
+        }
+        requestAnimationFrame(renderR100CanvasFrame);
+
+        if (r100Canvas) {
+            const getCellFromEvent = (e) => {
+                const rect = r100Canvas.getBoundingClientRect();
+                const pad = 10;
+                const cell = (rect.width - pad * 2) / 10;
+                const c = Math.max(0, Math.min(9, Math.floor((e.clientX - rect.left - pad) / cell)));
+                const r = Math.max(0, Math.min(9, Math.floor((e.clientY - rect.top - pad) / cell)));
+                return { r, c };
+            };
+            r100Canvas.addEventListener('pointermove', (e) => { r100HoverCell = getCellFromEvent(e); });
+            r100Canvas.addEventListener('pointerleave', () => { r100HoverCell = null; });
+            r100Canvas.addEventListener('pointerdown', (e) => {
+                if (!r100Ws || r100Ws.readyState !== 1 || !r100LastSnap || r100LastSnap.state !== 'PLAYING') return;
+                if (r100LastSnap.turnSide !== r100Side) return;
+                const { r, c } = getCellFromEvent(e);
+                if (r100ArmedPowerup) {
+                    r100Ws.send(JSON.stringify({ type: 'USE_POWERUP', powerupId: r100ArmedPowerup, row: r, col: c }));
+                    r100ArmedPowerup = null;
+                    playSfx(320, 0.14, 'sawtooth', 0.15);
+                } else {
+                    r100Ws.send(JSON.stringify({ type: 'DROP_CHIP', col: c }));
+                    playSfx(480, 0.08, 'triangle', 0.12);
+                }
+            });
+        }
+
+        function startRush100(mode, code) {
+            if (myR100Loadout.length !== 4 && r100AllPowerups.length >= 4) {
+                for (const p of r100AllPowerups) {
+                    if (!myR100Loadout.includes(p.id)) myR100Loadout.push(p.id);
+                    if (myR100Loadout.length === 4) break;
+                }
+                saveR100Loadout();
+            }
+            clearFullScreenExplosion();
+            manualLeave = false;
+            r100ArmedPowerup = null;
+            r100LastSnap = null;
+            r100BlastFX.length = 0;
+            if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            if (passWs) { passWs.onclose = null; passWs.close(); passWs = null; }
+            if (qdWs) { qdWs.onclose = null; qdWs.close(); qdWs = null; }
+            if (bhWs) { bhWs.onclose = null; bhWs.close(); bhWs = null; }
+            if (clashWs) { clashWs.onclose = null; clashWs.close(); clashWs = null; }
+            if (r100Ws) { r100Ws.onclose = null; r100Ws.close(); r100Ws = null; }
+
+            const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const name = encodeURIComponent(getFighterName());
+            const pid = encodeURIComponent(getProfileId());
+            const token = encodeURIComponent(getAuthToken());
+            const cleanCode = encodeURIComponent((code || '').trim().toUpperCase());
+            const loadParam = encodeURIComponent(myR100Loadout.join(','));
+
+            document.getElementById('viewHome').classList.add('hidden');
+            document.getElementById('viewLobby').classList.add('hidden');
+            document.getElementById('viewArena').classList.add('hidden');
+            document.getElementById('viewPass').classList.add('hidden');
+            document.getElementById('viewQuickDraw').classList.add('hidden');
+            document.getElementById('viewBounty').classList.add('hidden');
+            document.getElementById('viewClash').classList.add('hidden');
+            document.getElementById('viewRush100').classList.remove('hidden');
+            document.getElementById('r100OverBox').classList.add('hidden');
+
+            r100Ws = new WebSocket(`${proto}//${location.host}/ws/rush100?mode=${mode}&code=${cleanCode}&name=${name}&pid=${pid}&token=${token}&loadout=${loadParam}`);
+            r100Ws.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+                if (msg.type === 'R100_ERROR') {
+                    alert(msg.message || 'Could not join Gold Rush 100 room.');
+                    leaveDuel();
+                    return;
+                }
+                if (msg.type === 'R100_JOINED') {
+                    r100SelfId = msg.selfId;
+                    r100Side = msg.side || 0;
+                    r100RoomCode = msg.snapshot.code;
+                    (msg.powerups || []).forEach(p => { r100PowerupMap[p.id] = p; });
+                    renderR100Ui(msg.snapshot);
+                } else if (msg.type === 'R100_UPDATE') {
+                    const evObj = msg.snapshot.lastEvent;
+                    if (evObj && evObj.highlightCells && evObj.highlightCells.length > 0) {
+                        r100HighlightCells = evObj.highlightCells;
+                        r100HighlightUntil = Date.now() + 2400;
+                        playSfx(660, 0.12, 'triangle', 0.15);
+                        playSfx(990, 0.18, 'triangle', 0.15, 0.08);
+                    }
+                    if (evObj && evObj.affected && evObj.affected.length > 0) {
+                        const col = (r100PowerupMap[evObj.powerupId] || {}).color || '#fde047';
+                        evObj.affected.forEach(([rr, cc]) => r100BlastFX.push({ r: rr, c: cc, color: col, life: 1 }));
+                    }
+                    renderR100Ui(msg.snapshot);
+                } else if (msg.type === 'R100_GAME_OVER') {
+                    renderR100Ui(msg.snapshot, msg.winner, msg.reason, msg.eloChanges);
+                    loadHomeProfile();
+                    loadLeaderboard();
+                }
+            };
+        }
+
+        function sendR100Rematch() {
+            if (r100Ws && r100Ws.readyState === 1) r100Ws.send(JSON.stringify({ type: 'REMATCH' }));
+        }
+
+        function copyR100InviteLink() {
+            if (!r100RoomCode) return;
+            const url = `${location.origin}/?mode=rush100&room=${r100RoomCode}`;
+            navigator.clipboard?.writeText(url).catch(() => {});
+            const btn = document.getElementById('r100CopyBtn');
+            btn.textContent = 'Invite Link Copied!';
+            setTimeout(() => { btn.textContent = 'Copy Invite Link'; }, 2000);
+        }
+
+        function renderR100Ui(snap, winner, reason, eloChanges) {
+            r100LastSnap = snap;
+            document.getElementById('r100RoomTag').textContent = `ROOM ${snap.code}`;
+            document.getElementById('r100ShareCode').textContent = snap.code;
+            document.getElementById('r100TurnBadge').textContent = `TURN ${snap.turnsPlayed || 0} / ${snap.maxTurns || 70}`;
+
+            document.getElementById('r100WaitingBox').classList.toggle('hidden', snap.state !== 'WAITING');
+            document.getElementById('r100PlayArea').classList.toggle('hidden', snap.state === 'WAITING');
+            document.getElementById('r100OverBox').classList.toggle('hidden', snap.state !== 'FINISHED');
+
+            if (snap.state !== 'WAITING') {
+                requestAnimationFrame(resizeR100Canvas);
+                const myCount = r100Side === 0 ? snap.counts.c0 : snap.counts.c1;
+                const oppCount = r100Side === 0 ? snap.counts.c1 : snap.counts.c0;
+                const opp = (snap.players || []).find(p => p.id !== r100SelfId);
+                document.getElementById('r100BlueScore').textContent = `YOU: ${myCount}`;
+                document.getElementById('r100RedScore').textContent = `${opp ? opp.name : 'RIVAL'}: ${oppCount}`;
+                document.getElementById('r100BlueBar').style.width = `${myCount}%`;
+                document.getElementById('r100RedBar').style.width = `${oppCount}%`;
+
+                const myTurn = snap.state === 'PLAYING' && snap.turnSide === r100Side;
+                const stEl = document.getElementById('r100TurnStatus');
+                stEl.textContent = snap.state === 'FINISHED'
+                    ? 'MATCH OVER'
+                    : (myTurn ? (snap.dropsLeftThisTurn > 1 ? 'YOUR TURN (2 DROPS!)' : 'YOUR TURN!') : `${opp ? opp.name : 'RIVAL'}'S TURN...`);
+                stEl.style.color = myTurn ? '#34d399' : '#fde68a';
+
+                if (snap.lastEvent && snap.lastEvent.text) {
+                    document.getElementById('r100EventFeed').textContent = snap.lastEvent.text;
+                }
+
+                // Render Earned Power-Up Buttons
+                const bar = document.getElementById('r100PowerupBar');
+                bar.innerHTML = '';
+                const myPows = snap.myPowerups || [];
+                if (myPows.length === 0) {
+                    const empty = document.createElement('span');
+                    empty.style.cssText = 'font-size:11px; color:#94a3b8;';
+                    empty.textContent = 'Connect 4-in-a-row to earn your first Power-Up!';
+                    bar.appendChild(empty);
+                } else {
+                    myPows.forEach(pid => {
+                        const p = r100PowerupMap[pid];
+                        if (!p) return;
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'r100-pow-btn' + (r100ArmedPowerup === pid ? ' armed' : '');
+                        btn.style.borderColor = r100ArmedPowerup === pid ? '#38bdf8' : p.color;
+                        btn.disabled = !myTurn || snap.usedPowerupThisTurn;
+                        btn.title = p.desc;
+                        btn.textContent = r100ArmedPowerup === pid ? `CLICK BOARD: ${p.name}` : p.name;
+                        btn.onclick = () => {
+                            if (p.target === 'instant') {
+                                r100ArmedPowerup = null;
+                                r100Ws.send(JSON.stringify({ type: 'USE_POWERUP', powerupId: pid, row: 0, col: 0 }));
+                                playSfx(620, 0.14, 'triangle', 0.15);
+                            } else {
+                                r100ArmedPowerup = r100ArmedPowerup === pid ? null : pid;
+                                renderR100Ui(snap);
+                            }
+                        };
+                        bar.appendChild(btn);
+                    });
+                }
+            }
+
+            if (snap.state === 'FINISHED') {
+                const iWon = Boolean(winner && winner.id === r100SelfId);
+                const isDraw = !winner;
+                const hl = document.getElementById('r100OverHeadline');
+                hl.textContent = isDraw ? 'BOARD TIED!' : (iWon ? 'BOARD DOMINATED — YOU WIN!' : `${winner.name.toUpperCase()} WINS!`);
+                hl.style.color = isDraw ? '#fde047' : (iWon ? '#34d399' : '#fb7185');
+                document.getElementById('r100OverSub').textContent = reason || 'Match complete.';
+                if (iWon) {
+                    playSfx(523, 0.14, 'triangle', 0.16, 0);
+                    playSfx(659, 0.14, 'triangle', 0.16, 0.12);
+                    playSfx(784, 0.25, 'triangle', 0.18, 0.24);
+                } else {
+                    playSfx(240, 0.2, 'sawtooth', 0.14, 0);
+                    playSfx(160, 0.28, 'sawtooth', 0.14, 0.16);
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                const eloEl = document.getElementById('r100OverElo');
+                const myChange = eloChanges && eloChanges[r100SelfId];
+                if (myChange) {
+                    const sign = myChange.delta >= 0 ? '+' : '';
+                    const xpTxt = myChange.xpGained ? ` • +${myChange.xpGained} XP` : '';
+                    const lvlTxt = myChange.leveledUp && myChange.levelInfo ? ` • LEVEL UP -> LVL ${myChange.levelInfo.level}!` : '';
+                    eloEl.textContent = `${myChange.oldElo} -> ${myChange.newElo} ELO (${sign}${myChange.delta})${xpTxt}${lvlTxt}`;
+                    eloEl.style.color = myChange.leveledUp ? '#fde047' : (myChange.delta >= 0 ? '#34d399' : '#fb7185');
+                    eloEl.classList.remove('hidden');
+                } else {
+                    eloEl.classList.add('hidden');
+                }
+            }
+        }
+
         // Auto-join if opened via ?room=XXXX or ?mode=...&room=XXXX invite link
         (function checkInviteRoomParam() {
             try {
@@ -6161,6 +6790,9 @@
                     } else if (modeParam === 'clash') {
                         selectGameHubMode('clash');
                         setTimeout(() => startClash('private', room), 250);
+                    } else if (modeParam === 'rush100') {
+                        selectGameHubMode('rush100');
+                        setTimeout(() => startRush100('private', room), 250);
                     } else {
                         setTimeout(() => startDuel('private', room), 250);
                     }

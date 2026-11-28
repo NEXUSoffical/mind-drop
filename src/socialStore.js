@@ -190,7 +190,7 @@ class SocialStore {
         if (!myFriends.includes(toUserId)) {
             return { error: 'You can only invite players on your friends list.' };
         }
-        const cleanGame = ['pass', 'quickdraw', 'bounty', 'clash'].includes(game) ? game : 'duel';
+        const cleanGame = ['pass', 'quickdraw', 'bounty', 'clash', 'rush100'].includes(game) ? game : 'duel';
         const cleanCode = String(roomCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
         if (cleanCode.length !== 4) return { error: 'Invalid room code.' };
 
@@ -200,6 +200,7 @@ class SocialStore {
             quickdraw: 'Quick-Draw Trivia',
             bounty: 'Bounty Hunt',
             clash: 'Canyon Wars',
+            rush100: 'Gold Rush 100',
         };
         const delivered = this._pushToUser(toUserId, {
             type: 'GAME_INVITE',

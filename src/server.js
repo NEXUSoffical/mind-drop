@@ -12,12 +12,13 @@ const passEngine = require('./passEngine');
 const quickDrawEngine = require('./quickDrawEngine');
 const bountyHuntEngine = require('./bountyHuntEngine');
 const clashEngine = require('./clashEngine');
+const rush100Engine = require('./rush100Engine');
 const eloStore = require('./eloStore');
 const authStore = require('./authStore');
 const socialStore = require('./socialStore');
 const bloxCloud = require('./bloxCloudClient');
 
-engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players + bountyHuntEngine.getStats().players + clashEngine.getStats().players);
+engine.setExtraPlayerCountFn(() => passEngine.getHumanCount() + quickDrawEngine.getStats().players + bountyHuntEngine.getStats().players + clashEngine.getStats().players + rush100Engine.getStats().players);
 
 const app = express();
 const port = process.env.PORT || 3005;
@@ -50,6 +51,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/live-counts', (req, res) => {
     const games = {
         clash: clashEngine.getStats().players,
+        rush100: rush100Engine.getStats().players,
         bounty: bountyHuntEngine.getStats().players,
         duel: engine.getHumanCount(),
         pass: passEngine.getHumanCount(),
@@ -61,6 +63,10 @@ app.get('/api/live-counts', (req, res) => {
 
 app.get('/api/clash/cards', (req, res) => {
     res.json({ cards: clashEngine.getCards() });
+});
+
+app.get('/api/rush100/powerups', (req, res) => {
+    res.json({ powerups: rush100Engine.getPowerups() });
 });
 
 app.post('/api/auth/register', (req, res) => {
@@ -207,6 +213,17 @@ wss.on('connection', (ws, req) => {
                 profileId: payload.profileId,
                 authUser: authedUser,
                 deck,
+            });
+        } else if (url.pathname === '/ws/rush100') {
+            const loadRaw = url.searchParams.get('loadout') || '';
+            const loadout = loadRaw ? loadRaw.split(',').map(s => s.trim()).filter(Boolean) : null;
+            rush100Engine.joinRush100(ws, {
+                mode: payload.mode,
+                roomCode: payload.code,
+                name: payload.name,
+                profileId: payload.profileId,
+                authUser: authedUser,
+                loadout,
             });
         } else {
             engine.joinOrCreateDuel(payload);
