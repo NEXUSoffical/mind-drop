@@ -6407,7 +6407,109 @@
         let r100HoverCell = null; // { r, c }
         let r100HighlightUntil = 0;
         let r100HighlightCells = [];
-        let r100BlastFX = []; // { r, c, color, life }
+        let r100BlastFX = []; // legacy cell rings
+        let r100Vfx = {
+            shake: 0,
+            fireballs: [], // { x, y, maxR, life, color }
+            beams: [],     // { kind: 'col'|'row'|'cross', r, c, span, life, color }
+            particles: [], // { x, y, vx, vy, r, color, life, smoke }
+            callout: null, // { text, color, life }
+        };
+
+        function triggerR100PowerupFX(evObj) {
+            if (!evObj || !evObj.powerupId) return;
+            const pid = evObj.powerupId;
+            const pad = 14;
+            const cell = (r100sz - pad * 2) / 10;
+            const tr = Number.isInteger(evObj.targetRow) ? evObj.targetRow : 5;
+            const tc = Number.isInteger(evObj.targetCol) ? evObj.targetCol : 4;
+            const cx = pad + tc * cell + cell * 0.5;
+            const cy = pad + tr * cell + cell * 0.5;
+            const affected = Array.isArray(evObj.affected) ? evObj.affected : [];
+
+            const spawnParticles = (px, py, count, colors, speedMax = 9, withSmoke = false) => {
+                for (let i = 0; i < count; i++) {
+                    const a = Math.random() * Math.PI * 2;
+                    const sp = 1.5 + Math.random() * speedMax;
+                    const isSmoke = withSmoke && i > count * 0.68;
+                    r100Vfx.particles.push({
+                        x: px + (Math.random() - 0.5) * 10,
+                        y: py + (Math.random() - 0.5) * 10,
+                        vx: Math.cos(a) * sp,
+                        vy: Math.sin(a) * sp - (isSmoke ? 1.5 : 2),
+                        r: isSmoke ? (8 + Math.random() * 12) : (2.5 + Math.random() * 5),
+                        color: isSmoke ? '#292524' : colors[Math.floor(Math.random() * colors.length)],
+                        life: 0.75 + Math.random() * 0.45,
+                        smoke: isSmoke,
+                    });
+                }
+            };
+
+            if (pid === 'dynamite' || pid === 'quake') {
+                const isMega = pid === 'quake';
+                r100Vfx.shake = isMega ? 18 : 11;
+                playBoomSfx();
+                r100Vfx.fireballs.push({ x: cx, y: cy, maxR: cell * (isMega ? 3.4 : 2.1), life: 1, color: '#f97316' });
+                spawnParticles(cx, cy, isMega ? 85 : 50, ['#ffffff', '#fef08a', '#fbbf24', '#f97316', '#dc2626'], isMega ? 12 : 8.5, true);
+                r100Vfx.callout = { text: isMega ? 'MEGA BLAST 5X5!' : 'BOOM!', color: '#fde047', life: 1 };
+            } else if (pid === 'column_nuke' || pid === 'rail_barrage') {
+                const isTriple = pid === 'rail_barrage';
+                r100Vfx.shake = isTriple ? 16 : 10;
+                playBoomSfx();
+                playSfx(920, 0.25, 'sawtooth', 0.14);
+                const cols = isTriple ? [tc - 1, tc, tc + 1].filter(c => c >= 0 && c <= 9) : [tc];
+                cols.forEach(c => {
+                    r100Vfx.beams.push({ kind: 'col', c, r: 0, life: 1, color: '#38bdf8' });
+                    const bx = pad + c * cell + cell * 0.5;
+                    for (let k = 0; k < 4; k++) {
+                        spawnParticles(bx, pad + (k * 2.5 + 1) * cell, 10, ['#ffffff', '#bae6fd', '#38bdf8', '#0ea5e9'], 7, false);
+                    }
+                });
+                r100Vfx.callout = { text: isTriple ? 'TRIPLE RAILGUN!' : 'RAILGUN!', color: '#38bdf8', life: 1 };
+            } else if (pid === 'row_sweep') {
+                r100Vfx.shake = 10;
+                playBoomSfx();
+                r100Vfx.beams.push({ kind: 'row', r: tr, c: 0, life: 1, color: '#fbbf24' });
+                for (let k = 0; k < 5; k++) {
+                    spawnParticles(pad + (k * 2 + 1) * cell, cy, 10, ['#ffffff', '#fef08a', '#fbbf24', '#f97316'], 6.5, false);
+                }
+                r100Vfx.callout = { text: 'GOLD ROW SWEEP!', color: '#fde047', life: 1 };
+            } else if (pid === 'cross_blast') {
+                r100Vfx.shake = 12;
+                playBoomSfx();
+                r100Vfx.beams.push({ kind: 'cross', r: tr, c: tc, life: 1, color: '#f97316' });
+                r100Vfx.fireballs.push({ x: cx, y: cy, maxR: cell * 1.9, life: 1, color: '#fb923c' });
+                spawnParticles(cx, cy, 55, ['#ffffff', '#fef08a', '#fb923c', '#ef4444'], 9.5, true);
+                r100Vfx.callout = { text: 'CROSSHAIR BLAST!', color: '#fb923c', life: 1 };
+            } else if (pid === 'sniper_shot') {
+                r100Vfx.shake = 6;
+                playSfx(180, 0.14, 'sawtooth', 0.18);
+                r100Vfx.fireballs.push({ x: cx, y: cy, maxR: cell * 1.25, life: 1, color: '#f43f5e' });
+                spawnParticles(cx, cy, 26, ['#ffffff', '#fda4af', '#f43f5e', '#fde047'], 7.5, false);
+                r100Vfx.callout = { text: 'SNIPED!', color: '#fb7185', life: 1 };
+            } else if (pid === 'convert' || pid === 'vortex_flip' || pid === 'pickpocket' || pid === 'magnet') {
+                r100Vfx.shake = 5;
+                playSfx(620, 0.12, 'triangle', 0.14);
+                playSfx(940, 0.2, 'triangle', 0.14, 0.08);
+                const pts = affected.length > 0 ? affected : [[tr, tc]];
+                pts.forEach(([rr, cc]) => {
+                    const px = pad + cc * cell + cell * 0.5;
+                    const py = pad + rr * cell + cell * 0.5;
+                    r100Vfx.fireballs.push({ x: px, y: py, maxR: cell * 1.1, life: 1, color: '#c084fc' });
+                    spawnParticles(px, py, 14, ['#ffffff', '#e9d5ff', '#c084fc', '#fde047'], 5.5, false);
+                });
+                r100Vfx.callout = { text: pid === 'magnet' ? 'GRAND HEIST!' : 'CONVERTED!', color: '#e9d5ff', life: 1 };
+            } else if (pid === 'gold_rain') {
+                r100Vfx.shake = 8;
+                playSfx(740, 0.18, 'triangle', 0.15);
+                affected.forEach(([rr, cc]) => {
+                    const px = pad + cc * cell + cell * 0.5;
+                    const py = pad + rr * cell + cell * 0.5;
+                    spawnParticles(px, py, 16, ['#ffffff', '#fef08a', '#facc15', '#38bdf8'], 6, false);
+                });
+                r100Vfx.callout = { text: 'GOLD RUSH RAIN!', color: '#fde047', life: 1 };
+            }
+        }
         let r100ClockInt = null;
         let r100MatchEndsAt = 0;
 
@@ -6737,6 +6839,16 @@
             const board = snap.board || [];
             const myTurn = snap.state === 'PLAYING' && snap.turnSide === r100Side;
 
+            r100Ctx.save();
+            if (r100Vfx.shake > 0.2) {
+                const sx = (Math.random() - 0.5) * r100Vfx.shake;
+                const sy = (Math.random() - 0.5) * r100Vfx.shake;
+                r100Ctx.translate(sx, sy);
+                r100Vfx.shake *= 0.86;
+            } else {
+                r100Vfx.shake = 0;
+            }
+
             // Rich mahogany saloon wood board with subtle plank seams
             const grad = r100Ctx.createLinearGradient(0, 0, 0, r100sz);
             grad.addColorStop(0, '#854014');
@@ -6844,26 +6956,119 @@
                 drawR100Coin(r100Ctx, cx, r100DropAnim.y, cell * 0.39, r100DropAnim.side === r100Side, Boolean(r100DropAnim.steel));
             }
 
-            // Explosion / Convert FX bursts
-            for (let i = r100BlastFX.length - 1; i >= 0; i--) {
-                const fx = r100BlastFX[i];
-                fx.life -= 0.032;
-                if (fx.life <= 0) { r100BlastFX.splice(i, 1); continue; }
-                const cx = pad + fx.c * cell + cell * 0.5;
-                const cy = pad + fx.r * cell + cell * 0.5;
+            // 1. Blazing Railgun Columns, Gold Row Sweeps & Crosshair Beams
+            for (let i = r100Vfx.beams.length - 1; i >= 0; i--) {
+                const b = r100Vfx.beams[i];
+                b.life -= 0.032;
+                if (b.life <= 0) { r100Vfx.beams.splice(i, 1); continue; }
                 r100Ctx.save();
-                r100Ctx.globalAlpha = Math.max(0, fx.life);
-                r100Ctx.fillStyle = fx.color || '#fde047';
-                r100Ctx.beginPath();
-                r100Ctx.arc(cx, cy, cell * 0.45 * fx.life, 0, Math.PI * 2);
-                r100Ctx.fill();
-                r100Ctx.strokeStyle = '#fffbeb';
-                r100Ctx.lineWidth = 2.6;
-                r100Ctx.beginPath();
-                r100Ctx.arc(cx, cy, cell * (0.3 + (1 - fx.life) * 0.8), 0, Math.PI * 2);
-                r100Ctx.stroke();
+                r100Ctx.globalAlpha = Math.max(0, b.life);
+                if (b.kind === 'col') {
+                    const bx = pad + b.c * cell + cell * 0.5;
+                    const bw = cell * (0.45 + b.life * 0.65);
+                    r100Ctx.fillStyle = b.color;
+                    r100Ctx.fillRect(bx - bw * 0.5, 0, bw, r100sz);
+                    r100Ctx.fillStyle = '#ffffff';
+                    r100Ctx.fillRect(bx - bw * 0.18, 0, bw * 0.36, r100sz);
+                    // Jagged electric bolt down the center
+                    r100Ctx.strokeStyle = '#e0f2fe';
+                    r100Ctx.lineWidth = 3;
+                    r100Ctx.beginPath();
+                    for (let y = 0; y <= r100sz; y += 22) {
+                        const jx = bx + (Math.random() - 0.5) * cell * 0.55;
+                        if (y === 0) r100Ctx.moveTo(jx, y); else r100Ctx.lineTo(jx, y);
+                    }
+                    r100Ctx.stroke();
+                } else if (b.kind === 'row') {
+                    const by = pad + b.r * cell + cell * 0.5;
+                    const bh = cell * (0.45 + b.life * 0.65);
+                    const rg = r100Ctx.createLinearGradient(0, by - bh * 0.5, 0, by + bh * 0.5);
+                    rg.addColorStop(0, 'rgba(234,88,12,0)');
+                    rg.addColorStop(0.5, '#fde047');
+                    rg.addColorStop(1, 'rgba(234,88,12,0)');
+                    r100Ctx.fillStyle = rg;
+                    r100Ctx.fillRect(0, by - bh * 0.5, r100sz, bh);
+                    r100Ctx.fillStyle = '#ffffff';
+                    r100Ctx.fillRect(0, by - bh * 0.14, r100sz, bh * 0.28);
+                } else if (b.kind === 'cross') {
+                    const bx = pad + b.c * cell + cell * 0.5;
+                    const by = pad + b.r * cell + cell * 0.5;
+                    const arm = cell * 2.55;
+                    const w = cell * (0.4 + b.life * 0.5);
+                    r100Ctx.fillStyle = '#f97316';
+                    r100Ctx.fillRect(bx - arm, by - w * 0.5, arm * 2, w);
+                    r100Ctx.fillRect(bx - w * 0.5, by - arm, w, arm * 2);
+                    r100Ctx.fillStyle = '#fef08a';
+                    r100Ctx.fillRect(bx - arm, by - w * 0.2, arm * 2, w * 0.4);
+                    r100Ctx.fillRect(bx - w * 0.2, by - arm, w * 0.4, arm * 2);
+                }
                 r100Ctx.restore();
             }
+
+            // 2. Massive Expanding Fiery Fireballs & Shockwave Rings
+            for (let i = r100Vfx.fireballs.length - 1; i >= 0; i--) {
+                const f = r100Vfx.fireballs[i];
+                f.life -= 0.028;
+                if (f.life <= 0) { r100Vfx.fireballs.splice(i, 1); continue; }
+                const p = 1 - f.life;
+                const rad = Math.max(8, f.maxR * Math.pow(p, 0.42));
+                r100Ctx.save();
+                const fg = r100Ctx.createRadialGradient(f.x, f.y, rad * 0.1, f.x, f.y, rad);
+                fg.addColorStop(0, `rgba(255, 255, 255, ${f.life})`);
+                fg.addColorStop(0.32, `rgba(253, 224, 71, ${f.life * 0.92})`);
+                fg.addColorStop(0.68, `rgba(234, 88, 12, ${f.life * 0.72})`);
+                fg.addColorStop(1, 'rgba(153, 27, 27, 0)');
+                r100Ctx.fillStyle = fg;
+                r100Ctx.beginPath(); r100Ctx.arc(f.x, f.y, rad, 0, Math.PI * 2); r100Ctx.fill();
+                // Bright shockwave ring
+                r100Ctx.strokeStyle = f.color || '#fde047';
+                r100Ctx.globalAlpha = Math.max(0, f.life * 0.9);
+                r100Ctx.lineWidth = Math.max(1.5, 6 * f.life);
+                r100Ctx.beginPath(); r100Ctx.arc(f.x, f.y, rad * 1.15, 0, Math.PI * 2); r100Ctx.stroke();
+                r100Ctx.restore();
+            }
+
+            // 3. Flying Embers, Sparks & Billowing Smoke Clouds
+            for (let i = r100Vfx.particles.length - 1; i >= 0; i--) {
+                const pt = r100Vfx.particles[i];
+                pt.life -= pt.smoke ? 0.02 : 0.028;
+                if (pt.life <= 0) { r100Vfx.particles.splice(i, 1); continue; }
+                pt.x += pt.vx; pt.y += pt.vy;
+                pt.vx *= 0.95;
+                pt.vy = pt.vy * 0.95 + (pt.smoke ? -0.06 : 0.24);
+                if (pt.smoke) pt.r += 0.35;
+                r100Ctx.save();
+                r100Ctx.globalAlpha = Math.max(0, Math.min(1, pt.life));
+                r100Ctx.fillStyle = pt.color;
+                r100Ctx.beginPath(); r100Ctx.arc(pt.x, pt.y, Math.max(1, pt.r), 0, Math.PI * 2); r100Ctx.fill();
+                r100Ctx.restore();
+            }
+
+            // 4. Giant Western Impact Callout Banner ("BOOM!", "MEGA BLAST 5X5!", "RAILGUN!")
+            if (r100Vfx.callout) {
+                const co = r100Vfx.callout;
+                co.life -= 0.022;
+                if (co.life <= 0) {
+                    r100Vfx.callout = null;
+                } else {
+                    const scale = 0.8 + Math.min(0.32, (1 - co.life) * 1.4);
+                    r100Ctx.save();
+                    r100Ctx.translate(r100sz * 0.5, r100sz * 0.48);
+                    r100Ctx.scale(scale, scale);
+                    r100Ctx.globalAlpha = Math.min(1, co.life * 2);
+                    r100Ctx.font = '400 34px "Rye", serif';
+                    r100Ctx.textAlign = 'center';
+                    r100Ctx.textBaseline = 'middle';
+                    r100Ctx.lineWidth = 7;
+                    r100Ctx.strokeStyle = '#450a0a';
+                    r100Ctx.strokeText(co.text, 0, 0);
+                    r100Ctx.fillStyle = co.color || '#fde047';
+                    r100Ctx.fillText(co.text, 0, 0);
+                    r100Ctx.restore();
+                }
+            }
+
+            r100Ctx.restore();
         }
         requestAnimationFrame(renderR100CanvasFrame);
 
@@ -6955,9 +7160,8 @@
                         playSfx(660, 0.12, 'triangle', 0.15);
                         playSfx(990, 0.18, 'triangle', 0.15, 0.08);
                     }
-                    if (evObj && evObj.affected && evObj.affected.length > 0) {
-                        const col = (r100PowerupMap[evObj.powerupId] || {}).color || '#fde047';
-                        evObj.affected.forEach(([rr, cc]) => r100BlastFX.push({ r: rr, c: cc, color: col, life: 1 }));
+                    if (evObj && evObj.type === 'POWERUP') {
+                        triggerR100PowerupFX(evObj);
                     }
                     renderR100Ui(msg.snapshot);
                 } else if (msg.type === 'R100_GAME_OVER') {

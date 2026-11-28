@@ -636,6 +636,8 @@ class Rush100Engine {
             type: 'POWERUP',
             powerupId,
             side: player.side,
+            targetRow: Number.isInteger(targetRow) ? targetRow : 5,
+            targetCol: Number.isInteger(targetCol) ? targetCol : 4,
             affected,
             highlightCells: chainAwarded.flatMap(a => a.cells),
             text: chainAwarded.length > 0 ? `${msg} CHAIN COMBO!` : msg,
