@@ -1204,14 +1204,14 @@
             <div class="portal-grid">
                 <div class="game-tile" data-cat="strategy" onclick="openGameLobby('clash')">
                     <div class="game-tile-art-wrap">
-                        <img class="game-tile-art" src="/frontier-clash-poster.jpg?v=1" alt="Frontier Clash Real-Time Strategy">
+                        <img class="game-tile-art" src="/canyon-wars-poster.jpg?v=1" alt="Canyon Wars Real-Time Strategy">
                         <span class="live-count-pill mono" data-live-game="clash"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
                     </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">NEW • 16-CARD DECK STRATEGY</span>
-                        <div class="game-tile-title">Frontier Clash</div>
+                        <div class="game-tile-title">Canyon Wars</div>
                         <div class="game-tile-desc">Build your 8-card Wild West battle deck from 16 unique troops &amp; spells. Spend Gunpowder to march across twin canyon bridges and topple enemy forts.</div>
-                        <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Frontier Clash</button>
+                        <button type="button" class="btn btn-rose" style="margin-top:6px; width:100%;">Play Canyon Wars</button>
                     </div>
                 </div>
 
@@ -1637,7 +1637,7 @@
         <section id="viewClash" class="card hidden">
             <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:10px; max-width:440px; margin-left:auto; margin-right:auto;">
                 <div>
-                    <span class="tier-badge tier-LEGENDARY">FRONTIER CLASH • 1V1</span>
+                    <span class="tier-badge tier-LEGENDARY">CANYON WARS • 1V1</span>
                     <span id="clashDoubleBadge" class="elo-pill mono hidden" style="color:#fb923c; border-color:#fb923c;">2X POWDER!</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -2639,7 +2639,7 @@
                         const invCl = document.createElement('button');
                         invCl.className = 'btn btn-ghost';
                         invCl.style.cssText = 'padding:5px 8px; font-size:10px; border-color:#c084fc; color:#e9d5ff;';
-                        invCl.textContent = 'Invite Clash';
+                        invCl.textContent = 'Invite Canyon Wars';
                         invCl.onclick = () => inviteFriendToGame(f.id, f.username, 'clash');
                         right.append(invDuel, invPass, invQd, invBh, invCl);
                     } else {
@@ -3191,7 +3191,7 @@
                 ? 'Dynamite Pass'
                 : (isQd ? 'Quick-Draw Trivia'
                     : (isBh ? 'Bounty Hunt'
-                        : (isCl ? 'Frontier Clash' : 'High-Noon Showdown')));
+                        : (isCl ? 'Canyon Wars' : 'High-Noon Showdown')));
             document.getElementById('lobbyDesc').textContent = isPass
                 ? 'One category, 15 seconds per turn. Name a valid unused answer to pass the lit dynamite — first player to run out of time explodes.'
                 : (isQd
@@ -3205,12 +3205,12 @@
                 ? 'Quick Online Dynamite Pass'
                 : (isQd ? 'Quick Online Quick-Draw'
                     : (isBh ? 'Quick Online Bounty Hunt'
-                        : (isCl ? 'Quick 1v1 Frontier Clash' : 'Quick 1v1 Online Match')));
+                        : (isCl ? 'Quick 1v1 Canyon Wars' : 'Quick 1v1 Online Match')));
             document.getElementById('btnPlayAi').textContent = isPass
                 ? 'Instant Dynamite Pass vs AI'
                 : (isQd ? 'Instant Quick-Draw vs AI'
                     : (isBh ? 'Instant Bounty Hunt vs AI'
-                        : (isCl ? 'Instant Frontier Clash vs AI' : 'Instant 1v1 vs AI Fighter')));
+                        : (isCl ? 'Instant Canyon Wars vs AI' : 'Instant 1v1 vs AI Fighter')));
             document.getElementById('lobbyDuelLegend').classList.toggle('hidden', isPass || isQd || isBh || isCl);
             document.getElementById('lobbyPassLegend').classList.toggle('hidden', !isPass);
             document.getElementById('lobbyQdLegend').classList.toggle('hidden', !isQd);

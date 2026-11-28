@@ -199,7 +199,7 @@ class SocialStore {
             pass: 'Dynamite Pass',
             quickdraw: 'Quick-Draw Trivia',
             bounty: 'Bounty Hunt',
-            clash: 'Frontier Clash',
+            clash: 'Canyon Wars',
         };
         const delivered = this._pushToUser(toUserId, {
             type: 'GAME_INVITE',
