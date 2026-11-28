@@ -37,6 +37,14 @@ class DuelCombatEngine {
         this.extraPlayerCountFn = fn;
     }
 
+    getHumanCount() {
+        let humans = 0;
+        for (const d of this.duels.values()) {
+            for (const p of d.players) if (!p.isBot) humans++;
+        }
+        return humans;
+    }
+
     _startBloxCloudTelemetry() {
         const apiKey = (process.env.BLOXCLOUD_API_KEY || '').trim();
         const baseUrl = (process.env.BLOXCLOUD_URL || 'https://bloxcloud.world').replace(/\/$/, '');

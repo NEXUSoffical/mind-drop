@@ -47,6 +47,18 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+app.get('/api/live-counts', (req, res) => {
+    const games = {
+        clash: clashEngine.getStats().players,
+        bounty: bountyHuntEngine.getStats().players,
+        duel: engine.getHumanCount(),
+        pass: passEngine.getHumanCount(),
+        quickdraw: quickDrawEngine.getStats().players,
+    };
+    const totalPlaying = Object.values(games).reduce((s, n) => s + n, 0);
+    res.json({ totalPlaying, games });
+});
+
 app.post('/api/auth/register', (req, res) => {
     const { username, password, guestPid } = req.body || {};
     const out = authStore.register(username, password);

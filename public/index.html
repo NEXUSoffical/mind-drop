@@ -589,12 +589,50 @@
             border-color: #fde047;
             box-shadow: 0 22px 54px rgba(245, 158, 11, 0.25);
         }
-        .game-tile-art {
+        .game-tile-art-wrap {
+            position: relative;
             width: 100%;
             aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: linear-gradient(135deg, #451a03, #7f1d1d);
+        }
+        .game-tile-art {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             display: block;
-            background: linear-gradient(135deg, #451a03, #7f1d1d);
+        }
+        .live-count-pill {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(12, 6, 4, 0.84);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(245, 158, 11, 0.42);
+            color: #fef3c7;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+            display: inline-block;
+        }
+        .live-count-pill.active {
+            border-color: rgba(52, 211, 153, 0.65);
+            color: #ecfdf5;
+        }
+        .live-count-pill.active .live-dot {
+            background: #34d399;
+            box-shadow: 0 0 8px #34d399;
         }
         .game-tile-body {
             padding: 16px;
@@ -1072,12 +1110,16 @@
                 <button type="button" class="cat-pill" data-filter="strategy" onclick="filterGameCatalog('strategy')">Action &amp; Strategy</button>
                 <button type="button" class="cat-pill" data-filter="party" onclick="filterGameCatalog('party')">Search &amp; Party</button>
                 <button type="button" class="cat-pill" data-filter="trivia" onclick="filterGameCatalog('trivia')">Trivia &amp; Word</button>
+                <span id="portalTotalPlaying" class="cat-pill mono" style="cursor:default; display:inline-flex; align-items:center; gap:6px;"><span id="portalTotalDot" class="live-dot"></span><span id="portalTotalText">0 Playing Now</span></span>
             </div>
 
             <!-- Big Visual Game Catalog -->
             <div class="portal-grid">
                 <div class="game-tile" data-cat="strategy" onclick="openGameLobby('clash')">
-                    <img class="game-tile-art" src="/frontier-clash-poster.jpg?v=1" alt="Frontier Clash Real-Time Strategy">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/frontier-clash-poster.jpg?v=1" alt="Frontier Clash Real-Time Strategy">
+                        <span class="live-count-pill mono" data-live-game="clash"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">NEW • REAL-TIME 1V1 STRATEGY</span>
                         <div class="game-tile-title">Frontier Clash</div>
@@ -1087,7 +1129,10 @@
                 </div>
 
                 <div class="game-tile" data-cat="party" onclick="openGameLobby('bounty')">
-                    <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/bounty-hunt-poster.jpg?v=1" alt="Bounty Hunt Hidden Objects">
+                        <span class="live-count-pill mono" data-live-game="bounty"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">2-8 PLAYERS • 6 SCENES</span>
                         <div class="game-tile-title">Bounty Hunt</div>
@@ -1097,7 +1142,10 @@
                 </div>
 
                 <div class="game-tile" data-cat="trivia" onclick="openGameLobby('duel')">
-                    <img class="game-tile-art" src="/high-noon-poster.jpg?v=1" alt="High-Noon Rarity Showdown">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/high-noon-poster.jpg?v=1" alt="High-Noon Rarity Showdown">
+                        <span class="live-count-pill mono" data-live-game="duel"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">1V1 RARITY COMBAT</span>
                         <div class="game-tile-title">High-Noon Showdown</div>
@@ -1107,7 +1155,10 @@
                 </div>
 
                 <div class="game-tile" data-cat="party" onclick="openGameLobby('pass')">
-                    <img class="game-tile-art" src="/dynamite-pass-poster.jpg?v=1" alt="Dynamite Pass 15s Hot Potato">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/dynamite-pass-poster.jpg?v=1" alt="Dynamite Pass 15s Hot Potato">
+                        <span class="live-count-pill mono" data-live-game="pass"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">2-8 PLAYERS • HOT POTATO</span>
                         <div class="game-tile-title">Dynamite Pass</div>
@@ -1117,7 +1168,10 @@
                 </div>
 
                 <div class="game-tile" data-cat="trivia" onclick="openGameLobby('quickdraw')">
-                    <img class="game-tile-art" src="/quick-draw-poster.jpg?v=1" alt="Quick-Draw Trivia First-to-Buzz">
+                    <div class="game-tile-art-wrap">
+                        <img class="game-tile-art" src="/quick-draw-poster.jpg?v=1" alt="Quick-Draw Trivia First-to-Buzz">
+                        <span class="live-count-pill mono" data-live-game="quickdraw"><span class="live-dot"></span><span class="live-num">0</span> Playing</span>
+                    </div>
                     <div class="game-tile-body">
                         <span class="game-tile-tag">2-8 PLAYERS • FIRST TO 7</span>
                         <div class="game-tile-title">Quick-Draw Trivia</div>
@@ -2643,6 +2697,7 @@
             updateAuthUi(null);
             loadHomeProfile();
             loadLeaderboard();
+            loadLiveCounts();
         }
 
         function applyProfileToHome(p) {
@@ -2787,8 +2842,40 @@
             } catch {}
         }
 
+        async function loadLiveCounts() {
+            try {
+                const res = await fetch('/api/live-counts');
+                if (!res.ok) return;
+                const data = await res.json();
+                const games = data.games || {};
+                const total = Number(data.totalPlaying) || 0;
+
+                const totalText = document.getElementById('portalTotalText');
+                const totalDot = document.getElementById('portalTotalDot');
+                const totalPill = document.getElementById('portalTotalPlaying');
+                if (totalText) totalText.textContent = `${total} Playing Now`;
+                if (totalDot) {
+                    totalDot.style.background = total > 0 ? '#34d399' : '#64748b';
+                    totalDot.style.boxShadow = total > 0 ? '0 0 8px #34d399' : 'none';
+                }
+                if (totalPill) totalPill.style.borderColor = total > 0 ? 'rgba(52,211,153,0.65)' : 'rgba(245,158,11,0.35)';
+
+                document.querySelectorAll('[data-live-game]').forEach(pill => {
+                    const gKey = pill.dataset.liveGame;
+                    const count = Number(games[gKey]) || 0;
+                    const numEl = pill.querySelector('.live-num');
+                    if (numEl) numEl.textContent = String(count);
+                    pill.classList.toggle('active', count > 0);
+                });
+            } catch {}
+        }
+
         loadHomeProfile();
         loadLeaderboard();
+        loadLiveCounts();
+        setInterval(() => {
+            if (!document.getElementById('viewHome').classList.contains('hidden')) loadLiveCounts();
+        }, 6000);
 
         function getFighterName() {
             const v = document.getElementById('fighterNameInput').value.trim();
@@ -3072,6 +3159,7 @@
             document.getElementById('viewHome').classList.remove('hidden');
             loadHomeProfile();
             loadLeaderboard();
+            loadLiveCounts();
         }
 
         // -----------------------------------------------------------
