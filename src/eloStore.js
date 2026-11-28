@@ -37,6 +37,14 @@ class EloStore {
         const remote = await bloxCloud.getJson('minddrop', 'ratings');
         if (remote && typeof remote === 'object') {
             this.ratings = { ...this.ratings, ...remote };
+            let repaired = false;
+            for (const rec of Object.values(this.ratings)) {
+                if (rec && (typeof rec.elo !== 'number' || !Number.isFinite(rec.elo))) {
+                    this._ensureXp(rec);
+                    repaired = true;
+                }
+            }
+            if (repaired) this._save();
             console.log(`[MindDrop ELO] Hydrated ${Object.keys(remote).length} ranked accounts from BloxCloud Cloud DataStore.`);
         }
     }
@@ -68,16 +76,17 @@ class EloStore {
     }
 
     getAiTierForElo(playerElo) {
-        if (playerElo >= 600) {
-            return { label: 'GRANDMASTER', skill: 'grandmaster', minDelayMs: 1800, maxDelayMs: 4000 };
+        const safeElo = Number.isFinite(Number(playerElo)) ? Number(playerElo) : 0;
+        if (safeElo >= 600) {
+            return { label: 'GRANDMASTER', skill: 'grandmaster', botElo: 700, botName: 'Marshal Vance [AI]', minDelayMs: 1800, maxDelayMs: 4000 };
         }
-        if (playerElo >= 350) {
-            return { label: 'HARD', skill: 'hard', minDelayMs: 2200, maxDelayMs: 4800 };
+        if (safeElo >= 350) {
+            return { label: 'HARD', skill: 'hard', botElo: 450, botName: 'Sheriff Colt [AI]', minDelayMs: 2200, maxDelayMs: 4800 };
         }
-        if (playerElo >= 150) {
-            return { label: 'MEDIUM', skill: 'medium', minDelayMs: 2600, maxDelayMs: 5800 };
+        if (safeElo >= 150) {
+            return { label: 'MEDIUM', skill: 'medium', botElo: 220, botName: 'Deputy Boone [AI]', minDelayMs: 2600, maxDelayMs: 5800 };
         }
-        return { label: 'EASY', skill: 'easy', minDelayMs: 3200, maxDelayMs: 6800 };
+        return { label: 'EASY', skill: 'easy', botElo: 60, botName: 'Dusty Kid [AI]', minDelayMs: 3200, maxDelayMs: 6800 };
     }
 
     getLevelInfo(totalXp = 0) {
@@ -107,6 +116,10 @@ class EloStore {
     }
 
     _ensureXp(rec) {
+        if (typeof rec.elo !== 'number' || !Number.isFinite(rec.elo)) {
+            // Auto-repair any account whose ELO was previously saved as null/NaN
+            rec.elo = Math.max(MIN_ELO, (rec.wins || 0) * 18 - (rec.losses || 0) * 10);
+        }
         if (typeof rec.xp !== 'number' || Number.isNaN(rec.xp)) {
             rec.xp = (rec.wins || 0) * 100 + (rec.losses || 0) * 35 + (rec.draws || 0) * 60;
         }
@@ -141,7 +154,9 @@ class EloStore {
     }
 
     calculateEloDelta(myElo, oppElo, score) {
-        const expected = 1 / (1 + Math.pow(10, (oppElo - myElo) / 400));
+        const safeMy = Number.isFinite(Number(myElo)) ? Number(myElo) : BASE_ELO;
+        const safeOpp = Number.isFinite(Number(oppElo)) ? Number(oppElo) : safeMy;
+        const expected = 1 / (1 + Math.pow(10, (safeOpp - safeMy) / 400));
         let delta = Math.round(K_FACTOR * (score - expected));
         if (score === 1 && delta < 5) delta = 5;
         if (score === 0 && delta > -5) delta = -5;
